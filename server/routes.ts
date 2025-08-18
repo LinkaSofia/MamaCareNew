@@ -98,11 +98,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/pregnancies", requireAuth, async (req, res) => {
     try {
       console.log("Pregnancy data received:", req.body);
-      const pregnancyData = insertPregnancySchema.parse({
-        ...req.body,
-        userId: req.session.userId!
-      });
-      console.log("Pregnancy data parsed:", pregnancyData);
+      console.log("User ID from session:", req.session.userId);
+      
+      // Manual validation first
+      const { dueDate, lastMenstrualPeriod, isActive } = req.body;
+      
+      if (!dueDate) {
+        console.error("Missing dueDate");
+        return res.status(400).json({ error: "dueDate is required" });
+      }
+      
+      // Create pregnancy data manually
+      const pregnancyData = {
+        userId: req.session.userId!,
+        dueDate: new Date(dueDate),
+        lastMenstrualPeriod: lastMenstrualPeriod ? new Date(lastMenstrualPeriod) : null,
+        isActive: isActive !== false
+      };
+      
+      console.log("Prepared pregnancy data:", pregnancyData);
       const pregnancy = await storage.createPregnancy(pregnancyData);
       res.json({ pregnancy });
     } catch (error) {

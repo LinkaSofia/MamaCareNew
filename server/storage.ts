@@ -159,10 +159,7 @@ export class DatabaseStorage implements IStorage {
 
   async createKickCount(kickCount: InsertKickCount): Promise<KickCount> {
     const [newKickCount] = await db.insert(kickCounts).values({
-      pregnancyId: kickCount.pregnancyId,
-      date: kickCount.date,
-      count: kickCount.count,
-      times: kickCount.times,
+      ...kickCount,
       id: randomUUID(),
     }).returning();
     return newKickCount;
