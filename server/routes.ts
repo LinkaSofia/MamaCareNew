@@ -96,19 +96,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/pregnancies", requireAuth, async (req, res) => {
+    const { dueDate, lastMenstrualPeriod, isActive } = req.body;
+    
     try {
-      console.log("Pregnancy data received:", req.body);
-      console.log("User ID from session:", req.session.userId);
-      
-      // Manual validation first
-      const { dueDate, lastMenstrualPeriod, isActive } = req.body;
-      
-      if (!dueDate) {
-        console.error("Missing dueDate");
-        return res.status(400).json({ error: "dueDate is required" });
-      }
-      
-      // Create pregnancy data manually
+      // Direct database insert with error handling
       const pregnancyData = {
         userId: req.session.userId!,
         dueDate: new Date(dueDate),
@@ -116,19 +107,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isActive: isActive !== false
       };
       
-      console.log("Prepared pregnancy data:", pregnancyData);
-      
-      // Test database connection first
-      console.log("Testing database connection...");
-      const testUser = await storage.getUser(req.session.userId!);
-      console.log("User found:", testUser ? "Yes" : "No");
-      
       const pregnancy = await storage.createPregnancy(pregnancyData);
-      console.log("Pregnancy created successfully:", pregnancy);
       res.json({ pregnancy });
     } catch (error) {
-      console.error("Pregnancy creation error:", error);
-      res.status(400).json({ error: "Invalid pregnancy data", details: error instanceof Error ? error.message : "Unknown error" });
+      console.error("Database error:", error);
+      res.status(500).json({ 
+        error: "Database error", 
+        message: error instanceof Error ? error.message : "Unknown database error" 
+      });
     }
   });
 
