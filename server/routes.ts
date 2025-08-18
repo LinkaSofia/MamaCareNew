@@ -97,14 +97,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/pregnancies", requireAuth, async (req, res) => {
     try {
+      console.log("Pregnancy data received:", req.body);
       const pregnancyData = insertPregnancySchema.parse({
         ...req.body,
         userId: req.session.userId!
       });
+      console.log("Pregnancy data parsed:", pregnancyData);
       const pregnancy = await storage.createPregnancy(pregnancyData);
       res.json({ pregnancy });
     } catch (error) {
-      res.status(400).json({ error: "Invalid pregnancy data" });
+      console.error("Pregnancy creation error:", error);
+      res.status(400).json({ error: "Invalid pregnancy data", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 

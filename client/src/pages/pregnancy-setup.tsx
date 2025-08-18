@@ -52,19 +52,19 @@ export default function PregnancySetup() {
       return;
     }
 
-    let dueDate: string;
-    let lmpDate: string | null = null;
+    let dueDate: Date;
+    let lmpDate: Date | null = null;
 
     if (setupType === "dueDate") {
-      dueDate = new Date(date).toISOString();
+      dueDate = new Date(date);
     } else {
-      lmpDate = new Date(date).toISOString();
-      dueDate = calculateDueDateFromLMP(date);
+      lmpDate = new Date(date);
+      dueDate = new Date(calculateDueDateFromLMP(date));
     }
 
     createPregnancyMutation.mutate({
-      dueDate,
-      lastMenstrualPeriod: lmpDate,
+      dueDate: dueDate.toISOString(),
+      lastMenstrualPeriod: lmpDate?.toISOString() || null,
       isActive: true,
     });
   };
