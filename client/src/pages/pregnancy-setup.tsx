@@ -20,7 +20,13 @@ export default function PregnancySetup() {
 
   const createPregnancyMutation = useMutation({
     mutationFn: async (pregnancyData: any) => {
+      console.log("Sending pregnancy data:", pregnancyData);
       const response = await apiRequest("POST", "/api/pregnancies", pregnancyData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Server error:", errorData);
+        throw new Error(errorData.details || errorData.error || "Failed to create pregnancy");
+      }
       return response.json();
     },
     onSuccess: () => {

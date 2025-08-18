@@ -117,7 +117,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log("Prepared pregnancy data:", pregnancyData);
+      
+      // Test database connection first
+      console.log("Testing database connection...");
+      const testUser = await storage.getUser(req.session.userId!);
+      console.log("User found:", testUser ? "Yes" : "No");
+      
       const pregnancy = await storage.createPregnancy(pregnancyData);
+      console.log("Pregnancy created successfully:", pregnancy);
       res.json({ pregnancy });
     } catch (error) {
       console.error("Pregnancy creation error:", error);
