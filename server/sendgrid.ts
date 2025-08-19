@@ -1,7 +1,8 @@
 import sgMail from '@sendgrid/mail';
 
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const sendgridKey = process.env.SENDGRID_API_KEY || "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";
+if (sendgridKey) {
+  sgMail.setApiKey(sendgridKey);
 }
 
 interface EmailParams {
@@ -13,7 +14,8 @@ interface EmailParams {
 }
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
-  if (!process.env.SENDGRID_API_KEY) {
+  const sendgridKey = process.env.SENDGRID_API_KEY || "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";
+  if (!sendgridKey) {
     console.error('SENDGRID_API_KEY não configurada');
     return false;
   }

@@ -124,8 +124,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.setPasswordResetToken(user.id, resetToken, resetTokenExpires);
 
-      // Enviar email
-      if (process.env.SENDGRID_API_KEY) {
+      // Enviar email  
+      const sendgridKey = process.env.SENDGRID_API_KEY || "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";
+      if (sendgridKey) {
         const emailSent = await sendPasswordResetEmail(email, resetToken);
         if (emailSent) {
           res.json({ message: "Email de recuperação enviado com sucesso!" });

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { InstallPWA } from "@/components/InstallPWA";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
+import ResetPassword from "@/pages/reset-password";
 import Dashboard from "@/pages/dashboard";
 import PregnancySetup from "@/pages/pregnancy-setup";
 import KickCounter from "@/pages/kick-counter";
@@ -28,6 +29,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/" component={Dashboard} />
       <Route path="/setup" component={PregnancySetup} />
       <Route path="/kick-counter" component={KickCounter} />
