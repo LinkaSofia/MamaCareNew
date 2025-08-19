@@ -116,7 +116,11 @@ export default function Login() {
     } catch (error: any) {
       const errorMessage = error.message;
       
-      if (errorMessage?.includes("credentials") || errorMessage?.includes("Invalid")) {
+      if (errorMessage?.includes("não encontrado")) {
+        setErrors({ general: "Usuário não encontrado. Verifique seu email ou crie uma conta." });
+      } else if (errorMessage?.includes("Senha incorreta")) {
+        setErrors({ general: "Senha incorreta. Verifique sua senha e tente novamente." });
+      } else if (errorMessage?.includes("credentials") || errorMessage?.includes("Invalid")) {
         setErrors({ general: "Email ou senha incorretos" });
       } else if (errorMessage?.includes("already exists")) {
         setErrors({ general: "Este email já está em uso" });
@@ -236,17 +240,25 @@ export default function Login() {
             <div className="mb-6">
               <ErrorIllustration
                 type={errors.general.includes("incorretos") || errors.general.includes("credentials") ? "login" : "register"}
-                title={errors.general.includes("incorretos") || errors.general.includes("credentials") 
-                  ? "Oops! Dados incorretos" 
-                  : errors.general.includes("já está em uso") 
-                    ? "Email já cadastrado" 
-                    : "Algo deu errado"}
+                title={errors.general.includes("não encontrado")
+                  ? "Usuário não cadastrado"
+                  : errors.general.includes("Senha incorreta")
+                    ? "Senha incorreta"
+                    : errors.general.includes("incorretos") || errors.general.includes("credentials") 
+                      ? "Oops! Dados incorretos" 
+                      : errors.general.includes("já está em uso") 
+                        ? "Email já cadastrado" 
+                        : "Algo deu errado"}
                 message={
-                  errors.general.includes("incorretos") || errors.general.includes("credentials")
-                    ? "Verifique se digitou o email e senha corretamente. Que tal tentar novamente?"
-                    : errors.general.includes("já está em uso")
-                      ? "Este email já possui uma conta. Tente fazer login ou use outro email."
-                      : "Tivemos um probleminha técnico. Pode tentar novamente, por favor?"
+                  errors.general.includes("não encontrado")
+                    ? "Este email não está cadastrado. Que tal criar uma conta nova?"
+                    : errors.general.includes("Senha incorreta")
+                      ? "A senha não confere. Verifique se digitou corretamente."
+                      : errors.general.includes("incorretos") || errors.general.includes("credentials")
+                        ? "Verifique se digitou o email e senha corretamente. Que tal tentar novamente?"
+                        : errors.general.includes("já está em uso")
+                          ? "Este email já possui uma conta. Tente fazer login ou use outro email."
+                          : "Tivemos um probleminha técnico. Pode tentar novamente, por favor?"
                 }
               />
             </div>

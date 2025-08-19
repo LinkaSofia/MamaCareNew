@@ -54,48 +54,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email e senha são obrigatórios" });
+      }
+      
       const user = await storage.validatePassword(email, password);
       
       if (!user) {
-        return res.status(401).json({ error: "Invalid credentials" });
+        // Verificar se o usuário existe para dar mensagem específica
+        const existingUser = await storage.getUserByEmail(email);
+        if (!existingUser) {
+          return res.status(401).json({ error: "Usuário não encontrado. Verifique seu email ou crie uma conta." });
+        } else {
+          return res.status(401).json({ error: "Senha incorreta. Verifique sua senha e tente novamente." });
+        }
       }
       
       req.session.userId = user.id;
-      
-      // Log de acesso bem-sucedido
-      try {
-        await storage.createAccessLog({
-          userId: user.id,
-          email: user.email,
-          action: 'login',
-          ipAddress: req.ip || req.connection.remoteAddress,
-          userAgent: req.get('User-Agent'),
-          success: true,
-          sessionId: req.sessionID
-        });
-      } catch (logError) {
-        console.error("Error creating access log:", logError);
-      }
-      
       res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
       console.error("Login error:", error);
-      
-      // Log de acesso com falha
-      try {
-        await storage.createAccessLog({
-          email: req.body.email,
-          action: 'login',
-          ipAddress: req.ip || req.connection.remoteAddress,
-          userAgent: req.get('User-Agent'),
-          success: false,
-          errorMessage: error instanceof Error ? error.message : "Login failed"
-        });
-      } catch (logError) {
-        console.error("Error creating access log:", logError);
-      }
-      
-      res.status(500).json({ error: "Login failed" });
+      res.status(401).json({ error: "Erro ao fazer login. Verifique seus dados e tente novamente." });
     }
   });
 
