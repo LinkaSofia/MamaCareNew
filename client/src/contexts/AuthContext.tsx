@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -17,20 +17,21 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const { data: user, isLoading } = useQuery({
+  const { data: userData, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const loginMutation = useMutation({
-    mutationFn: async ({ email, password, rememberMe }: { email: string; password: string; rememberMe?: boolean }) => {
-      const response = await apiRequest("POST", "/api/auth/login", { email, password, rememberMe });
+    mutationFn: async (params: { email: string; password: string; rememberMe?: boolean }) => {
+      const response = await apiRequest("POST", "/api/auth/login", params);
       return response.json();
     },
     onSuccess: (data) => {
@@ -40,8 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async ({ email, password, name }: { email: string; password: string; name: string }) => {
-      const response = await apiRequest("POST", "/api/auth/register", { email, password, name });
+    mutationFn: async (params: { email: string; password: string; name: string }) => {
+      const response = await apiRequest("POST", "/api/auth/register", params);
       return response.json();
     },
     onSuccess: (data) => {
@@ -62,19 +63,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const login = async (email: string, password: string, rememberMe?: boolean) => {
-    await loginMutation.mutateAsync({ email, password, rememberMe });
+    return loginMutation.mutateAsync({ email, password, rememberMe });
   };
 
   const register = async (email: string, password: string, name: string) => {
-    await registerMutation.mutateAsync({ email, password, name });
+    return registerMutation.mutateAsync({ email, password, name });
   };
 
   const logout = async () => {
-    await logoutMutation.mutateAsync();
+    return logoutMutation.mutateAsync();
   };
 
-  const value = {
-    user: (user as any)?.user || null,
+  const value: AuthContextType = {
+    user: (userData as any)?.user || null,
     isLoading,
     login,
     register,
@@ -84,9 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

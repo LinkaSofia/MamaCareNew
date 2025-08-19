@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePregnancy } from "@/hooks/use-pregnancy";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

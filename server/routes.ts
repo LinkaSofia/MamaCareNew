@@ -6,7 +6,7 @@ import { ObjectPermission } from "./objectAcl";
 import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
-import { sendPasswordResetEmail } from "./sendgrid";
+import { sendPasswordResetEmail } from "./nodemailer";
 import { randomUUID } from "crypto";
 
 // Simple session store for user authentication
