@@ -131,9 +131,9 @@ export default function Login() {
       const errorMessage = error.message || "";
       
       if (errorMessage.includes("não encontrado")) {
-        setErrors({ general: "Usuário não encontrado. Verifique seu email ou crie uma conta." });
+        setErrors({ email: "Usuário não cadastrado" });
       } else if (errorMessage.includes("Senha incorreta")) {
-        setErrors({ general: "Senha incorreta. Verifique sua senha e tente novamente." });
+        setErrors({ password: "Senha inválida" });
       } else if (errorMessage.includes("credentials") || errorMessage.includes("Invalid")) {
         setErrors({ general: "Email ou senha incorretos" });
       } else if (errorMessage.includes("already exists")) {
