@@ -103,7 +103,7 @@ export default function Login() {
           <img 
             src={logoImage} 
             alt="MamãeCare Logo" 
-            className="w-24 h-24 object-contain"
+            className="w-full h-full object-cover"
             data-testid="img-logo"
           />
         </div>
