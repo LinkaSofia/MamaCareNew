@@ -5,6 +5,7 @@ This is a comprehensive maternal health tracking application built with React, T
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Social Login Integration: Added Google, Facebook, and Apple login buttons with OAuth placeholder implementation.
 
 # System Architecture
 

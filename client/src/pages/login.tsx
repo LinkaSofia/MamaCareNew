@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/4_1755308511005.png";
 import { Heart, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 
 // Componente de animação de fundo
 function AnimatedBackground() {
@@ -124,6 +125,37 @@ export default function Login() {
           general: errorMessage || (isLoginMode ? "Erro ao fazer login" : "Erro ao criar conta") 
         });
       }
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'apple') => {
+    try {
+      // Simulação do login social - em produção conectaria com OAuth real
+      const providerNames = {
+        google: 'Google',
+        facebook: 'Facebook',
+        apple: 'Apple'
+      };
+      
+      toast({
+        title: "Login Social",
+        description: `Redirecionando para ${providerNames[provider]}...`,
+        variant: "default",
+      });
+
+      // Simular delay do OAuth
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Em produção, aqui seria feita a chamada real para o backend
+      // que processaria o token OAuth e criaria/logaria o usuário
+      console.log(`Login ${provider} iniciado`);
+      
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao conectar com a rede social. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -345,6 +377,49 @@ export default function Login() {
               )}
             </Button>
           </form>
+
+          {/* Divisor */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-4 text-gray-500">ou continue com</span>
+            </div>
+          </div>
+
+          {/* Botões de login social */}
+          <div className="grid grid-cols-3 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialLogin('google')}
+              className="flex items-center justify-center py-3 border-gray-200 hover:bg-gray-50"
+              data-testid="button-google-login"
+            >
+              <FaGoogle className="text-red-500" size={20} />
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialLogin('facebook')}
+              className="flex items-center justify-center py-3 border-gray-200 hover:bg-gray-50"
+              data-testid="button-facebook-login"
+            >
+              <FaFacebook className="text-blue-600" size={20} />
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialLogin('apple')}
+              className="flex items-center justify-center py-3 border-gray-200 hover:bg-gray-50"
+              data-testid="button-apple-login"
+            >
+              <FaApple className="text-black" size={20} />
+            </Button>
+          </div>
 
           <div className="text-center mt-6 text-sm text-gray-600">
             <Heart className="inline-block w-4 h-4 text-pink-400 mx-1" />

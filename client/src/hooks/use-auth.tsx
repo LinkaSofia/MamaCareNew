@@ -1,7 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
 
 interface User {
   id: string;
@@ -9,19 +7,8 @@ interface User {
   name: string;
 }
 
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function useAuth() {
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -35,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
-      setLocation("/");
+      window.location.href = "/";
     },
   });
 
@@ -46,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
-      setLocation("/setup");
+      window.location.href = "/setup";
     },
   });
 
@@ -57,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     onSuccess: () => {
       queryClient.setQueryData(["/api/auth/me"], null);
       queryClient.clear();
-      setLocation("/login");
+      window.location.href = "/login";
     },
   });
 
@@ -73,21 +60,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await logoutMutation.mutateAsync();
   };
 
-  const value = {
-    user: user?.user || null,
+  return {
+    user: user || null,
     isLoading,
     login,
     register,
     logout,
   };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+// Componente vazio para manter compatibilidade
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
