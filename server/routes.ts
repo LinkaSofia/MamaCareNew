@@ -33,41 +33,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
+    const ipAddress = req.ip || req.connection?.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
+
     try {
       const userData = insertUserSchema.parse(req.body);
       const existingUser = await storage.getUserByEmail(userData.email);
       
       if (existingUser) {
+        await storage.createAccessLog({
+          email: userData.email,
+          action: 'register',
+          ipAddress,
+          userAgent,
+          success: false,
+          errorMessage: 'User already exists'
+        });
         return res.status(400).json({ error: "User already exists" });
       }
       
       const user = await storage.createUser(userData);
       req.session.userId = user.id;
+
+      // Log successful registration and update login info
+      await Promise.all([
+        storage.createAccessLog({
+          userId: user.id,
+          email: user.email,
+          action: 'register',
+          ipAddress,
+          userAgent,
+          sessionId: req.session.id,
+          success: true
+        }),
+        storage.updateUserLoginInfo(user.id, ipAddress, userAgent)
+      ]);
+
       res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
+      await storage.createAccessLog({
+        email: req.body?.email,
+        action: 'register',
+        ipAddress,
+        userAgent,
+        success: false,
+        errorMessage: error instanceof Error ? error.message : 'Registration failed'
+      });
       console.error("Registration error:", error);
       res.status(400).json({ error: "Invalid registration data" });
     }
   });
 
   app.post("/api/auth/login", async (req, res) => {
+    const ipAddress = req.ip || req.connection?.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
+    const { email, password } = req.body;
+
     try {
-      const { email, password } = req.body;
       const user = await storage.validatePassword(email, password);
       
       if (!user) {
+        await storage.createAccessLog({
+          email,
+          action: 'login',
+          ipAddress,
+          userAgent,
+          success: false,
+          errorMessage: 'Invalid credentials'
+        });
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
       req.session.userId = user.id;
+
+      // Log successful login and update user info
+      await Promise.all([
+        storage.createAccessLog({
+          userId: user.id,
+          email: user.email,
+          action: 'login',
+          ipAddress,
+          userAgent,
+          sessionId: req.session.id,
+          success: true
+        }),
+        storage.updateUserLoginInfo(user.id, ipAddress, userAgent)
+      ]);
+
       res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
+      await storage.createAccessLog({
+        email,
+        action: 'login',
+        ipAddress,
+        userAgent,
+        success: false,
+        errorMessage: error instanceof Error ? error.message : 'Login failed'
+      });
       console.error("Login error:", error);
       res.status(500).json({ error: "Login failed" });
     }
   });
 
-  app.post("/api/auth/logout", (req, res) => {
+  app.post("/api/auth/logout", async (req, res) => {
+    const ipAddress = req.ip || req.connection?.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
+
+    if (req.session.userId) {
+      const user = await storage.getUser(req.session.userId);
+      if (user) {
+        await storage.createAccessLog({
+          userId: user.id,
+          email: user.email,
+          action: 'logout',
+          ipAddress,
+          userAgent,
+          sessionId: req.session.id,
+          success: true
+        });
+      }
+    }
+
     req.session.destroy(() => {
       res.json({ success: true });
     });
@@ -82,6 +168,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
       res.status(500).json({ error: "Failed to get user" });
+    }
+  });
+
+  // Endpoint para logs de auditoria
+  app.get("/api/logs/access", requireAuth, async (req, res) => {
+    try {
+      const { userId, limit = 50 } = req.query;
+      const logs = await storage.getAccessLogs(
+        typeof userId === 'string' ? userId : undefined, 
+        parseInt(limit as string)
+      );
+      res.json({ logs });
+    } catch (error) {
+      console.error("Error fetching access logs:", error);
+      res.status(500).json({ error: "Failed to fetch logs" });
     }
   });
 

@@ -8,6 +8,25 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
+  lastLoginAt: timestamp("last_login_at"),
+  loginCount: integer("login_count").default(0),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela de logs de acesso para auditoria completa
+export const accessLogs = pgTable("access_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  email: text("email"),
+  action: text("action").notNull(), // 'login', 'logout', 'register', 'password_reset'
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  success: boolean("success").default(true),
+  errorMessage: text("error_message"),
+  sessionId: text("session_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -150,6 +169,7 @@ export const insertSymptomSchema = createInsertSchema(symptoms).omit({ id: true 
 export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
 export const insertCommunityPostSchema = createInsertSchema(communityPosts).omit({ id: true, likes: true, commentsCount: true, createdAt: true });
 export const insertCommunityCommentSchema = createInsertSchema(communityComments).omit({ id: true, createdAt: true });
+export const insertAccessLogSchema = createInsertSchema(accessLogs).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -178,3 +198,5 @@ export type CommunityPost = typeof communityPosts.$inferSelect;
 export type InsertCommunityPost = z.infer<typeof insertCommunityPostSchema>;
 export type CommunityComment = typeof communityComments.$inferSelect;
 export type InsertCommunityComment = z.infer<typeof insertCommunityCommentSchema>;
+export type AccessLog = typeof accessLogs.$inferSelect;
+export type InsertAccessLog = z.infer<typeof insertAccessLogSchema>;

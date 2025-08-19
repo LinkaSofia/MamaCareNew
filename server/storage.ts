@@ -3,14 +3,14 @@ import postgres from "postgres";
 import { 
   users, pregnancies, kickCounts, weightRecords, birthPlans, consultations, 
   shoppingItems, photos, diaryEntries, symptoms, medications, communityPosts, 
-  communityComments, communityLikes,
+  communityComments, communityLikes, accessLogs,
   type User, type InsertUser, type Pregnancy, type InsertPregnancy,
   type KickCount, type InsertKickCount, type WeightRecord, type InsertWeightRecord,
   type BirthPlan, type InsertBirthPlan, type Consultation, type InsertConsultation,
   type ShoppingItem, type InsertShoppingItem, type Photo, type InsertPhoto,
   type DiaryEntry, type InsertDiaryEntry, type Symptom, type InsertSymptom,
   type Medication, type InsertMedication, type CommunityPost, type InsertCommunityPost,
-  type CommunityComment, type InsertCommunityComment
+  type CommunityComment, type InsertCommunityComment, type AccessLog, type InsertAccessLog
 } from "@shared/schema";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -93,6 +93,11 @@ export interface IStorage {
   unlikeCommunityPost(postId: string, userId: string): Promise<void>;
   getPostComments(postId: string): Promise<(CommunityComment & { user: User })[]>;
   createComment(comment: InsertCommunityComment): Promise<CommunityComment>;
+
+  // Logs de auditoria
+  createAccessLog(log: InsertAccessLog): Promise<AccessLog>;
+  getAccessLogs(userId?: string, limit?: number): Promise<AccessLog[]>;
+  updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -158,7 +163,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createKickCount(kickCount: InsertKickCount): Promise<KickCount> {
-    const [newKickCount] = await db.insert(kickCounts).values(kickCount).returning();
+    const [newKickCount] = await db.insert(kickCounts).values({
+      ...kickCount,
+      id: randomUUID(),
+    }).returning();
     return newKickCount;
   }
 
@@ -448,6 +456,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(communityPosts.id, comment.postId));
     
     return newComment;
+  }
+
+  // Implementação dos logs de auditoria
+  async createAccessLog(log: InsertAccessLog): Promise<AccessLog> {
+    const [newLog] = await db.insert(accessLogs).values({
+      ...log,
+      id: randomUUID(),
+    }).returning();
+    return newLog;
+  }
+
+  async getAccessLogs(userId?: string, limit = 50): Promise<AccessLog[]> {
+    if (userId) {
+      return await db.select().from(accessLogs)
+        .where(eq(accessLogs.userId, userId))
+        .orderBy(desc(accessLogs.createdAt))
+        .limit(limit);
+    }
+    
+    return await db.select().from(accessLogs)
+      .orderBy(desc(accessLogs.createdAt))
+      .limit(limit);
+  }
+
+  async updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void> {
+    await db.update(users)
+      .set({
+        lastLoginAt: new Date(),
+        loginCount: sql`${users.loginCount} + 1`,
+        ipAddress,
+        userAgent,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
   }
 }
 
