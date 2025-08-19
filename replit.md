@@ -5,9 +5,6 @@ This is a comprehensive maternal health tracking application built with React, T
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
-Design Requirements: Layout deve seguir exatamente a imagem fornecida pelo usuário com "Bem-vinda!" e ícone da mãe e bebê.
-PWA Features: Aplicação deve ser instalável como PWA com service worker funcional.
-Static HTML: Utilizando HTML puro com TailwindCSS via CDN, sem dependências React complexas.
 
 # System Architecture
 

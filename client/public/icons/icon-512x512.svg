@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="maternalGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8bbd9;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffd1dc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#87ceeb;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="230" fill="url(#maternalGradient512)" stroke="#ffffff" stroke-width="8"/>
+  <circle cx="256" cy="256" r="200" fill="url(#centerGlow)"/>
+  
+  <!-- Main heart shape -->
+  <path d="M256 370 L210 320 Q180 290, 180 260 Q180 220, 220 220 Q256 220, 256 250 Q256 220, 292 220 Q332 220, 332 260 Q332 290, 302 320 Z" 
+        fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Baby figure -->
+  <circle cx="256" cy="200" r="35" fill="#ffffff" opacity="0.85"/>
+  <ellipse cx="256" cy="260" rx="28" ry="45" fill="#ffffff" opacity="0.85"/>
+  
+  <!-- Baby features -->
+  <circle cx="245" cy="190" r="3" fill="#f8bbd9" opacity="0.7"/>
+  <circle cx="267" cy="190" r="3" fill="#f8bbd9" opacity="0.7"/>
+  <path d="M246 205 Q256 210, 266 205" stroke="#f8bbd9" stroke-width="2" fill="none" opacity="0.7"/>
+  
+  <!-- Decorative hearts -->
+  <path d="M150 150 L140 140 Q135 135, 135 130 Q135 125, 140 125 Q145 125, 145 130 Q145 125, 150 125 Q155 125, 155 130 Q155 135, 150 140 Z" 
+        fill="#ffffff" opacity="0.5"/>
+  <path d="M370 160 L360 150 Q355 145, 355 140 Q355 135, 360 135 Q365 135, 365 140 Q365 135, 370 135 Q375 135, 375 140 Q375 145, 370 150 Z" 
+        fill="#ffffff" opacity="0.5"/>
+  <path d="M180 380 L170 370 Q165 365, 165 360 Q165 355, 170 355 Q175 355, 175 360 Q175 355, 180 355 Q185 355, 185 360 Q185 365, 180 370 Z" 
+        fill="#ffffff" opacity="0.5"/>
+  <path d="M340 390 L330 380 Q325 375, 325 370 Q325 365, 330 365 Q335 365, 335 370 Q335 365, 340 365 Q345 365, 345 370 Q345 375, 340 380 Z" 
+        fill="#ffffff" opacity="0.5"/>
+  
+  <!-- Decorative stars -->
+  <path d="M120 120 L125 130 L135 125 L125 135 L130 145 L120 135 L110 145 L115 135 L105 125 L115 130 Z" 
+        fill="#ffffff" opacity="0.4"/>
+  <path d="M390 100 L395 110 L405 105 L395 115 L400 125 L390 115 L380 125 L385 115 L375 105 L385 110 Z" 
+        fill="#ffffff" opacity="0.4"/>
+  <path d="M100 350 L105 360 L115 355 L105 365 L110 375 L100 365 L90 375 L95 365 L85 355 L95 360 Z" 
+        fill="#ffffff" opacity="0.4"/>
+  <path d="M420 380 L425 390 L435 385 L425 395 L430 405 L420 395 L410 405 L415 395 L405 385 L415 390 Z" 
+        fill="#ffffff" opacity="0.4"/>
+</svg>
