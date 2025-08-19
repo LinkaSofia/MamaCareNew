@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorIllustration } from "@/components/ErrorIllustration";
 import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/4_1755308511005.png";
 import { Heart, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
@@ -230,14 +231,25 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Mensagem de erro geral */}
+          {/* Mensagem de erro geral com ilustração amigável */}
           {errors.general && (
-            <Alert className="mb-4 border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                {errors.general}
-              </AlertDescription>
-            </Alert>
+            <div className="mb-6">
+              <ErrorIllustration
+                type={errors.general.includes("incorretos") || errors.general.includes("credentials") ? "login" : "register"}
+                title={errors.general.includes("incorretos") || errors.general.includes("credentials") 
+                  ? "Oops! Dados incorretos" 
+                  : errors.general.includes("já está em uso") 
+                    ? "Email já cadastrado" 
+                    : "Algo deu errado"}
+                message={
+                  errors.general.includes("incorretos") || errors.general.includes("credentials")
+                    ? "Verifique se digitou o email e senha corretamente. Que tal tentar novamente?"
+                    : errors.general.includes("já está em uso")
+                      ? "Este email já possui uma conta. Tente fazer login ou use outro email."
+                      : "Tivemos um probleminha técnico. Pode tentar novamente, por favor?"
+                }
+              />
+            </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">

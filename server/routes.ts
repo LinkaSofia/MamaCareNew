@@ -61,9 +61,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       req.session.userId = user.id;
+      
+      // Log de acesso bem-sucedido
+      try {
+        await storage.createAccessLog({
+          userId: user.id,
+          email: user.email,
+          action: 'login',
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('User-Agent'),
+          success: true,
+          sessionId: req.sessionID
+        });
+      } catch (logError) {
+        console.error("Error creating access log:", logError);
+      }
+      
       res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
       console.error("Login error:", error);
+      
+      // Log de acesso com falha
+      try {
+        await storage.createAccessLog({
+          email: req.body.email,
+          action: 'login',
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('User-Agent'),
+          success: false,
+          errorMessage: error instanceof Error ? error.message : "Login failed"
+        });
+      } catch (logError) {
+        console.error("Error creating access log:", logError);
+      }
+      
       res.status(500).json({ error: "Login failed" });
     }
   });

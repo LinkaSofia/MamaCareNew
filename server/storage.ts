@@ -481,15 +481,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void> {
-    await db.update(users)
-      .set({
-        lastLoginAt: new Date(),
-        loginCount: sql`${users.loginCount} + 1`,
-        ipAddress,
-        userAgent,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId));
+    try {
+      await db.update(users)
+        .set({
+          lastLoginAt: new Date(),
+          loginCount: sql`${users.loginCount} + 1`,
+          ipAddress,
+          userAgent,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      console.error("Error updating user login info:", error);
+      // Continuar mesmo se falhar a atualização das informações de login
+    }
   }
 }
 
