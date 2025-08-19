@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +11,39 @@ export default function Login() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
   const [errors, setErrors] = useState<{email?: string; password?: string; general?: string}>({});
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     name: "",
   });
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setShowInstallButton(false);
+    }
+    
+    setDeferredPrompt(null);
+  };
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string; general?: string} = {};
@@ -208,7 +235,7 @@ export default function Login() {
         <img 
           src={logoImage} 
           alt="MamãeCare Logo" 
-          className="w-20 h-20 mx-auto mb-4 rounded-full shadow-lg"
+          className="w-32 h-32 mx-auto mb-6 rounded-full shadow-xl"
         />
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Bem-vinda!</h1>
         <p className="text-gray-600">Acompanhe sua jornada materna</p>
@@ -377,7 +404,7 @@ export default function Login() {
           </div>
 
           {/* Botões de login social */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <Button
               type="button"
               variant="outline"
@@ -386,17 +413,7 @@ export default function Login() {
               disabled={isLoading}
               data-testid="button-google-login"
             >
-              <span className="text-red-500 text-xl">G</span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleSocialLogin('facebook')}
-              className="py-3 flex items-center justify-center"
-              disabled={isLoading}
-              data-testid="button-facebook-login"
-            >
-              <span className="text-blue-600 text-xl">f</span>
+              <span className="text-red-500 text-xl font-bold">G</span>
             </Button>
             <Button
               type="button"
@@ -415,6 +432,19 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Botão de instalação PWA */}
+      {showInstallButton && (
+        <div className="mt-4 z-10">
+          <Button
+            onClick={handleInstallClick}
+            className="w-full max-w-sm bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-lg"
+            data-testid="button-install-app"
+          >
+            📱 Instalar App MamãeCare
+          </Button>
+        </div>
+      )}
 
       {/* Rodapé */}
       <div className="text-center mt-8 text-xs text-gray-500 z-10">

@@ -1,12 +1,7 @@
-import React from 'react';
-import Login from "@/pages/login";
+import SimpleLogin from "@/pages/simple-login";
 
 function App() {
-  return (
-    <div>
-      <Login />
-    </div>
-  );
+  return <SimpleLogin />;
 }
 
 export default App;
