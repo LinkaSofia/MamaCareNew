@@ -1,0 +1,34 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="80" fill="url(#gradient)" />
+  
+  <!-- Baby silhouette -->
+  <circle cx="256" cy="200" r="64" fill="white" opacity="0.9" />
+  <ellipse cx="256" cy="320" rx="80" ry="96" fill="white" opacity="0.9" />
+  
+  <!-- Heart -->
+  <path d="M256 380 C236 356, 200 332, 200 300 C200 280, 218 264, 238 264 C246 264, 252 267, 256 272 C260 267, 266 264, 274 264 C294 264, 312 280, 312 300 C312 332, 276 356, 256 380 Z" 
+        fill="#ec4899" />
+  
+  <!-- Decorative stars -->
+  <g fill="white" opacity="0.7">
+    <polygon points="380,120 385,130 395,130 387,137 390,147 380,140 370,147 373,137 365,130 375,130" />
+    <polygon points="120,100 123,107 130,107 125,111 127,118 120,114 113,118 115,111 110,107 117,107" />
+    <polygon points="400,350 405,360 415,360 407,367 410,377 400,370 390,377 393,367 385,360 395,360" />
+    <polygon points="100,400 105,410 115,410 107,417 110,427 100,420 90,427 93,417 85,410 95,410" />
+  </g>
+  
+  <!-- Circles -->
+  <circle cx="420" cy="180" r="12" fill="white" opacity="0.6" />
+  <circle cx="92" cy="160" r="10" fill="white" opacity="0.5" />
+  <circle cx="450" cy="280" r="8" fill="white" opacity="0.4" />
+  <circle cx="62" cy="350" r="14" fill="white" opacity="0.6" />
+  
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#f472b6;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#a78bfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#60a5fa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

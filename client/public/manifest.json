@@ -1,0 +1,54 @@
+{
+  "name": "Maternidade - Acompanhamento de Gravidez",
+  "short_name": "Maternidade",
+  "description": "Aplicativo completo para acompanhamento da gravidez com recursos 3D, monitoramento e comunidade",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdf2f8",
+  "theme_color": "#ec4899",
+  "orientation": "portrait",
+  "categories": ["health", "medical", "lifestyle"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/vite.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Contador de Chutes",
+      "short_name": "Chutes",
+      "description": "Acompanhar movimentos do bebê",
+      "url": "/kick-counter",
+      "icons": [{ "src": "/icons/icon-192x192.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Peso",
+      "short_name": "Peso",
+      "description": "Registrar peso",
+      "url": "/weight-tracking",
+      "icons": [{ "src": "/icons/icon-192x192.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Diário",
+      "short_name": "Diário",
+      "description": "Escrever no diário da gravidez",
+      "url": "/diary",
+      "icons": [{ "src": "/icons/icon-192x192.svg", "sizes": "96x96" }]
+    }
+  ]
+}
