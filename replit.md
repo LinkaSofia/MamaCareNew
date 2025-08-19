@@ -6,6 +6,18 @@ This is a comprehensive maternal health tracking application built with React, T
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes
+
+## Email Auto-fill Feature (August 19, 2025)
+- **Implemented automatic email pre-filling in password recovery flow**
+- Modified login page to pass current email to reset-password page via URL parameters
+- Redesigned reset-password page with dual modes:
+  - Email recovery request mode (when coming from login with email parameter)
+  - Password reset mode (when accessing with token from email link)
+- Added proper form validation and error handling for both flows
+- Maintains consistent design with baby pink/blue theme and glass effects
+- User experience: Users can now click "Esqueci minha senha" on login and their typed email automatically appears in the recovery form
+
 # System Architecture
 
 ## Frontend Architecture

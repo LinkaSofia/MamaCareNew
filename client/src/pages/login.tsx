@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorIllustration } from "@/components/ErrorIllustration";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 import logoImage from "@assets/4_1755308511005.png";
 import { Heart, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
 
@@ -80,6 +81,7 @@ export default function Login() {
   });
   const { login, register, isLoading } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string; general?: string} = {};
@@ -395,7 +397,7 @@ export default function Login() {
                 </label>
                 <button
                   type="button"
-                  onClick={() => setShowForgotPassword(true)}
+                  onClick={() => setLocation(`/reset-password?email=${encodeURIComponent(formData.email)}`)}
                   className="text-sm text-baby-pink-dark hover:underline"
                   data-testid="button-forgot-password"
                 >

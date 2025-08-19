@@ -5,32 +5,55 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
-import { Eye, EyeOff, Lock, CheckCircle, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Mail, ArrowLeft } from "lucide-react";
 import logoImage from "@assets/4_1755308511005.png";
 
 export default function ResetPassword() {
   const [, setLocation] = useLocation();
   const [token, setToken] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
   const [success, setSuccess] = useState(false);
-  const [errors, setErrors] = useState<{password?: string; confirmPassword?: string; general?: string}>({});
+  const [errors, setErrors] = useState<{email?: string; password?: string; confirmPassword?: string; general?: string}>({});
+  const [isResetMode, setIsResetMode] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get('token');
+    const emailFromUrl = urlParams.get('email');
+    
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
+      setIsResetMode(true);
+    } else if (emailFromUrl) {
+      setEmail(decodeURIComponent(emailFromUrl));
+      setIsResetMode(false);
     } else {
-      setMessage("Token de redefinição inválido ou não fornecido.");
+      setIsResetMode(false);
     }
   }, []);
 
-  const validateForm = () => {
+  const validateEmailForm = () => {
+    const newErrors: typeof errors = {};
+
+    if (!email) {
+      newErrors.email = "Email é obrigatório";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Email inválido";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePasswordForm = () => {
     const newErrors: typeof errors = {};
 
     if (!password) {
@@ -49,12 +72,41 @@ export default function ResetPassword() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailMessage("");
+    setErrors({});
+    
+    if (!validateEmailForm()) {
+      return;
+    }
+    
+    setEmailLoading(true);
+
+    try {
+      const response = await apiRequest("POST", "/api/auth/forgot-password", {
+        email,
+      });
+      const data = await response.json();
+      setEmailMessage(data.message);
+    } catch (error: any) {
+      console.error("Forgot password error:", error);
+      if (error.message.includes("não cadastrado")) {
+        setErrors({ email: "Email não cadastrado. Verifique o endereço ou crie uma conta." });
+      } else {
+        setErrors({ general: error.message || "Erro ao solicitar recuperação" });
+      }
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
     setErrors({});
     
-    if (!validateForm()) {
+    if (!validatePasswordForm()) {
       return;
     }
     
@@ -73,15 +125,157 @@ export default function ResetPassword() {
       setTimeout(() => {
         setLocation("/login");
       }, 3000);
-      
     } catch (error: any) {
-      setMessage(error.message || "Erro ao redefinir senha");
-      setSuccess(false);
+      console.error("Reset password error:", error);
+      setErrors({ general: error.message || "Erro ao redefinir senha" });
     } finally {
       setLoading(false);
     }
   };
 
+  if (isResetMode) {
+    // Modo redefinir senha com token
+    return (
+      <div className="min-h-screen relative flex flex-col items-center justify-center p-6 gradient-bg">
+        <div className="text-center mb-8 z-10">
+          <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+            <img 
+              src={logoImage} 
+              alt="Maternidade Logo" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h1 className="text-3xl font-bold text-charcoal mb-2">Nova Senha</h1>
+          <p className="text-gray-600">Digite sua nova senha abaixo</p>
+        </div>
+
+        <Card className="w-full max-w-sm glass-effect shadow-xl z-10">
+          <CardContent className="p-6">
+            {message && (
+              <div className={`mb-4 p-3 rounded-lg border flex items-center gap-2 ${
+                success 
+                  ? "bg-green-50 border-green-200 text-green-800" 
+                  : "bg-red-50 border-red-200 text-red-800"
+              }`}>
+                {success ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : (
+                  <AlertCircle className="w-4 h-4" />
+                )}
+                <span className="text-sm">{message}</span>
+              </div>
+            )}
+
+            {success ? (
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-4">
+                  Redirecionando para o login...
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-charcoal font-medium">
+                    Nova senha
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10"
+                      placeholder="Digite sua nova senha"
+                      data-testid="input-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      data-testid="button-toggle-password"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-charcoal font-medium">
+                    Confirmar nova senha
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 pr-10"
+                      placeholder="Confirme sua nova senha"
+                      data-testid="input-confirm-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      data-testid="button-toggle-confirm-password"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+
+                {errors.general && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {errors.general}
+                    </p>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90 text-white font-medium py-3"
+                  data-testid="button-reset-password"
+                >
+                  {loading ? "Redefinindo..." : "Redefinir Senha"}
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setLocation("/login")}
+                    className="text-sm text-baby-pink-dark hover:underline flex items-center justify-center gap-1"
+                    data-testid="button-back-to-login"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar ao Login
+                  </button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Modo solicitar email de recuperação
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center p-6 gradient-bg">
       <div className="text-center mb-8 z-10">
@@ -92,115 +286,74 @@ export default function ResetPassword() {
             className="w-full h-full object-cover"
           />
         </div>
-        <h1 className="text-3xl font-bold text-charcoal mb-2">Nova Senha</h1>
-        <p className="text-gray-600">Digite sua nova senha abaixo</p>
+        <h1 className="text-3xl font-bold text-charcoal mb-2">Recuperar Senha</h1>
+        <p className="text-gray-600">Digite seu email para receber as instruções</p>
       </div>
 
       <Card className="w-full max-w-sm glass-effect shadow-xl z-10">
         <CardContent className="p-6">
-          {message && (
-            <div className={`mb-4 p-3 rounded-lg border flex items-center gap-2 ${
-              success 
-                ? "bg-green-50 border-green-200 text-green-800" 
-                : "bg-red-50 border-red-200 text-red-800"
-            }`}>
-              {success ? (
-                <CheckCircle className="w-4 h-4" />
-              ) : (
-                <AlertCircle className="w-4 h-4" />
+          {emailMessage && (
+            <div className="mb-4 p-3 rounded-lg border bg-green-50 border-green-200 text-green-800 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              <span className="text-sm">{emailMessage}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-charcoal font-medium">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  placeholder="Digite seu email"
+                  data-testid="input-email"
+                />
+              </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.email}
+                </p>
               )}
-              <span className="text-sm">{message}</span>
             </div>
-          )}
 
-          {success ? (
+            {errors.general && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.general}
+                </p>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={emailLoading}
+              className="w-full bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90 text-white font-medium py-3"
+              data-testid="button-send-email"
+            >
+              {emailLoading ? "Enviando..." : "Enviar Email de Recuperação"}
+            </Button>
+
             <div className="text-center">
-              <p className="text-sm text-gray-600 mb-4">
-                Redirecionando para o login...
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label className="text-charcoal font-medium">Nova Senha</Label>
-                <div className="relative mt-1">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                  <Input 
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Digite sua nova senha"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <div>
-                <Label className="text-charcoal font-medium">Confirmar Senha</Label>
-                <div className="relative mt-1">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                  <Input 
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirme sua nova senha"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
-                )}
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-baby-pink to-baby-blue text-white hover:opacity-90 transition-opacity"
-                disabled={loading}
-              >
-                {loading ? "Redefinindo..." : "Redefinir Senha"}
-              </Button>
-              
-              <Button 
+              <button
                 type="button"
-                variant="ghost"
                 onClick={() => setLocation("/login")}
-                className="w-full text-charcoal hover:bg-gray-100"
+                className="text-sm text-baby-pink-dark hover:underline flex items-center justify-center gap-1"
+                data-testid="button-back-to-login"
               >
+                <ArrowLeft className="w-4 h-4" />
                 Voltar ao Login
-              </Button>
-            </form>
-          )}
+              </button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>
