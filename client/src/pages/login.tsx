@@ -183,7 +183,7 @@ export default function Login() {
       
       {/* Logo and title */}
       <div className="text-center mb-8 z-10">
-        <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-4 shadow-lg overflow-hidden">
+        <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
           <img 
             src={logoImage} 
             alt="Maternidade Logo" 
