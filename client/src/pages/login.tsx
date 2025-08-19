@@ -71,9 +71,10 @@ export default function Login() {
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState("");
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(localStorage.getItem("rememberMe") === "true");
   const [errors, setErrors] = useState<{email?: string; password?: string; general?: string}>({});
   const [formData, setFormData] = useState({
-    email: "",
+    email: localStorage.getItem("rememberedEmail") || "",
     password: "",
     name: "",
   });
@@ -109,7 +110,15 @@ export default function Login() {
     
     try {
       if (isLoginMode) {
-        await login(formData.email, formData.password);
+        // Salvar preferências de "lembrar de mim" antes do login
+        if (rememberMe) {
+          localStorage.setItem("rememberMe", "true");
+          localStorage.setItem("rememberedEmail", formData.email);
+        } else {
+          localStorage.removeItem("rememberMe");
+          localStorage.removeItem("rememberedEmail");
+        }
+        await login(formData.email, formData.password, rememberMe);
       } else {
         if (!formData.name.trim()) {
           setErrors({ general: "Nome é obrigatório" });
@@ -374,8 +383,14 @@ export default function Login() {
 
             {isLoginMode && (
               <div className="flex justify-between items-center">
-                <label className="flex items-center text-sm">
-                  <input type="checkbox" className="mr-2 rounded border-gray-300" />
+                <label className="flex items-center text-sm cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="mr-2 rounded border-gray-300 text-baby-pink focus:ring-baby-pink" 
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    data-testid="checkbox-remember-me"
+                  />
                   <span className="text-gray-600">Lembrar de mim</span>
                 </label>
                 <button

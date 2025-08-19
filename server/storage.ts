@@ -117,8 +117,7 @@ export class DatabaseStorage implements IStorage {
         email: users.email,
         password: users.password,
         name: users.name,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
+        createdAt: users.createdAt
       }).from(users).where(eq(users.email, email)).limit(1);
       return result[0];
     } catch (error) {

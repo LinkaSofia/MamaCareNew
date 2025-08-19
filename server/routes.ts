@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { email, password, rememberMe } = req.body;
       
       if (!email || !password) {
         return res.status(400).json({ error: "Email e senha são obrigatórios" });
@@ -74,6 +74,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       req.session.userId = user.id;
+      
+      // Se "lembrar de mim" estiver marcado, estender a sessão para 30 dias
+      if (rememberMe) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias em millisegundos
+      } else {
+        req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 1 dia
+      }
       
       // Tentar registrar log de acesso (opcional)
       try {
