@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorIllustration } from "@/components/ErrorIllustration";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import logoImage from "@assets/4_1755308511005.png";
 import { Heart, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
 
@@ -66,6 +67,9 @@ function AnimatedBackground() {
 export default function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState("");
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{email?: string; password?: string; general?: string}>({});
   const [formData, setFormData] = useState({
@@ -136,6 +140,24 @@ export default function Login() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+    setForgotPasswordMessage("");
+
+    try {
+      const response = await apiRequest("POST", "/api/auth/forgot-password", {
+        email: forgotPasswordEmail,
+      });
+      const data = await response.json();
+      setForgotPasswordMessage(data.message);
+    } catch (error: any) {
+      setForgotPasswordMessage(error.message || "Erro ao enviar email de recuperação");
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
   if (showForgotPassword) {
     return (
       <div className="min-h-screen relative flex flex-col items-center justify-center p-6 gradient-bg">
@@ -147,7 +169,13 @@ export default function Login() {
               <p className="text-gray-600 text-sm">Digite seu email para recuperar a senha</p>
             </div>
             
-            <form className="space-y-4">
+            {forgotPasswordMessage && (
+              <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                <p className="text-blue-800 text-sm">{forgotPasswordMessage}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleForgotPassword} className="space-y-4">
               <div>
                 <Label className="text-charcoal font-medium">Email</Label>
                 <div className="relative mt-1">
@@ -155,8 +183,11 @@ export default function Login() {
                   <Input 
                     type="email" 
                     placeholder="seu@email.com"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
                     className="pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     data-testid="input-forgot-email"
+                    required
                   />
                 </div>
               </div>
@@ -165,8 +196,9 @@ export default function Login() {
                 type="submit" 
                 className="w-full bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90"
                 data-testid="button-send-recovery"
+                disabled={forgotPasswordLoading}
               >
-                Enviar link de recuperação
+                {forgotPasswordLoading ? "Enviando..." : "Enviar link de recuperação"}
               </Button>
               
               <Button 

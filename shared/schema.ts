@@ -12,6 +12,8 @@ export const users = pgTable("users", {
   loginCount: integer("login_count").default(0),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
+  resetToken: text("reset_token"),
+  resetTokenExpires: timestamp("reset_token_expires"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

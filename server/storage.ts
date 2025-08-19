@@ -98,6 +98,10 @@ export interface IStorage {
   createAccessLog(log: InsertAccessLog): Promise<AccessLog>;
   getAccessLogs(userId?: string, limit?: number): Promise<AccessLog[]>;
   updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void>;
+
+  // Recuperação de senha
+  setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void>;
+  resetPasswordWithToken(token: string, newPassword: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -492,6 +496,54 @@ export class DatabaseStorage implements IStorage {
   async updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void> {
     // Desabilitado temporariamente devido a problemas com colunas da base de dados
     console.log("Login info update skipped - database schema issues");
+  }
+
+  // Recuperação de senha
+  async setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void> {
+    try {
+      await db.update(users)
+        .set({
+          resetToken: token,
+          resetTokenExpires: expires,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      console.error("Error setting password reset token:", error);
+      throw error;
+    }
+  }
+
+  async resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
+    try {
+      const user = await db.select().from(users)
+        .where(eq(users.resetToken, token))
+        .limit(1);
+
+      if (!user.length) {
+        return false;
+      }
+
+      const userData = user[0];
+      if (!userData.resetTokenExpires || userData.resetTokenExpires < new Date()) {
+        return false;
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await db.update(users)
+        .set({
+          password: hashedPassword,
+          resetToken: null,
+          resetTokenExpires: null,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userData.id));
+
+      return true;
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      return false;
+    }
   }
 }
 

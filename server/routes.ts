@@ -6,6 +6,8 @@ import { ObjectPermission } from "./objectAcl";
 import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
+import { sendPasswordResetEmail } from "./sendgrid";
+import { randomUUID } from "crypto";
 
 // Simple session store for user authentication
 declare module "express-session" {
@@ -100,6 +102,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.session.destroy(() => {
       res.json({ success: true });
     });
+  });
+
+  // Rota para solicitar recuperação de senha
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email é obrigatório" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ error: "Email não cadastrado. Verifique o endereço ou crie uma conta." });
+      }
+
+      // Gerar token de reset
+      const resetToken = randomUUID();
+      const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hora
+
+      await storage.setPasswordResetToken(user.id, resetToken, resetTokenExpires);
+
+      // Enviar email
+      if (process.env.SENDGRID_API_KEY) {
+        const emailSent = await sendPasswordResetEmail(email, resetToken);
+        if (emailSent) {
+          res.json({ message: "Email de recuperação enviado com sucesso!" });
+        } else {
+          res.status(500).json({ error: "Erro ao enviar email. Tente novamente." });
+        }
+      } else {
+        // Para desenvolvimento, apenas log no console
+        console.log(`Token de reset para ${email}: ${resetToken}`);
+        res.json({ message: "Email de recuperação seria enviado em produção. Token logado no console." });
+      }
+      
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Rota para resetar senha
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: "Token e nova senha são obrigatórios" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Senha deve ter pelo menos 6 caracteres" });
+      }
+
+      const success = await storage.resetPasswordWithToken(token, newPassword);
+      if (success) {
+        res.json({ message: "Senha alterada com sucesso!" });
+      } else {
+        res.status(400).json({ error: "Token inválido ou expirado" });
+      }
+      
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
   });
 
   app.get("/api/auth/me", requireAuth, async (req, res) => {
