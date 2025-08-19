@@ -182,8 +182,8 @@ export default function Login() {
       <AnimatedBackground />
       
       {/* Logo and title */}
-      <div className="text-center mb-8 z-10">
-        <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+      <div className="text-center mb-10 z-10">
+        <div className="mx-auto w-40 h-40 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
           <img 
             src={logoImage} 
             alt="Maternidade Logo" 
@@ -191,8 +191,8 @@ export default function Login() {
             data-testid="img-logo"
           />
         </div>
-        <h1 className="text-3xl font-bold text-charcoal mb-2">Bem-vinda!</h1>
-        <p className="text-gray-600">Acompanhe sua jornada maternal</p>
+        <h1 className="text-4xl font-bold text-charcoal mb-3">Bem-vinda!</h1>
+        <p className="text-gray-600 text-lg">Acompanhe sua jornada maternal</p>
       </div>
 
       <Card className="w-full max-w-md glass-effect shadow-2xl z-10">
