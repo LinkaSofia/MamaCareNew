@@ -8,14 +8,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  lastLoginAt: timestamp("last_login_at"),
-  loginCount: integer("login_count").default(0),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  resetToken: text("reset_token"),
-  resetTokenExpires: timestamp("reset_token_expires"),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Tabela de logs de acesso para auditoria completa
@@ -46,7 +39,7 @@ export const kickCounts = pgTable("kick_counts", {
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
   date: timestamp("date").notNull(),
   count: integer("count").notNull(),
-  times: jsonb("times").$type<string[]>(),
+  times: jsonb("times").$type<string[]>().default([]),
 });
 
 export const weightRecords = pgTable("weight_records", {

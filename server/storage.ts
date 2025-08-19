@@ -112,14 +112,14 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
+      // Fazer busca case-insensitive
+      const normalizedEmail = email.toLowerCase().trim();
       const result = await db.select({
         id: users.id,
         email: users.email,
         password: users.password,
-        name: users.name,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt || users.createdAt
-      }).from(users).where(eq(users.email, email)).limit(1);
+        name: users.name
+      }).from(users).where(sql`LOWER(${users.email}) = ${normalizedEmail}`).limit(1);
       return result[0];
     } catch (error) {
       console.error("Error fetching user by email:", error);
@@ -183,7 +183,7 @@ export class DatabaseStorage implements IStorage {
       pregnancyId: kickCount.pregnancyId,
       date: kickCount.date,
       count: kickCount.count,
-      times: kickCount.times || [],
+      times: kickCount.times,
       id: randomUUID(),
     }).returning();
     return newKickCount;
@@ -236,7 +236,7 @@ export class DatabaseStorage implements IStorage {
           companions: birthPlan.companions,
           specialRequests: birthPlan.specialRequests,
           preferences: birthPlan.preferences,
-          updatedAt: new Date() 
+
         })
         .where(eq(birthPlans.id, existing.id))
         .returning();
@@ -510,47 +510,37 @@ export class DatabaseStorage implements IStorage {
     console.log("Login info update skipped - database schema issues");
   }
 
-  // Recuperação de senha
+  // Recuperação de senha - usando tabela separada temporariamente
+  private resetTokens = new Map<string, { token: string; expires: Date }>();
+
   async setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void> {
-    try {
-      await db.update(users)
-        .set({
-          resetToken: token,
-          resetTokenExpires: expires,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, userId));
-    } catch (error) {
-      console.error("Error setting password reset token:", error);
-      throw error;
-    }
+    // Usar memória temporariamente até ajustar schema do Supabase
+    this.resetTokens.set(userId, { token, expires });
   }
 
   async resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
     try {
-      const user = await db.select().from(users)
-        .where(eq(users.resetToken, token))
-        .limit(1);
+      // Procurar usuário por token na memória temporariamente
+      let foundUserId: string | null = null;
+      for (const [userId, tokenData] of this.resetTokens.entries()) {
+        if (tokenData.token === token && tokenData.expires > new Date()) {
+          foundUserId = userId;
+          break;
+        }
+      }
 
-      if (!user.length) {
+      if (!foundUserId) {
         return false;
       }
 
-      const userData = user[0];
-      if (!userData.resetTokenExpires || userData.resetTokenExpires < new Date()) {
-        return false;
-      }
-
+      // Atualizar senha no banco
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       await db.update(users)
-        .set({
-          password: hashedPassword,
-          resetToken: null,
-          resetTokenExpires: null,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, userData.id));
+        .set({ password: hashedPassword })
+        .where(eq(users.id, foundUserId));
 
+      // Remover token da memória
+      this.resetTokens.delete(foundUserId);
       return true;
     } catch (error) {
       console.error("Error resetting password:", error);
