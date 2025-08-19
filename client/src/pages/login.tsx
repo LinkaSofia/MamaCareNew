@@ -204,6 +204,20 @@ export default function Login() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Rodapé na tela de esqueci senha */}
+        <div className="text-center mt-8 text-xs text-gray-500 z-10">
+          <p>©2025 MamãeCare</p>
+          <div className="flex justify-center items-center space-x-3 mt-2">
+            <button className="hover:text-baby-pink-dark transition-colors" data-testid="link-terms">
+              Termos
+            </button>
+            <span>•</span>
+            <button className="hover:text-baby-pink-dark transition-colors" data-testid="link-privacy">
+              Privacidade
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -384,7 +398,7 @@ export default function Login() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-4 text-gray-500">ou continue com</span>
+              <span className="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-1 rounded-full text-gray-500 backdrop-blur-sm border border-gray-100">ou continue com</span>
             </div>
           </div>
 
@@ -428,6 +442,20 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Rodapé */}
+      <div className="text-center mt-8 text-xs text-gray-500 z-10">
+        <p>©2025 MamãeCare</p>
+        <div className="flex justify-center items-center space-x-3 mt-2">
+          <button className="hover:text-baby-pink-dark transition-colors" data-testid="link-terms">
+            Termos
+          </button>
+          <span>•</span>
+          <button className="hover:text-baby-pink-dark transition-colors" data-testid="link-privacy">
+            Privacidade
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
