@@ -117,7 +117,8 @@ export class DatabaseStorage implements IStorage {
         email: users.email,
         password: users.password,
         name: users.name,
-        createdAt: users.createdAt
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt || users.createdAt
       }).from(users).where(eq(users.email, email)).limit(1);
       return result[0];
     } catch (error) {
@@ -182,7 +183,7 @@ export class DatabaseStorage implements IStorage {
       pregnancyId: kickCount.pregnancyId,
       date: kickCount.date,
       count: kickCount.count,
-      times: kickCount.times,
+      times: kickCount.times || [],
       id: randomUUID(),
     }).returning();
     return newKickCount;

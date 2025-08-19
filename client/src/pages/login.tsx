@@ -391,7 +391,7 @@ export default function Login() {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     data-testid="checkbox-remember-me"
                   />
-                  <span className="text-gray-600">Lembrar de mim</span>
+                  <span className="text-gray-600">Lembrar-me</span>
                 </label>
                 <button
                   type="button"

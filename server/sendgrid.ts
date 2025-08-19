@@ -23,7 +23,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
     await sgMail.send({
       to: params.to,
-      from: params.from || 'noreply@maternidade.app',
+      from: (params.from || 'noreply@maternidade.app') as string,
       subject: params.subject,
       text: params.text,
       html: params.html,
