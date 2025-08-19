@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value = {
-    user: user?.user || null,
+    user: (user as any)?.user || null,
     isLoading,
     login,
     register,

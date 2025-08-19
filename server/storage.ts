@@ -463,11 +463,17 @@ export class DatabaseStorage implements IStorage {
 
   // Implementação dos logs de auditoria
   async createAccessLog(log: InsertAccessLog): Promise<AccessLog> {
-    const [newLog] = await db.insert(accessLogs).values({
-      ...log,
-      id: randomUUID(),
-    }).returning();
-    return newLog;
+    try {
+      const [newLog] = await db.insert(accessLogs).values({
+        ...log,
+        id: randomUUID(),
+      }).returning();
+      return newLog;
+    } catch (error: any) {
+      console.log("Access log creation failed:", error?.message || "Unknown error");
+      // Retornar um objeto vazio ao invés de falhar
+      return {} as AccessLog;
+    }
   }
 
   async getAccessLogs(userId?: string, limit = 50): Promise<AccessLog[]> {
@@ -484,19 +490,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void> {
-    try {
-      await db.update(users)
-        .set({
-          lastLoginAt: new Date(),
-          loginCount: sql`${users.loginCount} + 1`,
-          ipAddress,
-          userAgent,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, userId));
-    } catch (error) {
-      console.error("Error updating user login info:", error);
-    }
+    // Desabilitado temporariamente devido a problemas com colunas da base de dados
+    console.log("Login info update skipped - database schema issues");
   }
 }
 

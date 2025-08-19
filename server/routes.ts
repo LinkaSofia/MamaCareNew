@@ -72,6 +72,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       req.session.userId = user.id;
+      
+      // Tentar registrar log de acesso (opcional)
+      try {
+        await storage.createAccessLog({
+          userId: user.id,
+          email: user.email,
+          action: 'login',
+          ipAddress: req.ip || req.connection.remoteAddress || '',
+          userAgent: req.get('User-Agent') || '',
+          success: true,
+          sessionId: req.sessionID
+        });
+      } catch (logError: any) {
+        // Falha no log não deve impedir o login
+        console.log("Log creation skipped:", logError?.message || "Unknown error");
+      }
+      
       res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
       console.error("Login error:", error);

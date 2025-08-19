@@ -114,16 +114,20 @@ export default function Login() {
         await register(formData.email, formData.password, formData.name);
       }
     } catch (error: any) {
-      const errorMessage = error.message;
+      console.log("Login/Register error:", error);
+      const errorMessage = error.message || "";
       
-      if (errorMessage?.includes("não encontrado")) {
+      if (errorMessage.includes("não encontrado")) {
         setErrors({ general: "Usuário não encontrado. Verifique seu email ou crie uma conta." });
-      } else if (errorMessage?.includes("Senha incorreta")) {
+      } else if (errorMessage.includes("Senha incorreta")) {
         setErrors({ general: "Senha incorreta. Verifique sua senha e tente novamente." });
-      } else if (errorMessage?.includes("credentials") || errorMessage?.includes("Invalid")) {
+      } else if (errorMessage.includes("credentials") || errorMessage.includes("Invalid")) {
         setErrors({ general: "Email ou senha incorretos" });
-      } else if (errorMessage?.includes("already exists")) {
+      } else if (errorMessage.includes("already exists")) {
         setErrors({ general: "Este email já está em uso" });
+      } else if (error.response?.status === 401) {
+        // Para erros 401, vamos mostrar mensagens mais específicas
+        setErrors({ general: "Dados de login incorretos. Verifique email e senha." });
       } else {
         setErrors({ 
           general: errorMessage || (isLoginMode ? "Erro ao fazer login" : "Erro ao criar conta") 
