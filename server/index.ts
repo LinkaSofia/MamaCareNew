@@ -50,10 +50,20 @@ app.use((req, res, next) => {
 
   // Serve static files from client/public directory
   const publicPath = path.resolve(import.meta.dirname, "..", "client", "public");
-  app.use(express.static(publicPath));
+  app.use(express.static(publicPath, {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      }
+      if (path.endsWith('.html')) {
+        res.setHeader('Content-Type', 'text/html');
+      }
+    }
+  }));
   
-  // Fallback to index.html for SPA routing
+  // Fallback to index.html for all routes
   app.get('*', (req, res) => {
+    res.setHeader('Content-Type', 'text/html');
     res.sendFile(path.join(publicPath, 'index.html'));
   });
 
