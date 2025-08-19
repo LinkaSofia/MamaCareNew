@@ -164,7 +164,10 @@ export class DatabaseStorage implements IStorage {
 
   async createKickCount(kickCount: InsertKickCount): Promise<KickCount> {
     const [newKickCount] = await db.insert(kickCounts).values({
-      ...kickCount,
+      pregnancyId: kickCount.pregnancyId,
+      date: kickCount.date,
+      count: kickCount.count,
+      times: kickCount.times,
       id: randomUUID(),
     }).returning();
     return newKickCount;
@@ -458,20 +461,42 @@ export class DatabaseStorage implements IStorage {
     return newComment;
   }
 
-  // Implementação dos logs de auditoria - temporariamente desabilitado
+  // Implementação dos logs de auditoria
   async createAccessLog(log: InsertAccessLog): Promise<AccessLog> {
-    console.log("Access log creation skipped - tables not yet created");
-    return {} as AccessLog;
+    const [newLog] = await db.insert(accessLogs).values({
+      ...log,
+      id: randomUUID(),
+    }).returning();
+    return newLog;
   }
 
   async getAccessLogs(userId?: string, limit = 50): Promise<AccessLog[]> {
-    console.log("Access log retrieval skipped - tables not yet created");
-    return [];
+    if (userId) {
+      return await db.select().from(accessLogs)
+        .where(eq(accessLogs.userId, userId))
+        .orderBy(desc(accessLogs.createdAt))
+        .limit(limit);
+    }
+    
+    return await db.select().from(accessLogs)
+      .orderBy(desc(accessLogs.createdAt))
+      .limit(limit);
   }
 
   async updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void> {
-    // Temporariamente desabilitado até as tabelas serem criadas
-    console.log("Login info update skipped - tables not yet created");
+    try {
+      await db.update(users)
+        .set({
+          lastLoginAt: new Date(),
+          loginCount: sql`${users.loginCount} + 1`,
+          ipAddress,
+          userAgent,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      console.error("Error updating user login info:", error);
+    }
   }
 }
 
