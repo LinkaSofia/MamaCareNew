@@ -8,6 +8,7 @@ import { InstallPWA } from "@/components/InstallPWA";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import ResetPassword from "@/pages/reset-password";
+import VerifyReset from "@/pages/verify-reset";
 import Dashboard from "@/pages/dashboard";
 import PregnancySetup from "@/pages/pregnancy-setup";
 import KickCounter from "@/pages/kick-counter";
@@ -31,6 +32,7 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/verify-reset" component={VerifyReset} />
       <Route path="/" component={Dashboard} />
       <Route path="/setup" component={PregnancySetup} />
       <Route path="/kick-counter" component={KickCounter} />
