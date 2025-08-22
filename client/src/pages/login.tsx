@@ -138,8 +138,8 @@ export default function Login() {
         setErrors({ password: "Senha inválida" });
       } else if (errorMessage.includes("credentials") || errorMessage.includes("Invalid")) {
         setErrors({ general: "Email ou senha incorretos" });
-      } else if (errorMessage.includes("already exists")) {
-        setErrors({ general: "Este email já está em uso" });
+      } else if (errorMessage.includes("already exists") || errorMessage.includes("User already exists")) {
+        setErrors({ email: "Este email já possui cadastro" });
       } else if (error.response?.status === 401) {
         // Para erros 401, vamos mostrar mensagens mais específicas
         setErrors({ general: "Dados de login incorretos. Verifique email e senha." });
@@ -345,10 +345,12 @@ export default function Login() {
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.email}
-                </p>
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1 text-red-500" />
+                    {errors.email}
+                  </p>
+                </div>
               )}
             </div>
 
