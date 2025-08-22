@@ -115,6 +115,8 @@ export class DatabaseStorage implements IStorage {
     try {
       // Fazer busca usando SQL direto para evitar problemas de schema
       const normalizedEmail = email.toLowerCase().trim();
+      console.log("🔍 Searching for user with email:", normalizedEmail);
+      
       const result = await db.execute(sql`
         SELECT id, name, email, password 
         FROM users 
@@ -122,8 +124,11 @@ export class DatabaseStorage implements IStorage {
         LIMIT 1
       `);
       
+      console.log("🔍 Query result:", result.rows?.length || 0, "rows found");
+      
       if (result.rows && result.rows.length > 0) {
         const row = result.rows[0] as any;
+        console.log("✅ User found:", { id: row.id, email: row.email, name: row.name });
         return {
           id: row.id,
           name: row.name,
@@ -132,6 +137,18 @@ export class DatabaseStorage implements IStorage {
           createdAt: null
         } as User;
       }
+      
+      // Tentar buscar todos os usuários para debug
+      const allUsersResult = await db.execute(sql`SELECT id, name, email FROM users LIMIT 10`);
+      console.log("🔍 Total users in database:", allUsersResult.rows?.length || 0);
+      if (allUsersResult.rows && allUsersResult.rows.length > 0) {
+        console.log("🔍 All users:", allUsersResult.rows.map(r => ({ 
+          id: (r as any).id, 
+          email: (r as any).email, 
+          name: (r as any).name 
+        })));
+      }
+      
       return undefined;
     } catch (error) {
       console.error("Error fetching user by email:", error);
@@ -143,12 +160,22 @@ export class DatabaseStorage implements IStorage {
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const userId = randomUUID();
     
+    console.log("📝 Creating user:", { id: userId, email: user.email, name: user.name });
+    
     // Inserir usando SQL direto para evitar problemas de schema
     try {
-      await db.execute(sql`
+      const result = await db.execute(sql`
         INSERT INTO users (id, email, password, name) 
         VALUES (${userId}, ${user.email}, ${hashedPassword}, ${user.name})
       `);
+      
+      console.log("✅ User insert result:", result);
+      
+      // Verificar se foi inserido
+      const checkResult = await db.execute(sql`
+        SELECT id, email, name FROM users WHERE id = ${userId}
+      `);
+      console.log("✅ User verification:", checkResult.rows?.length || 0, "rows found");
       
       return {
         id: userId,
@@ -158,7 +185,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: null
       } as User;
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("❌ Error creating user:", error);
       throw error;
     }
   }
