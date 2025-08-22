@@ -9,6 +9,7 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import ResetPassword from "@/pages/reset-password";
 import VerifyReset from "@/pages/verify-reset";
+import VerifyToken from "@/pages/verify-token";
 import Dashboard from "@/pages/dashboard";
 import PregnancySetup from "@/pages/pregnancy-setup";
 import KickCounter from "@/pages/kick-counter";
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/verify-reset" component={VerifyReset} />
+      <Route path="/verify-token" component={VerifyToken} />
       <Route path="/" component={Dashboard} />
       <Route path="/setup" component={PregnancySetup} />
       <Route path="/kick-counter" component={KickCounter} />

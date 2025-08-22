@@ -145,8 +145,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("📧 Found real user:", user.email);
       }
 
-      // Gerar token de reset
-      const resetToken = randomUUID();
+      // Gerar token de reset com 4 números
+      const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
       const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hora
 
       await storage.setPasswordResetToken(user.id as string, resetToken, resetTokenExpires);
@@ -179,7 +179,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Token é obrigatório" });
       }
 
-      const user = await storage.getUserByResetToken(token);
+      // Normalizar token para comparação
+      const normalizedToken = token.toLowerCase().trim();
+      const user = await storage.getUserByResetToken(normalizedToken);
       console.log("🔍 User found by token:", user ? "YES" : "NO");
       
       if (!user) {
@@ -206,7 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Senha deve ter pelo menos 6 caracteres" });
       }
 
-      const success = await storage.resetPasswordWithToken(token, newPassword);
+      // Normalizar token para comparação
+      const normalizedToken = token.toLowerCase().trim();
+      const success = await storage.resetPasswordWithToken(normalizedToken, newPassword);
       if (success) {
         res.json({ message: "Senha alterada com sucesso!" });
       } else {

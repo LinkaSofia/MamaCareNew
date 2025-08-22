@@ -567,8 +567,9 @@ export class DatabaseStorage implements IStorage {
   private resetTokens = new Map<string, { token: string; expires: Date; userId: string }>();
 
   async setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void> {
-    // Usar memória temporariamente até ajustar schema do Supabase
-    this.resetTokens.set(token, { token, expires, userId });
+    // Usar memória temporariamente até ajustar schema do Supabase - normalizar token para lowercase
+    const normalizedToken = token.toLowerCase();
+    this.resetTokens.set(normalizedToken, { token: normalizedToken, expires, userId });
   }
 
   async getUserByResetToken(token: string): Promise<User | undefined> {
