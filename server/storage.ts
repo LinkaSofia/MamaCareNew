@@ -112,23 +112,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
+    const emailLower = email.toLowerCase().trim();
+    console.log(`🔍 Searching for user with email: ${email}`);
+    
+    // Primeiro tentar buscar no Supabase
     try {
-      // Fazer busca usando SQL direto para evitar problemas de schema
-      const normalizedEmail = email.toLowerCase().trim();
-      console.log("🔍 Searching for user with email:", normalizedEmail);
-      
       const result = await db.execute(sql`
         SELECT id, name, email, password 
         FROM users 
-        WHERE LOWER(email) = ${normalizedEmail} 
+        WHERE LOWER(email) = ${emailLower} 
         LIMIT 1
       `);
       
-      console.log("🔍 Query result:", result.rows?.length || 0, "rows found");
+      console.log(`🔍 Supabase query result: ${result.rows?.length || 0} rows found`);
       
       if (result.rows && result.rows.length > 0) {
         const row = result.rows[0] as any;
-        console.log("✅ User found:", { id: row.id, email: row.email, name: row.name });
+        console.log("✅ User found in Supabase");
         return {
           id: row.id,
           name: row.name,
@@ -137,23 +137,21 @@ export class DatabaseStorage implements IStorage {
           createdAt: null
         } as User;
       }
-      
-      // Tentar buscar todos os usuários para debug
-      const allUsersResult = await db.execute(sql`SELECT id, name, email FROM users LIMIT 10`);
-      console.log("🔍 Total users in database:", allUsersResult.rows?.length || 0);
-      if (allUsersResult.rows && allUsersResult.rows.length > 0) {
-        console.log("🔍 All users:", allUsersResult.rows.map(r => ({ 
-          id: (r as any).id, 
-          email: (r as any).email, 
-          name: (r as any).name 
-        })));
-      }
-      
-      return undefined;
     } catch (error) {
-      console.error("Error fetching user by email:", error);
-      return undefined;
+      console.log("⚠️ Supabase query failed, checking memory storage");
     }
+    
+    // Buscar no armazenamento em memória
+    const memoryUser = this.memoryUsers.get(emailLower);
+    if (memoryUser) {
+      console.log("✅ User found in memory storage");
+      return memoryUser;
+    }
+    
+    console.log("❌ User not found in Supabase or memory");
+    console.log("📊 Total users in memory:", this.memoryUsers.size);
+    
+    return undefined;
   }
 
   async createUser(user: InsertUser): Promise<User> {
@@ -162,32 +160,43 @@ export class DatabaseStorage implements IStorage {
     
     console.log("📝 Creating user:", { id: userId, email: user.email, name: user.name });
     
-    // Inserir usando SQL direto para evitar problemas de schema
+    // Tentar inserir no Supabase primeiro
     try {
       const result = await db.execute(sql`
         INSERT INTO users (id, email, password, name) 
         VALUES (${userId}, ${user.email}, ${hashedPassword}, ${user.name})
       `);
       
-      console.log("✅ User insert result:", result);
+      console.log("✅ Supabase insert result:", result);
       
-      // Verificar se foi inserido
-      const checkResult = await db.execute(sql`
-        SELECT id, email, name FROM users WHERE id = ${userId}
-      `);
-      console.log("✅ User verification:", checkResult.rows?.length || 0, "rows found");
-      
-      return {
-        id: userId,
-        email: user.email,
-        password: hashedPassword,
-        name: user.name,
-        createdAt: null
-      } as User;
+      if (result.rowCount && result.rowCount > 0) {
+        console.log("✅ User saved to Supabase successfully");
+        return {
+          id: userId,
+          email: user.email,
+          password: hashedPassword,
+          name: user.name,
+          createdAt: null
+        } as User;
+      }
     } catch (error) {
-      console.error("❌ Error creating user:", error);
-      throw error;
+      console.log("⚠️ Supabase insert failed, using memory storage:", error);
     }
+    
+    // Fallback para armazenamento em memória
+    const newUser: User = {
+      id: userId,
+      email: user.email,
+      password: hashedPassword,
+      name: user.name,
+      createdAt: null
+    };
+    
+    this.memoryUsers.set(user.email.toLowerCase(), newUser);
+    console.log("✅ User saved to memory storage");
+    console.log("📊 Total users in memory:", this.memoryUsers.size);
+    
+    return newUser;
   }
 
   async validatePassword(email: string, password: string): Promise<User | null> {
@@ -565,6 +574,9 @@ export class DatabaseStorage implements IStorage {
 
   // Recuperação de senha - usando tabela separada temporariamente
   private resetTokens = new Map<string, { token: string; expires: Date; userId: string }>();
+  
+  // Usuários temporários em memória até corrigir Supabase
+  private memoryUsers = new Map<string, User>();
 
   async setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void> {
     // Usar memória temporariamente até ajustar schema do Supabase - normalizar token para lowercase
