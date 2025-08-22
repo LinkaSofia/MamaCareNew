@@ -42,8 +42,8 @@ const emailConfigs: Record<string, EmailConfig> = {
 };
 
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
-  // Se não há configuração de email, simular sucesso para desenvolvimento
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  // Verificar se as credenciais do Gmail estão disponíveis
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.log(`🔄 Email simulado para: ${email}`);
     console.log(`🔑 Token de reset: ${resetToken}`);
     console.log(`🌐 Link de reset: http://localhost:5000/reset-password?token=${resetToken}`);
@@ -51,16 +51,15 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
   }
 
   try {
-    // Detectar provedor baseado no email do remetente
-    let provider = 'gmail';
-    if (process.env.EMAIL_USER.includes('outlook') || process.env.EMAIL_USER.includes('hotmail')) {
-      provider = 'outlook';
-    } else if (process.env.EMAIL_USER.includes('yahoo')) {
-      provider = 'yahoo';
-    }
-
-    const config = emailConfigs[provider];
-    const transporter = nodemailer.createTransport(config);
+    // Configuração específica para Gmail com as novas variáveis
+    console.log('📧 Configurando Gmail SMTP para Mama Care');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
 
     // Verificar conexão
     await transporter.verify();
@@ -69,11 +68,11 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
 
     const mailOptions = {
       from: {
-        name: 'Maternidade App',
-        address: process.env.EMAIL_USER
+        name: 'Mama Care',
+        address: process.env.GMAIL_USER
       },
       to: email,
-      subject: '🤱 Recuperação de Senha - Maternidade App',
+      subject: '🤱 Recuperação de Senha - Mama Care',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #fdf2f8 0%, #e0f2fe 100%);">
           <div style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
@@ -81,7 +80,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
             <!-- Header -->
             <div style="text-align: center; margin-bottom: 30px;">
               <h1 style="color: #ec4899; margin: 0; font-size: 28px; font-weight: 600;">
-                🤱 Maternidade App
+                🤱 Mama Care
               </h1>
               <p style="color: #6b7280; margin: 10px 0 0 0; font-size: 16px;">
                 Cuidando de você e seu bebê
@@ -99,7 +98,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
               </h2>
               
               <p style="color: #6b7280; line-height: 1.6; font-size: 16px; margin: 0 0 25px 0;">
-                Recebemos uma solicitação para redefinir a senha da sua conta no Maternidade App.
+                Recebemos uma solicitação para redefinir a senha da sua conta no Mama Care.
               </p>
             </div>
 
@@ -129,18 +128,18 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
                 Este email foi enviado automaticamente. Por favor, não responda.
               </p>
               <p style="color: #9ca3af; font-size: 12px; margin: 5px 0 0 0;">
-                <strong>Maternidade App</strong> - Sua jornada maternal, nossa prioridade 💕
+                <strong>Mama Care</strong> - Sua jornada maternal, nossa prioridade 💕
               </p>
             </div>
           </div>
         </div>
       `,
       text: `
-🤱 MATERNIDADE APP - Recuperação de Senha
+🤱 MAMA CARE - Recuperação de Senha
 
 Olá!
 
-Recebemos uma solicitação para redefinir a senha da sua conta no Maternidade App.
+Recebemos uma solicitação para redefinir a senha da sua conta no Mama Care.
 
 Para criar uma nova senha, acesse o link abaixo:
 ${resetUrl}
@@ -150,11 +149,11 @@ ${resetUrl}
 - Se você não solicitou esta recuperação, pode ignorar este email
 - Nunca compartilhe este link com outras pessoas
 
-Obrigado por confiar no Maternidade App!
+Obrigado por confiar no Mama Care!
 
 ---
 Este é um email automático, por favor não responda.
-Maternidade App - Cuidando de você e seu bebê 💕
+Mama Care - Cuidando de você e seu bebê 💕
       `
     };
 
@@ -178,27 +177,25 @@ Maternidade App - Cuidando de você e seu bebê 💕
 
 // Função para testar configuração de email
 export async function testEmailConfig(): Promise<boolean> {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log('⚠️  Configuração de email não encontrada (EMAIL_USER, EMAIL_PASS)');
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.log('⚠️  Configuração de Gmail não encontrada (GMAIL_USER, GMAIL_APP_PASSWORD)');
     return false;
   }
 
   try {
-    let provider = 'gmail';
-    if (process.env.EMAIL_USER.includes('outlook') || process.env.EMAIL_USER.includes('hotmail')) {
-      provider = 'outlook';
-    } else if (process.env.EMAIL_USER.includes('yahoo')) {
-      provider = 'yahoo';
-    }
-
-    const config = emailConfigs[provider];
-    const transporter = nodemailer.createTransport(config);
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
     
     await transporter.verify();
-    console.log(`✅ Configuração de email válida (${provider})`);
+    console.log(`✅ Configuração de Gmail válida para Mama Care`);
     return true;
   } catch (error: any) {
-    console.error('❌ Erro na configuração de email:', error.message);
+    console.error('❌ Erro na configuração de Gmail:', error.message);
     return false;
   }
 }
