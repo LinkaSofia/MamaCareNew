@@ -116,34 +116,30 @@ export class DatabaseStorage implements IStorage {
     console.log(`🔍 Searching for user with email: ${email}`);
     
     try {
+      // Usar Drizzle ORM para buscar usuário por email
+      const result = await db.select().from(users)
+        .where(eq(users.email, emailLower))
+        .limit(1);
       
-      // Primeiro tentar contar todos os usuários
-      const countResult = await db.execute(sql`SELECT COUNT(*) as total FROM users`);
-      console.log("📊 Total users in database:", countResult.rows?.[0] ? (countResult.rows[0] as any).total : 0);
+      console.log(`🔍 Query result: ${result.length} users found`);
       
-      const result = await db.execute(sql`
-        SELECT id, name, email, password 
-        FROM users 
-        WHERE LOWER(email) = ${emailLower} 
-        LIMIT 1
-      `);
+      if (result && result.length > 0) {
+        const user = result[0];
+        console.log("✅ User found in Supabase:", { id: user.id, email: user.email, name: user.name });
+        return user;
+      }
       
-      console.log(`🔍 Query result: ${result.rows?.length || 0} rows found`);
+      // Se não encontrou, tentar com email original (sem normalização)
+      const resultOriginal = await db.select().from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+        
+      console.log(`🔍 Original email query result: ${resultOriginal.length} users found`);
       
-      // Debug: listar alguns usuários para verificar se existem
-      const allUsersResult = await db.execute(sql`SELECT id, email FROM users LIMIT 5`);
-      console.log("👥 Sample users:", allUsersResult.rows?.map(r => ({ id: (r as any).id, email: (r as any).email })));
-      
-      if (result.rows && result.rows.length > 0) {
-        const row = result.rows[0] as any;
-        console.log("✅ User found in Supabase");
-        return {
-          id: row.id,
-          name: row.name,
-          email: row.email,
-          password: row.password,
-          createdAt: null
-        } as User;
+      if (resultOriginal && resultOriginal.length > 0) {
+        const user = resultOriginal[0];
+        console.log("✅ User found with original email:", { id: user.id, email: user.email, name: user.name });
+        return user;
       }
       
       console.log("❌ User not found in Supabase database");
