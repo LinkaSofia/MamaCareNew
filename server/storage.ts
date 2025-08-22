@@ -102,6 +102,7 @@ export interface IStorage {
   // Recuperação de senha
   setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void>;
   resetPasswordWithToken(token: string, newPassword: string): Promise<boolean>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -114,12 +115,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Fazer busca case-insensitive
       const normalizedEmail = email.toLowerCase().trim();
-      const result = await db.select({
-        id: users.id,
-        email: users.email,
-        password: users.password,
-        name: users.name
-      }).from(users).where(sql`LOWER(${users.email}) = ${normalizedEmail}`).limit(1);
+      const result = await db.select().from(users).where(sql`LOWER(${users.email}) = ${normalizedEmail}`).limit(1);
       return result[0];
     } catch (error) {
       console.error("Error fetching user by email:", error);
@@ -511,25 +507,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Recuperação de senha - usando tabela separada temporariamente
-  private resetTokens = new Map<string, { token: string; expires: Date }>();
+  private resetTokens = new Map<string, { token: string; expires: Date; userId: string }>();
 
   async setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void> {
     // Usar memória temporariamente até ajustar schema do Supabase
-    this.resetTokens.set(userId, { token, expires });
+    this.resetTokens.set(token, { token, expires, userId });
+  }
+
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    try {
+      const tokenData = this.resetTokens.get(token);
+      if (!tokenData || tokenData.expires <= new Date()) {
+        return undefined;
+      }
+
+      // Buscar usuário no banco pelo ID
+      const result = await db.select().from(users).where(eq(users.id, tokenData.userId)).limit(1);
+      const user = result[0];
+      
+      if (!user) {
+        return undefined;
+      }
+
+      // Adicionar propriedades de token para compatibilidade
+      return {
+        ...user,
+        resetToken: token,
+        resetTokenExpiry: tokenData.expires
+      } as User & { resetToken: string; resetTokenExpiry: Date };
+    } catch (error) {
+      console.error("Error getting user by reset token:", error);
+      return undefined;
+    }
   }
 
   async resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
     try {
-      // Procurar usuário por token na memória temporariamente
-      let foundUserId: string | null = null;
-      for (const [userId, tokenData] of this.resetTokens.entries()) {
-        if (tokenData.token === token && tokenData.expires > new Date()) {
-          foundUserId = userId;
-          break;
-        }
-      }
-
-      if (!foundUserId) {
+      const tokenData = this.resetTokens.get(token);
+      if (!tokenData || tokenData.expires <= new Date()) {
         return false;
       }
 
@@ -537,10 +552,10 @@ export class DatabaseStorage implements IStorage {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       await db.update(users)
         .set({ password: hashedPassword })
-        .where(eq(users.id, foundUserId));
+        .where(eq(users.id, tokenData.userId));
 
       // Remover token da memória
-      this.resetTokens.delete(foundUserId);
+      this.resetTokens.delete(token);
       return true;
     } catch (error) {
       console.error("Error resetting password:", error);

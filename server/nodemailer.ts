@@ -54,11 +54,16 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
     // Configuração específica para Gmail com as novas variáveis
     console.log('📧 Configurando Gmail SMTP para Mama Care');
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     // Verificar conexão

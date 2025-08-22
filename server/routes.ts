@@ -149,6 +149,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para verificar token de reset
+  app.post("/api/auth/verify-reset-token", async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ error: "Token é obrigatório" });
+      }
+
+      const user = await storage.getUserByResetToken(token);
+      if (!user) {
+        return res.status(400).json({ error: "Token inválido ou expirado" });
+      }
+
+      res.json({ message: "Token válido" });
+    } catch (error: any) {
+      console.error("Verify token error:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
   // Rota para resetar senha
   app.post("/api/auth/reset-password", async (req, res) => {
     try {

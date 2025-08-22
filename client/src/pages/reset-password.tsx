@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Mail, ArrowLeft } from "lucide-react";
 import logoImage from "@assets/4_1755308511005.png";
+import { TokenReset } from "./token-reset";
 
 export default function ResetPassword() {
   const [, setLocation] = useLocation();
@@ -23,6 +24,8 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<{email?: string; password?: string; confirmPassword?: string; general?: string}>({});
   const [isResetMode, setIsResetMode] = useState(false);
+  const [showTokenReset, setShowTokenReset] = useState(false);
+  const [sentEmail, setSentEmail] = useState("");
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -89,6 +92,8 @@ export default function ResetPassword() {
       });
       const data = await response.json();
       setEmailMessage(data.message);
+      setSentEmail(email);
+      setShowTokenReset(true);
     } catch (error: any) {
       console.error("Forgot password error:", error);
       if (error.message.includes("não cadastrado")) {
@@ -272,6 +277,20 @@ export default function ResetPassword() {
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  // Se deve mostrar a tela de token
+  if (showTokenReset) {
+    return (
+      <TokenReset 
+        email={sentEmail}
+        onBack={() => {
+          setShowTokenReset(false);
+          setSentEmail("");
+          setEmailMessage("");
+        }}
+      />
     );
   }
 
