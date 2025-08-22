@@ -135,7 +135,7 @@ export default function Login() {
       if (errorMessage.includes("não encontrado")) {
         setErrors({ email: "Usuário não cadastrado" });
       } else if (errorMessage.includes("Senha incorreta")) {
-        setErrors({ password: "Senha inválida" });
+        setErrors({ password: "Senha incorreta" });
       } else if (errorMessage.includes("credentials") || errorMessage.includes("Invalid")) {
         setErrors({ general: "Email ou senha incorretos" });
       } else if (errorMessage.includes("already exists") || errorMessage.includes("User already exists")) {
@@ -378,7 +378,7 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
+                <p className="mt-1 text-sm text-red-400 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {errors.password}
                 </p>

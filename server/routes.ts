@@ -71,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔄 Validation result:", user ? "SUCCESS" : "FAILED");
       
       if (!user) {
-        return res.status(401).json({ error: "Email ou senha incorretos. Verifique seus dados e tente novamente." });
+        return res.status(401).json({ error: "Senha incorreta" });
       }
       
       req.session.userId = user.id;
