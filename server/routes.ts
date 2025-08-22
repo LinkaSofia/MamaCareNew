@@ -66,18 +66,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email e senha são obrigatórios" });
       }
       
+      console.log("🔄 Starting login validation for:", email);
       const user = await storage.validatePassword(email, password);
+      console.log("🔄 Validation result:", user ? "SUCCESS" : "FAILED");
       
       if (!user) {
-        // Verificar se o usuário existe usando SQL direto
-        const existingUserQuery = await db.execute(sql`SELECT id FROM users WHERE LOWER(email) = LOWER(${email}) LIMIT 1`);
-        const existingUser = existingUserQuery.rows && existingUserQuery.rows.length > 0 ? existingUserQuery.rows[0] : null;
-        
-        if (!existingUser) {
-          return res.status(401).json({ error: "Usuário não encontrado. Verifique seu email ou crie uma conta." });
-        } else {
-          return res.status(401).json({ error: "Senha incorreta. Verifique sua senha e tente novamente." });
-        }
+        return res.status(401).json({ error: "Email ou senha incorretos. Verifique seus dados e tente novamente." });
       }
       
       req.session.userId = user.id;

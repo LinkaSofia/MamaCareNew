@@ -246,9 +246,18 @@ export class DatabaseStorage implements IStorage {
 
   async validatePassword(email: string, password: string): Promise<User | null> {
     const user = await this.getUserByEmail(email);
-    if (!user) return null;
+    if (!user) {
+      console.log("❌ User not found for password validation");
+      return null;
+    }
+    
+    console.log("🔐 Validating password for user:", user.id);
+    console.log("🔐 Stored password hash length:", user.password?.length || 0);
+    console.log("🔐 Input password length:", password?.length || 0);
     
     const isValid = await bcrypt.compare(password, user.password);
+    console.log("🔐 Password validation result:", isValid);
+    
     return isValid ? user : null;
   }
 
