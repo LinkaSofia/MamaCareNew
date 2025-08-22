@@ -5,9 +5,61 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
-import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Mail, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Mail, ArrowLeft, Heart } from "lucide-react";
 import logoImage from "@assets/4_1755308511005.png";
 import { TokenReset } from "./token-reset";
+
+// Componente de animação de fundo igual ao login
+function AnimatedBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Corações flutuantes */}
+      {[...Array(8)].map((_, i) => (
+        <Heart
+          key={`heart-${i}`}
+          className={`absolute text-pink-300/30 animate-float-${i % 4 + 1}`}
+          size={20 + (i % 3) * 10}
+          style={{
+            left: `${10 + (i * 12) % 80}%`,
+            top: `${15 + (i * 15) % 70}%`,
+            animationDelay: `${i * 0.7}s`,
+            animationDuration: `${3 + (i % 3)}s`
+          }}
+        />
+      ))}
+      
+      {/* Bolinhas flutuantes */}
+      {[...Array(12)].map((_, i) => (
+        <div
+          key={`bubble-${i}`}
+          className={`absolute rounded-full bg-gradient-to-r from-pink-200/20 to-blue-200/20 animate-bounce`}
+          style={{
+            width: `${8 + (i % 4) * 6}px`,
+            height: `${8 + (i % 4) * 6}px`,
+            left: `${5 + (i * 8) % 90}%`,
+            top: `${10 + (i * 8) % 80}%`,
+            animationDelay: `${i * 0.5}s`,
+            animationDuration: `${4 + (i % 3)}s`
+          }}
+        />
+      ))}
+      
+      {/* Estrelas piscantes */}
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={`star-${i}`}
+          className={`absolute w-2 h-2 bg-yellow-300/40 animate-pulse`}
+          style={{
+            left: `${20 + (i * 15) % 60}%`,
+            top: `${20 + (i * 12) % 60}%`,
+            animationDelay: `${i * 1.2}s`,
+            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function ResetPassword() {
   const [, setLocation] = useLocation();
@@ -142,11 +194,13 @@ export default function ResetPassword() {
     // Modo redefinir senha com token
     return (
       <div className="min-h-screen relative flex flex-col items-center justify-center p-6 gradient-bg">
+        <AnimatedBackground />
+        
         <div className="text-center mb-8 z-10">
           <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
             <img 
               src={logoImage} 
-              alt="Maternidade Logo" 
+              alt="Mama Care Logo" 
               className="w-full h-full object-cover"
             />
           </div>
@@ -297,11 +351,13 @@ export default function ResetPassword() {
   // Modo solicitar email de recuperação
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center p-6 gradient-bg">
+      <AnimatedBackground />
+      
       <div className="text-center mb-8 z-10">
         <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
           <img 
             src={logoImage} 
-            alt="Maternidade Logo" 
+            alt="Mama Care Logo" 
             className="w-full h-full object-cover"
           />
         </div>

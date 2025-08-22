@@ -128,18 +128,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email é obrigatório" });
       }
 
-      // Tentar buscar usuário real primeiro, depois simular se não encontrar
-      let user = await storage.getUserByEmail(email);
+      // Buscar usuário real no banco
+      const user = await storage.getUserByEmail(email);
       if (!user) {
-        // Para teste, criar usuário temporário
-        user = { id: randomUUID(), email: email, name: "Usuario Teste" };
-        console.log("📧 Using simulated user:", user);
-        
-        // Em produção, retornaria erro:
-        // return res.status(404).json({ error: "Email não cadastrado. Verifique o endereço ou crie uma conta." });
-      } else {
-        console.log("📧 Found real user:", user.email);
+        return res.status(404).json({ error: "Email não cadastrado. Verifique o endereço ou crie uma conta." });
       }
+      
+      console.log("📧 Found real user:", user.email);
 
       // Gerar token de reset
       const resetToken = randomUUID();
