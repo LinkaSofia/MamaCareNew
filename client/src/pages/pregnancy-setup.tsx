@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Calendar, Info, Baby, Heart, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
@@ -80,17 +79,21 @@ export default function PregnancySetup() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1 flex flex-col items-center">
-              <div className="mb-3">
-                <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
-                  <AvatarImage 
-                    src={user?.profilePhotoUrl || ""} 
-                    alt={user?.name} 
-                  />
-                  <AvatarFallback className="bg-gradient-to-r from-baby-pink to-baby-blue text-white text-lg font-semibold">
-                    <User className="w-8 h-8" />
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+              {user?.profilePhotoUrl && (
+                <div className="mb-3">
+                  <div className="w-16 h-16 border-4 border-white shadow-lg rounded-full overflow-hidden bg-gradient-to-r from-baby-pink to-baby-blue flex items-center justify-center">
+                    {user.profilePhotoUrl ? (
+                      <img 
+                        src={user.profilePhotoUrl} 
+                        alt={user.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-8 h-8 text-white" />
+                    )}
+                  </div>
+                </div>
+              )}
               <CardTitle className="text-2xl font-bold text-charcoal">
                 Dados da Gravidez
               </CardTitle>
