@@ -8,9 +8,9 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  profilePhotoUrl: text("profile_photo_url"), // URL da foto de perfil no object storage
+  // profilePhotoUrl: text("profile_photo_url"), // Temporariamente removido para correção
   birthDate: timestamp("birth_date"), // Data de nascimento (coletada no setup)
-  // createdAt: timestamp("created_at").defaultNow(), // Will add back after migration
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Tabela de logs de acesso para auditoria completa
