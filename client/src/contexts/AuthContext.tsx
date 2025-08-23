@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
-      console.log("Redirecionando para pregnancy-setup após registro");
       setLocation("/pregnancy-setup");
     },
   });

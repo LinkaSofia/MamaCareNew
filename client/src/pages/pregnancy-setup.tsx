@@ -106,8 +106,18 @@ export default function PregnancySetup() {
                       onComplete={async (result) => {
                         if (result.successful?.[0]) {
                           const uploadURL = result.successful[0].uploadURL;
+                          console.log("Upload URL:", uploadURL);
                           setProfilePhoto(uploadURL);
-                          console.log("Foto uploadada com sucesso:", uploadURL);
+                          
+                          try {
+                            const response = await apiRequest("PATCH", "/api/auth/profile", {
+                              profilePhotoUrl: uploadURL,
+                            });
+                            console.log("Profile updated:", response);
+                          } catch (error) {
+                            console.error("Erro ao salvar foto:", error);
+                            setError("Erro ao salvar foto de perfil");
+                          }
                         }
                       }}
                       buttonClassName="w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center p-0 min-w-0 h-8"
