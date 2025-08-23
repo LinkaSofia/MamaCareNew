@@ -5,16 +5,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-// Import apenas as páginas essenciais primeiro
+// Import das páginas essenciais
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import PregnancySetup from "@/pages/pregnancy-setup";
 import Setup from "@/pages/setup";
+import ResetPassword from "@/pages/reset-password";
 
 function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/forgot-password" component={ResetPassword} />
       <Route path="/pregnancy-setup" component={PregnancySetup} />
       <Route path="/setup" component={Setup} />
       <Route path="/" component={Dashboard} />
