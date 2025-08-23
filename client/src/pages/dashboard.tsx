@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import FloatingActionButton from "@/components/layout/floating-action-button";
-import ThreeDBaby from "@/components/three-d-baby";
+// import ThreeDBaby from "@/components/three-d-baby";
 import { 
   Bell, 
   Baby, 
@@ -42,8 +42,13 @@ export default function Dashboard() {
   }
 
   if (!user) {
-    setLocation("/login");
-    return null;
+    // Usar setTimeout para evitar problemas de re-render
+    setTimeout(() => setLocation("/login"), 0);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   if (pregnancyLoading || developmentLoading) {
@@ -191,7 +196,9 @@ export default function Dashboard() {
               </div>
               
               <div className="ml-6">
-                <ThreeDBaby week={weekInfo.week} size={120} />
+                <div className="w-[120px] h-[120px] bg-baby-pink rounded-full flex items-center justify-center animate-bounce-slow">
+                  <Baby className="w-16 h-16 text-baby-pink-dark" />
+                </div>
               </div>
             </div>
           </CardContent>

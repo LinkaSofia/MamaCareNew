@@ -23,10 +23,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const { data: userData, isLoading } = useQuery({
+  const { data: userData, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
     staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/auth/me", null);
+        if (!response.ok) {
+          // Se não autenticado, return null em vez de throw error
+          return null;
+        }
+        return response.json();
+      } catch (error) {
+        // Em caso de erro, return null para indicar não autenticado
+        return null;
+      }
+    },
   });
 
   const loginMutation = useMutation({
