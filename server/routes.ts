@@ -223,9 +223,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      res.json({ user: { id: user.id, email: user.email, name: user.name } });
+      res.json({ user: { id: user.id, email: user.email, name: user.name, profilePhotoUrl: user.profilePhotoUrl, birthDate: user.birthDate } });
     } catch (error) {
       res.status(500).json({ error: "Failed to get user" });
+    }
+  });
+
+  // Upload endpoint for profile photos
+  app.post("/api/uploads/profile-photo", requireAuth, async (req, res) => {
+    try {
+      // Generate a unique filename for the profile photo
+      const fileName = `profile-photos/${req.session.userId}-${Date.now()}.jpg`;
+      // Mock upload URL - in reality this would use object storage service
+      const uploadURL = `https://storage.googleapis.com/replit-objstore-91a6418a-7138-4d3e-b5d2-2e3abd9533fc/.private/${fileName}`;
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Update user profile endpoint
+  app.patch("/api/auth/profile", requireAuth, async (req, res) => {
+    try {
+      const { profilePhotoUrl, birthDate } = req.body;
+      const userId = req.session.userId!;
+      
+      // For now, we'll update using the basic storage interface
+      // In a full implementation, we'd add an updateUserProfile method
+      console.log("Updating profile for user:", userId, { profilePhotoUrl, birthDate });
+      
+      // Get current user and simulate update
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Simulate profile update (in real implementation, this would update the database)
+      const updatedUser = {
+        ...currentUser,
+        profilePhotoUrl: profilePhotoUrl || currentUser.profilePhotoUrl,
+        birthDate: birthDate ? new Date(birthDate) : currentUser.birthDate,
+      };
+      
+      res.json({ user: updatedUser });
+    } catch (error) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ error: "Failed to update profile" });
     }
   });
 

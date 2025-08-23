@@ -8,6 +8,8 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
+  profilePhotoUrl: text("profile_photo_url"), // URL da foto de perfil no object storage
+  birthDate: timestamp("birth_date").notNull(), // Data de nascimento obrigatória
   // createdAt: timestamp("created_at").defaultNow(), // Will add back after migration
 });
 
@@ -190,7 +192,12 @@ export const babyDevelopment = pgTable("baby_development", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true }).extend({
+  birthDate: z.string().refine((date) => {
+    const parsed = new Date(date);
+    return parsed instanceof Date && !isNaN(parsed.getTime());
+  }, "Data de nascimento inválida"),
+});
 export const insertPregnancySchema = createInsertSchema(pregnancies).omit({ id: true, createdAt: true });
 export const insertKickCountSchema = createInsertSchema(kickCounts).omit({ id: true });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords).omit({ id: true });
