@@ -21,10 +21,16 @@ declare module "express-session" {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session middleware for authentication
   app.use(session({
-    secret: process.env.SESSION_SECRET || "maternity-app-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+    secret: process.env.SESSION_SECRET || "maternity-app-secret-key-for-mama-care-app",
+    resave: true, // Force session save even if unmodified
+    saveUninitialized: true, // Save uninitialized sessions
+    cookie: { 
+      secure: false, // Allow non-HTTPS in development
+      httpOnly: true, 
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax' // Allow same-site requests
+    },
+    name: 'mama-care-session' // Custom session name
   }));
 
   // Authentication middleware
@@ -302,9 +308,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Pregnancy routes
   app.get("/api/pregnancies/active", requireAuth, async (req, res) => {
     try {
-      const pregnancy = await storage.getActivePregnancy(req.session.userId!);
+      const userId = req.session.userId!;
+      console.log("🤰 Searching for active pregnancy for user:", userId);
+      
+      const pregnancy = await storage.getActivePregnancy(userId);
+      console.log("🤰 Pregnancy found:", pregnancy ? "YES" : "NO");
+      
+      if (pregnancy) {
+        console.log("🤰 Pregnancy details:", { 
+          id: pregnancy.id, 
+          dueDate: pregnancy.dueDate, 
+          isActive: pregnancy.isActive 
+        });
+      }
+      
       res.json({ pregnancy });
     } catch (error) {
+      console.error("Error getting pregnancy:", error);
       res.status(500).json({ error: "Failed to get pregnancy" });
     }
   });
