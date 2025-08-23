@@ -103,6 +103,10 @@ export default function Login() {
       newErrors.name = "Nome é obrigatório";
     }
 
+    if (!isLoginMode && !formData.birthDate) {
+      newErrors.birthDate = "Data de nascimento é obrigatória";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -364,6 +368,7 @@ export default function Login() {
                       errors.birthDate ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''
                     }`}
                     data-testid="input-birth-date"
+                    required
                   />
                 </div>
                 {errors.birthDate && (

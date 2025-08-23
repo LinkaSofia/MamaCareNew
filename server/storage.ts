@@ -250,31 +250,20 @@ export class DatabaseStorage implements IStorage {
         updateData.birthDate = data.birthDate;
       }
 
-      // Usar SQL direto para atualizar o perfil
-      const result = await db.execute(sql`
-        UPDATE users 
-        SET 
-          profile_photo_url = COALESCE(${data.profilePhotoUrl}, profile_photo_url),
-          birth_date = COALESCE(${data.birthDate}, birth_date)
-        WHERE id = ${id}
-        RETURNING id, email, name, profile_photo_url, birth_date
-      `);
+      // Usar Drizzle ORM para atualizar o perfil
+      const result = await db.update(users)
+        .set(updateData)
+        .where(eq(users.id, id))
+        .returning();
       
       if (result.length === 0) {
         throw new Error("User not found");
       }
       
-      const updatedUser = result[0] as any;
+      const updatedUser = result[0];
       console.log("✅ User profile updated successfully:", updatedUser);
       
-      return {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        profilePhotoUrl: updatedUser.profile_photo_url,
-        birthDate: updatedUser.birth_date,
-        password: "", // Not returned for security
-      } as User;
+      return updatedUser;
       
     } catch (error: any) {
       console.error("❌ Error updating user profile:", error?.message || error);

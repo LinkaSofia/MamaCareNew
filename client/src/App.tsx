@@ -12,6 +12,7 @@ import VerifyReset from "@/pages/verify-reset";
 import VerifyToken from "@/pages/verify-token";
 import Dashboard from "@/pages/dashboard";
 import PregnancySetup from "@/pages/pregnancy-setup";
+import Setup from "@/pages/setup";
 import KickCounter from "@/pages/kick-counter";
 import WeightTracking from "@/pages/weight-tracking";
 import BirthPlan from "@/pages/birth-plan";
@@ -36,7 +37,8 @@ function Router() {
       <Route path="/verify-reset" component={VerifyReset} />
       <Route path="/verify-token" component={VerifyToken} />
       <Route path="/" component={Dashboard} />
-      <Route path="/setup" component={PregnancySetup} />
+      <Route path="/pregnancy-setup" component={PregnancySetup} />
+      <Route path="/setup" component={Setup} />
       <Route path="/kick-counter" component={KickCounter} />
       <Route path="/weight-tracking" component={WeightTracking} />
       <Route path="/birth-plan" component={BirthPlan} />

@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
-      setLocation("/setup");
+      setLocation("/pregnancy-setup");
     },
   });
 
