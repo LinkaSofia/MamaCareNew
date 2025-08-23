@@ -132,10 +132,25 @@ export class DatabaseStorage implements IStorage {
     console.log(`🔍 Searching for user with email: ${email}`);
     
     try {
-      // Usar Drizzle ORM para buscar usuário por email
-      const result = await db.select().from(users)
-        .where(eq(users.email, emailLower))
-        .limit(1);
+      // Usar Drizzle ORM para buscar usuário por email (sem profile_photo_url se não existir)
+      let result;
+      try {
+        result = await db.select().from(users)
+          .where(eq(users.email, emailLower))
+          .limit(1);
+      } catch (error: any) {
+        if (error.message?.includes('column "profile_photo_url" does not exist')) {
+          // Usar SQL direto sem a coluna profile_photo_url
+          result = await db.execute(sql`
+            SELECT id, email, password, name, birth_date 
+            FROM users 
+            WHERE email = ${emailLower}
+            LIMIT 1
+          `);
+        } else {
+          throw error;
+        }
+      }
       
       console.log(`🔍 Query result: ${result.length} users found`);
       

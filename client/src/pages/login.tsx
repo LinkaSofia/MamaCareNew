@@ -360,9 +360,9 @@ export default function Login() {
                   />
                 </div>
                 {errors.name && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-700 flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-1 text-red-500" />
+                  <div className="mt-2 p-2 bg-red-50/40 border border-red-200/30 rounded-lg">
+                    <p className="text-sm text-red-400/90 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1 text-red-300/80" />
                       {errors.name}
                     </p>
                   </div>
@@ -390,9 +390,9 @@ export default function Login() {
                   />
                 </div>
                 {errors.birthDate && (
-                  <div className="mt-1 p-2 bg-red-50/70 border border-red-200/60 rounded-md">
-                    <p className="text-xs text-red-600 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1 text-red-400" />
+                  <div className="mt-1 p-2 bg-red-50/40 border border-red-200/30 rounded-md">
+                    <p className="text-xs text-red-400/90 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1 text-red-300/80" />
                       {errors.birthDate}
                     </p>
                   </div>
@@ -416,9 +416,9 @@ export default function Login() {
                 />
               </div>
               {errors.email && (
-                <div className="mt-1 p-2 bg-red-50/70 border border-red-200/60 rounded-md">
-                  <p className="text-xs text-red-600 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1 text-red-400" />
+                <div className="mt-1 p-2 bg-red-50/40 border border-red-200/30 rounded-md">
+                  <p className="text-xs text-red-400/90 flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1 text-red-300/80" />
                     {errors.email}
                   </p>
                 </div>
@@ -449,9 +449,9 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && (
-                <div className="mt-1 p-2 bg-red-50/70 border border-red-200/60 rounded-md">
-                  <p className="text-xs text-red-600 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1 text-red-400" />
+                <div className="mt-1 p-2 bg-red-50/40 border border-red-200/30 rounded-md">
+                  <p className="text-xs text-red-400/90 flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1 text-red-300/80" />
                     {errors.password}
                   </p>
                 </div>
