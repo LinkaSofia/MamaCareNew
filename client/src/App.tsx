@@ -7,11 +7,13 @@ import { AuthProvider } from "@/contexts/AuthContext";
 
 // Import páginas uma por vez para testar
 import Login from "@/pages/login";
+import PregnancySetup from "@/pages/pregnancy-setup";
 
 function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/pregnancy-setup" component={PregnancySetup} />
       <Route path="/">
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-white to-blue-100">
           <div className="text-center p-8 bg-white rounded-lg shadow-lg">
