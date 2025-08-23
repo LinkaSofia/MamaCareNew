@@ -29,9 +29,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware
   const requireAuth = (req: any, res: any, next: any) => {
+    console.log("🔐 Auth check:", { 
+      hasSession: !!req.session, 
+      userId: req.session?.userId, 
+      sessionId: req.session?.id 
+    });
+    
     if (!req.session.userId) {
+      console.log("❌ No session userId found, returning 401");
       return res.status(401).json({ error: "Authentication required" });
     }
+    console.log("✅ Auth check passed for user:", req.session.userId);
     next();
   };
 
@@ -95,6 +103,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       req.session.userId = user.id;
+      
+      console.log("🔄 Login successful, session created:", { 
+        userId: user.id, 
+        sessionId: req.sessionID,
+        hasSession: !!req.session
+      });
       
       // Se "lembrar de mim" estiver marcado, estender a sessão para 30 dias
       if (rememberMe) {
