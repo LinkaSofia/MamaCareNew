@@ -105,6 +105,17 @@ export default function Login() {
 
     if (!isLoginMode && !formData.birthDate) {
       newErrors.birthDate = "Data de nascimento é obrigatória";
+    } else if (!isLoginMode && formData.birthDate) {
+      const birthYear = new Date(formData.birthDate).getFullYear();
+      const currentYear = new Date().getFullYear();
+      
+      if (birthYear < 1900 || birthYear > currentYear) {
+        newErrors.birthDate = "Digite um ano válido";
+      }
+      
+      if (birthYear > currentYear - 13) {
+        newErrors.birthDate = "Idade mínima: 13 anos";
+      }
     }
 
     setErrors(newErrors);
@@ -155,6 +166,8 @@ export default function Login() {
         setErrors({ general: "Email ou senha incorretos" });
       } else if (errorMessage.includes("already exists") || errorMessage.includes("User already exists") || errorMessage.includes("já está cadastrado")) {
         setErrors({ email: "Este email já possui cadastro" });
+      } else if (errorMessage.includes("Data de nascimento inválida")) {
+        setErrors({ birthDate: "Data inválida" });
       } else if (error.response?.status === 401) {
         // Para erros 401, vamos mostrar mensagens mais específicas
         setErrors({ general: "Dados de login incorretos. Verifique email e senha." });
@@ -375,9 +388,9 @@ export default function Login() {
                   />
                 </div>
                 {errors.birthDate && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-700 flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-1 text-red-500" />
+                  <div className="mt-1 p-2 bg-red-50/70 border border-red-200/60 rounded-md">
+                    <p className="text-xs text-red-600 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1 text-red-400" />
                       {errors.birthDate}
                     </p>
                   </div>
@@ -434,10 +447,12 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-400 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.password}
-                </p>
+                <div className="mt-1 p-2 bg-red-50/70 border border-red-200/60 rounded-md">
+                  <p className="text-xs text-red-600 flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1 text-red-400" />
+                    {errors.password}
+                  </p>
+                </div>
               )}
             </div>
 

@@ -220,6 +220,9 @@ export class DatabaseStorage implements IStorage {
       if (error?.message?.includes("já está cadastrado")) {
         throw error; // Re-throw specific errors
       }
+      if (error?.message?.includes("time zone displacement") || error?.message?.includes("date")) {
+        throw new Error("Data de nascimento inválida");
+      }
       throw new Error("Erro ao criar usuário");
     }
   }
