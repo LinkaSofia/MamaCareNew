@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Calendar, Info, Baby, Heart, User, Upload } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
-// import { ObjectUploader } from "@/components/ObjectUploader";
+import { ObjectUploader } from "@/components/ObjectUploader";
 
 export default function PregnancySetup() {
   const [, setLocation] = useLocation();
@@ -93,12 +93,27 @@ export default function PregnancySetup() {
                     <User className="w-10 h-10 text-white" />
                   )}
                   <div className="absolute -bottom-1 -right-1">
-                    <button 
-                      className="w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center p-0 min-w-0 h-8"
-                      onClick={() => setError("Upload de foto temporariamente desabilitado")}
+                    <ObjectUploader
+                      maxNumberOfFiles={1}
+                      maxFileSize={5242880}
+                      onGetUploadParameters={async () => {
+                        const response = await apiRequest("POST", "/api/uploads/profile-photo");
+                        return {
+                          method: "PUT" as const,
+                          url: response.uploadURL,
+                        };
+                      }}
+                      onComplete={async (result) => {
+                        if (result.successful?.[0]) {
+                          const uploadURL = result.successful[0].uploadURL;
+                          setProfilePhoto(uploadURL);
+                          console.log("Foto uploadada com sucesso:", uploadURL);
+                        }
+                      }}
+                      buttonClassName="w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center p-0 min-w-0 h-8"
                     >
                       <Upload className="w-4 h-4 text-baby-pink-dark" />
-                    </button>
+                    </ObjectUploader>
                   </div>
                 </div>
               </div>
