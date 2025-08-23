@@ -6,6 +6,12 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 // import ThreeDBaby from "@/components/three-d-baby";
 import { 
   Bell, 
@@ -18,15 +24,27 @@ import {
   User,
   Calendar,
   Info,
-  Book
+  Book,
+  Settings,
+  LogOut,
+  ChevronDown
 } from "lucide-react";
 
 export default function Dashboard() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, logout } = useAuth();
   const { pregnancy, weekInfo, isLoading: pregnancyLoading } = usePregnancy();
   const { data: developmentData, isLoading: developmentLoading } = useBabyDevelopment(weekInfo?.week || 0);
   const [activeTab, setActiveTab] = useState("baby");
   const [, setLocation] = useLocation();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setLocation("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
 
   const isLoading = authLoading || pregnancyLoading || developmentLoading;
 
@@ -107,36 +125,43 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-pink-300 via-purple-300 to-blue-400 pb-20">
       {/* Header Section */}
       <div className="px-4 pt-12 pb-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-3">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-              {user.profilePhotoUrl ? (
-                <img 
-                  src={user.profilePhotoUrl} 
-                  alt={user.name} 
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <User className="h-8 w-8 text-white" />
-              )}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white" data-testid="text-greeting">
-                Olá, Mamãe!
-              </h1>
-              <p className="text-white/80 text-lg" data-testid="text-pregnancy-week">
-                Semana {weekInfo.week} de gestação
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/login")}
-            className="text-white/80 hover:text-white hover:bg-white/10"
-          >
-            <Bell className="h-5 w-5" />
-          </Button>
+        <div className="flex items-center justify-end mb-8">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center space-x-3 text-right hover:bg-white/10 rounded-lg p-2 transition-colors">
+                <div className="text-right">
+                  <h1 className="text-2xl font-bold text-white" data-testid="text-greeting">
+                    Olá, Mamãe!
+                  </h1>
+                  <p className="text-white/80 text-lg" data-testid="text-pregnancy-week">
+                    Semana {weekInfo.week} de gestação
+                  </p>
+                </div>
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                  {user.profilePhotoUrl ? (
+                    <img 
+                      src={user.profilePhotoUrl} 
+                      alt={user.name} 
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-8 w-8 text-white" />
+                  )}
+                </div>
+                <ChevronDown className="h-4 w-4 text-white/80" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setLocation("/setup")} className="cursor-pointer">
+                <Settings className="h-4 w-4 mr-2" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Progress Circle */}
