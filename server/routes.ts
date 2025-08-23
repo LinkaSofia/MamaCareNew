@@ -75,8 +75,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.createUser(userData);
       req.session.userId = user.id;
-
-      res.json({ user: { id: user.id, email: user.email, name: user.name, profilePhotoUrl: user.profilePhotoUrl, birthDate: user.birthDate } });
+      
+      // Salvar a sessão explicitamente após registro
+      req.session.save((err) => {
+        if (err) {
+          console.error("❌ Registration session save error:", err);
+        }
+        res.json({ user: { id: user.id, email: user.email, name: user.name, profilePhotoUrl: user.profilePhotoUrl, birthDate: user.birthDate } });
+      });
     } catch (error) {
       console.error("Registration error:", error);
       
@@ -121,12 +127,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       req.session.userId = user.id;
       
-      console.log("🔄 Login successful, session created:", { 
-        userId: user.id, 
-        sessionId: req.sessionID,
-        hasSession: !!req.session
-      });
-      
       // Se "lembrar de mim" estiver marcado, estender a sessão para 30 dias
       if (rememberMe) {
         req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias em millisegundos
@@ -134,9 +134,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 1 dia
       }
       
-      // Tentar registrar log de acesso (opcional)
-      try {
-        await storage.createAccessLog({
+      // Salvar a sessão explicitamente antes de responder
+      req.session.save((err) => {
+        if (err) {
+          console.error("❌ Session save error:", err);
+        }
+        
+        console.log("🔄 Login successful, session saved:", { 
+          userId: user.id, 
+          sessionId: req.sessionID,
+          hasSession: !!req.session,
+          sessionUserId: req.session.userId
+        });
+      
+        // Tentar registrar log de acesso (opcional)
+        storage.createAccessLog({
           userId: user.id,
           email: user.email,
           action: 'login',
@@ -144,13 +156,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userAgent: req.get('User-Agent') || '',
           success: true,
           sessionId: req.sessionID
+        }).catch((logError: any) => {
+          // Falha no log não deve impedir o login
+          console.log("Log creation skipped:", logError?.message || "Unknown error");
         });
-      } catch (logError: any) {
-        // Falha no log não deve impedir o login
-        console.log("Log creation skipped:", logError?.message || "Unknown error");
-      }
-      
-      res.json({ user: { id: user.id, email: user.email, name: user.name } });
+        
+        // Verificar se o usuário tem dados de gravidez, se não criar um básico
+        storage.getActivePregnancy(user.id).then(pregnancy => {
+          if (!pregnancy) {
+            // Criar dados de gravidez básicos para usuário existente
+            const basicPregnancy = {
+              userId: user.id,
+              dueDate: new Date('2025-12-01'), // Data de exemplo
+              currentWeight: 65,
+              isActive: true,
+              createdAt: new Date()
+            };
+            
+            storage.createPregnancy(basicPregnancy).then(() => {
+              console.log("✅ Created basic pregnancy data for existing user");
+            }).catch(err => {
+              console.log("❌ Failed to create pregnancy data:", err?.message);
+            });
+          }
+        }).catch(err => {
+          console.log("❌ Failed to check pregnancy data:", err?.message);
+        });
+        
+        res.json({ user: { id: user.id, email: user.email, name: user.name } });
+      });
     } catch (error) {
       console.error("Login error:", error);
       res.status(401).json({ error: "Erro ao fazer login. Verifique seus dados e tente novamente." });
