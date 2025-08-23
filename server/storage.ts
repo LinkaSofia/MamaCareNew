@@ -33,6 +33,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(id: string, data: { profilePhotoUrl?: string; birthDate?: Date }): Promise<User>;
   validatePassword(email: string, password: string): Promise<User | null>;
 
   // Pregnancies
@@ -233,6 +234,52 @@ export class DatabaseStorage implements IStorage {
     console.log("🔐 Password validation result:", isValid);
     
     return isValid ? user : null;
+  }
+
+  async updateUserProfile(id: string, data: { profilePhotoUrl?: string; birthDate?: Date }): Promise<User> {
+    console.log("📝 Updating user profile:", { id, data });
+    
+    try {
+      const updateData: any = {};
+      
+      if (data.profilePhotoUrl !== undefined) {
+        updateData.profilePhotoUrl = data.profilePhotoUrl;
+      }
+      
+      if (data.birthDate !== undefined) {
+        updateData.birthDate = data.birthDate;
+      }
+
+      // Usar SQL direto para atualizar o perfil
+      const result = await db.execute(sql`
+        UPDATE users 
+        SET 
+          profile_photo_url = COALESCE(${data.profilePhotoUrl}, profile_photo_url),
+          birth_date = COALESCE(${data.birthDate}, birth_date)
+        WHERE id = ${id}
+        RETURNING id, email, name, profile_photo_url, birth_date
+      `);
+      
+      if (result.length === 0) {
+        throw new Error("User not found");
+      }
+      
+      const updatedUser = result[0] as any;
+      console.log("✅ User profile updated successfully:", updatedUser);
+      
+      return {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        profilePhotoUrl: updatedUser.profile_photo_url,
+        birthDate: updatedUser.birth_date,
+        password: "", // Not returned for security
+      } as User;
+      
+    } catch (error: any) {
+      console.error("❌ Error updating user profile:", error?.message || error);
+      throw new Error("Erro ao atualizar perfil do usuário");
+    }
   }
 
   async getActivePregnancy(userId: string): Promise<Pregnancy | undefined> {

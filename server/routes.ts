@@ -249,22 +249,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { profilePhotoUrl, birthDate } = req.body;
       const userId = req.session.userId!;
       
-      // For now, we'll update using the basic storage interface
-      // In a full implementation, we'd add an updateUserProfile method
       console.log("Updating profile for user:", userId, { profilePhotoUrl, birthDate });
       
-      // Get current user and simulate update
-      const currentUser = await storage.getUser(userId);
-      if (!currentUser) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      // Simulate profile update (in real implementation, this would update the database)
-      const updatedUser = {
-        ...currentUser,
-        profilePhotoUrl: profilePhotoUrl || currentUser.profilePhotoUrl,
-        birthDate: birthDate ? new Date(birthDate) : currentUser.birthDate,
-      };
+      const updatedUser = await storage.updateUserProfile(userId, {
+        profilePhotoUrl,
+        birthDate: birthDate ? new Date(birthDate) : undefined,
+      });
       
       res.json({ user: updatedUser });
     } catch (error) {
