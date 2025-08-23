@@ -191,9 +191,12 @@ export class DatabaseStorage implements IStorage {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       const userId = randomUUID();
       
+      // Converter birthDate para string se existir
+      const birthDateStr = user.birthDate ? user.birthDate.toISOString().split('T')[0] : null;
+      
       const result = await db.execute(sql`
         INSERT INTO users (id, email, password, name, birth_date, created_at) 
-        VALUES (${userId}, ${user.email.toLowerCase().trim()}, ${hashedPassword}, ${user.name}, ${user.birthDate}, NOW())
+        VALUES (${userId}, ${user.email.toLowerCase().trim()}, ${hashedPassword}, ${user.name}, ${birthDateStr}, NOW())
         RETURNING id, email, name, birth_date, created_at
       `);
       

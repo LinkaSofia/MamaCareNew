@@ -159,9 +159,12 @@ export default function Login() {
         // Para erros 401, vamos mostrar mensagens mais específicas
         setErrors({ general: "Dados de login incorretos. Verifique email e senha." });
       } else {
-        setErrors({ 
-          general: errorMessage || (isLoginMode ? "Erro ao fazer login" : "Erro ao criar conta") 
-        });
+        // Mostrar mensagens mais específicas e amigáveis
+        if (isLoginMode) {
+          setErrors({ general: "Verifique seus dados e tente novamente" });
+        } else {
+          setErrors({ general: "Não foi possível criar a conta" });
+        }
       }
     }
   };
@@ -313,14 +316,14 @@ export default function Login() {
                         : "Algo deu errado"}
                 message={
                   errors.general.includes("não encontrado")
-                    ? "Este email não está cadastrado. Que tal criar uma conta nova?"
+                    ? "Email não cadastrado"
                     : errors.general.includes("Senha incorreta")
-                      ? "A senha não confere. Verifique se digitou corretamente."
+                      ? "Senha incorreta"
                       : errors.general.includes("incorretos") || errors.general.includes("credentials")
-                        ? "Verifique se digitou o email e senha corretamente. Que tal tentar novamente?"
-                        : errors.general.includes("já está em uso")
-                          ? "Este email já possui uma conta. Tente fazer login ou use outro email."
-                          : "Tivemos um probleminha técnico. Pode tentar novamente, por favor?"
+                        ? "Email ou senha incorretos"
+                        : errors.general.includes("já está cadastrado")
+                          ? "Email já possui conta"
+                          : "Erro interno"
                 }
               />
             </div>
@@ -398,9 +401,9 @@ export default function Login() {
                 />
               </div>
               {errors.email && (
-                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1 text-red-500" />
+                <div className="mt-1 p-2 bg-red-50/70 border border-red-200/60 rounded-md">
+                  <p className="text-xs text-red-600 flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1 text-red-400" />
                     {errors.email}
                   </p>
                 </div>
