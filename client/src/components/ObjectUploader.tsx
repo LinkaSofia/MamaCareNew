@@ -78,7 +78,6 @@ export function ObjectUploader({
             importFrom: 'Importar de',
             dashboardWindowTitle: 'Upload de Imagem',
             dashboardTitle: 'Selecione sua foto de perfil',
-            dropPasteImport: 'Arraste a imagem aqui, %{browseFiles} ou importe de:',
             browseFiles: 'procure no dispositivo',
           }
         }}
