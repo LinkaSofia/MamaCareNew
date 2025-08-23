@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (params: { email: string; password: string; name: string }) => {
+    mutationFn: async (params: { email: string; password: string; name: string; birthDate?: string }) => {
       const response = await apiRequest("POST", "/api/auth/register", params);
       return response.json();
     },
@@ -79,8 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return loginMutation.mutateAsync({ email, password, rememberMe });
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    return registerMutation.mutateAsync({ email, password, name });
+  const register = async (email: string, password: string, name: string, birthDate?: string) => {
+    return registerMutation.mutateAsync({ email, password, name, birthDate });
   };
 
   const logout = async () => {

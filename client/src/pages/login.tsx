@@ -78,6 +78,7 @@ export default function Login() {
     email: localStorage.getItem("rememberedEmail") || "",
     password: "",
     name: "",
+    birthDate: "",
   });
   const { login, register, isLoading } = useAuth();
   const { toast } = useToast();
@@ -126,7 +127,7 @@ export default function Login() {
           setErrors({ general: "Nome é obrigatório" });
           return;
         }
-        await register(formData.email, formData.password, formData.name);
+        await register(formData.email, formData.password, formData.name, formData.birthDate);
       }
     } catch (error: any) {
       console.log("Login/Register error:", error);
@@ -324,6 +325,23 @@ export default function Login() {
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     className="pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     data-testid="input-name"
+                  />
+                </div>
+              </div>
+            )}
+
+            {!isLoginMode && (
+              <div>
+                <Label className="text-charcoal font-medium">Data de nascimento</Label>
+                <div className="relative mt-1">
+                  <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="date"
+                    placeholder="Data de nascimento"
+                    value={formData.birthDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, birthDate: e.target.value }))}
+                    className="pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    data-testid="input-birth-date"
                   />
                 </div>
               </div>
