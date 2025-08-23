@@ -29,14 +29,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       try {
-        const response = await apiRequest("GET", "/api/auth/me", null);
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
         if (!response.ok) {
-          // Se não autenticado, return null em vez de throw error
           return null;
         }
         return response.json();
       } catch (error) {
-        // Em caso de erro, return null para indicar não autenticado
+        console.log("Auth check failed, user not authenticated");
         return null;
       }
     },
