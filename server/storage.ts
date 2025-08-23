@@ -192,9 +192,9 @@ export class DatabaseStorage implements IStorage {
       const userId = randomUUID();
       
       const result = await db.execute(sql`
-        INSERT INTO users (id, email, password, name, created_at) 
-        VALUES (${userId}, ${user.email.toLowerCase().trim()}, ${hashedPassword}, ${user.name}, NOW())
-        RETURNING id, email, name, created_at
+        INSERT INTO users (id, email, password, name, birth_date, created_at) 
+        VALUES (${userId}, ${user.email.toLowerCase().trim()}, ${hashedPassword}, ${user.name}, ${user.birthDate}, NOW())
+        RETURNING id, email, name, birth_date, created_at
       `);
       
       if (result.length > 0) {
@@ -205,6 +205,8 @@ export class DatabaseStorage implements IStorage {
           email: newUser.email,
           password: hashedPassword,
           name: newUser.name,
+          birthDate: newUser.birth_date,
+          profilePhotoUrl: null,
           createdAt: newUser.created_at || new Date()
         } as User;
       } else {
@@ -242,12 +244,22 @@ export class DatabaseStorage implements IStorage {
     try {
       const updateData: any = {};
       
-      if (data.profilePhotoUrl !== undefined) {
+      if (data.profilePhotoUrl !== undefined && data.profilePhotoUrl !== null) {
         updateData.profilePhotoUrl = data.profilePhotoUrl;
       }
       
-      if (data.birthDate !== undefined) {
+      if (data.birthDate !== undefined && data.birthDate !== null) {
         updateData.birthDate = data.birthDate;
+      }
+
+      // Se não há dados para atualizar, apenas retorna o usuário atual
+      if (Object.keys(updateData).length === 0) {
+        console.log("📝 No data to update, returning current user");
+        const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+        if (result.length === 0) {
+          throw new Error("User not found");
+        }
+        return result[0];
       }
 
       // Usar Drizzle ORM para atualizar o perfil

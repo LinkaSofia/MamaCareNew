@@ -136,7 +136,7 @@ export default function Setup() {
                 data-testid="button-continue"
               >
                 <Heart className="mr-2 h-4 w-4" />
-                {profilePhoto ? "Continuar" : "Pular"}
+                Continuar
               </Button>
             </div>
           </form>
