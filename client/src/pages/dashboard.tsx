@@ -152,7 +152,7 @@ export default function Dashboard() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => setLocation("/setup")} className="cursor-pointer">
+              <DropdownMenuItem onClick={() => setLocation("/profile")} className="cursor-pointer">
                 <Settings className="h-4 w-4 mr-2" />
                 Perfil
               </DropdownMenuItem>

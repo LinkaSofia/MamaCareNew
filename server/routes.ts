@@ -314,6 +314,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para atualizar perfil do usuário
+  app.put("/api/auth/profile", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { name, birthDate } = req.body;
+      
+      console.log("📝 Updating user profile:", { userId, name, birthDate });
+      
+      const updateData: any = {};
+      if (name) updateData.name = name;
+      if (birthDate) updateData.birthDate = new Date(birthDate);
+      
+      const updatedUser = await storage.updateUserProfile(userId, updateData);
+      
+      res.json({ 
+        user: { 
+          id: updatedUser.id, 
+          email: updatedUser.email, 
+          name: updatedUser.name, 
+          profilePhotoUrl: updatedUser.profilePhotoUrl, 
+          birthDate: updatedUser.birthDate 
+        } 
+      });
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
   // Upload endpoint for profile photos
   app.post("/api/uploads/profile-photo", requireAuth, async (req, res) => {
     try {
@@ -394,6 +423,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: "Database error", 
         message: error instanceof Error ? error.message : "Unknown database error" 
       });
+    }
+  });
+
+  // Rota para atualizar dados de gravidez
+  app.put("/api/pregnancies/:id", requireAuth, async (req, res) => {
+    try {
+      const pregnancyId = req.params.id;
+      const userId = req.session.userId!;
+      const { dueDate, lastMenstrualPeriod, isActive } = req.body;
+      
+      console.log("🤰 Updating pregnancy:", { pregnancyId, userId, lastMenstrualPeriod });
+      
+      // Verificar se a gravidez pertence ao usuário
+      const existingPregnancy = await storage.getActivePregnancy(userId);
+      if (!existingPregnancy || existingPregnancy.id !== pregnancyId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+      
+      const updateData: any = {};
+      if (dueDate) updateData.dueDate = new Date(dueDate);
+      if (lastMenstrualPeriod) updateData.lastMenstrualPeriod = new Date(lastMenstrualPeriod);
+      if (isActive !== undefined) updateData.isActive = isActive;
+      
+      await storage.updatePregnancy(pregnancyId, updateData);
+      
+      // Retornar os dados atualizados
+      const updatedPregnancy = await storage.getActivePregnancy(userId);
+      res.json({ pregnancy: updatedPregnancy });
+    } catch (error) {
+      console.error("Error updating pregnancy:", error);
+      res.status(500).json({ error: "Failed to update pregnancy" });
     }
   });
 

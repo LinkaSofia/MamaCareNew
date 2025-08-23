@@ -11,6 +11,7 @@ import Dashboard from "@/pages/dashboard";
 import PregnancySetup from "@/pages/pregnancy-setup";
 import Setup from "@/pages/setup";
 import ResetPassword from "@/pages/reset-password";
+import Profile from "@/pages/profile";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/forgot-password" component={ResetPassword} />
       <Route path="/pregnancy-setup" component={PregnancySetup} />
       <Route path="/setup" component={Setup} />
+      <Route path="/profile" component={Profile} />
       <Route path="/" component={Dashboard} />
       <Route>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-white to-blue-100">

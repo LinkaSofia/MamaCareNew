@@ -259,11 +259,15 @@ export class DatabaseStorage implements IStorage {
     return isValid ? user : null;
   }
 
-  async updateUserProfile(id: string, data: { profilePhotoUrl?: string; birthDate?: Date }): Promise<User> {
+  async updateUserProfile(id: string, data: { name?: string; profilePhotoUrl?: string; birthDate?: Date }): Promise<User> {
     console.log("📝 Updating user profile:", { id, data });
     
     try {
       const updateData: any = {};
+      
+      if (data.name !== undefined && data.name !== null) {
+        updateData.name = data.name;
+      }
       
       if (data.profilePhotoUrl !== undefined && data.profilePhotoUrl !== null) {
         updateData.profilePhotoUrl = data.profilePhotoUrl;
