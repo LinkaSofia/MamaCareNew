@@ -4,6 +4,7 @@ import {
   users, pregnancies, kickCounts, weightRecords, birthPlans, consultations, 
   shoppingItems, photos, diaryEntries, symptoms, medications, communityPosts, 
   communityComments, communityLikes, accessLogs, userAnalytics, userSessions,
+  babyDevelopment,
   type User, type InsertUser, type Pregnancy, type InsertPregnancy,
   type KickCount, type InsertKickCount, type WeightRecord, type InsertWeightRecord,
   type BirthPlan, type InsertBirthPlan, type Consultation, type InsertConsultation,
@@ -11,7 +12,8 @@ import {
   type DiaryEntry, type InsertDiaryEntry, type Symptom, type InsertSymptom,
   type Medication, type InsertMedication, type CommunityPost, type InsertCommunityPost,
   type CommunityComment, type InsertCommunityComment, type AccessLog, type InsertAccessLog,
-  type UserAnalytics, type InsertUserAnalytics, type UserSession, type InsertUserSession
+  type UserAnalytics, type InsertUserAnalytics, type UserSession, type InsertUserSession,
+  type BabyDevelopment, type InsertBabyDevelopment
 } from "@shared/schema";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -111,6 +113,11 @@ export interface IStorage {
   setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void>;
   resetPasswordWithToken(token: string, newPassword: string): Promise<boolean>;
   getUserByResetToken(token: string): Promise<User | undefined>;
+
+  // Baby Development
+  getBabyDevelopmentByWeek(week: number): Promise<BabyDevelopment | undefined>;
+  getAllBabyDevelopmentData(): Promise<BabyDevelopment[]>;
+  createBabyDevelopment(development: InsertBabyDevelopment): Promise<BabyDevelopment>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -762,6 +769,91 @@ export class DatabaseStorage implements IStorage {
         .where(eq(userSessions.sessionId, sessionId));
     } catch (error) {
       console.log("Session end failed:", error);
+    }
+  }
+
+  // Baby Development methods
+  async getBabyDevelopmentByWeek(week: number): Promise<BabyDevelopment | undefined> {
+    try {
+      // Create table if it doesn't exist
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS baby_development (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          week INTEGER NOT NULL UNIQUE,
+          size TEXT NOT NULL,
+          weight TEXT NOT NULL,
+          fruit_comparison TEXT NOT NULL,
+          development_milestones_baby TEXT NOT NULL,
+          development_milestones_mom TEXT NOT NULL,
+          baby_description TEXT,
+          mom_description TEXT
+        )
+      `);
+
+      const result = await db.select().from(babyDevelopment)
+        .where(eq(babyDevelopment.week, week))
+        .limit(1);
+      
+      return result[0];
+    } catch (error) {
+      console.error("Error fetching baby development data:", error);
+      return undefined;
+    }
+  }
+
+  async getAllBabyDevelopmentData(): Promise<BabyDevelopment[]> {
+    try {
+      // Create table if it doesn't exist
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS baby_development (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          week INTEGER NOT NULL UNIQUE,
+          size TEXT NOT NULL,
+          weight TEXT NOT NULL,
+          fruit_comparison TEXT NOT NULL,
+          development_milestones_baby TEXT NOT NULL,
+          development_milestones_mom TEXT NOT NULL,
+          baby_description TEXT,
+          mom_description TEXT
+        )
+      `);
+
+      const result = await db.select().from(babyDevelopment)
+        .orderBy(babyDevelopment.week);
+      
+      return result;
+    } catch (error) {
+      console.error("Error fetching all baby development data:", error);
+      return [];
+    }
+  }
+
+  async createBabyDevelopment(development: InsertBabyDevelopment): Promise<BabyDevelopment> {
+    try {
+      // Create table if it doesn't exist
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS baby_development (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          week INTEGER NOT NULL UNIQUE,
+          size TEXT NOT NULL,
+          weight TEXT NOT NULL,
+          fruit_comparison TEXT NOT NULL,
+          development_milestones_baby TEXT NOT NULL,
+          development_milestones_mom TEXT NOT NULL,
+          baby_description TEXT,
+          mom_description TEXT
+        )
+      `);
+
+      const [newDevelopment] = await db.insert(babyDevelopment).values({
+        ...development,
+        id: randomUUID(),
+      }).returning();
+      
+      return newDevelopment;
+    } catch (error) {
+      console.error("Error creating baby development data:", error);
+      throw error;
     }
   }
 }

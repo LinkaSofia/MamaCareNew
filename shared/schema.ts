@@ -177,6 +177,18 @@ export const communityLikes = pgTable("community_likes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const babyDevelopment = pgTable("baby_development", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  week: integer("week").notNull().unique(),
+  size: text("size").notNull(),
+  weight: text("weight").notNull(),
+  fruit_comparison: text("fruit_comparison").notNull(),
+  development_milestones_baby: text("development_milestones_baby").notNull(),
+  development_milestones_mom: text("development_milestones_mom").notNull(),
+  baby_description: text("baby_description"),
+  mom_description: text("mom_description"),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertPregnancySchema = createInsertSchema(pregnancies).omit({ id: true, createdAt: true });
@@ -194,6 +206,7 @@ export const insertCommunityCommentSchema = createInsertSchema(communityComments
 export const insertAccessLogSchema = createInsertSchema(accessLogs).omit({ id: true, createdAt: true });
 export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit({ id: true, timestamp: true });
 export const insertUserSessionSchema = createInsertSchema(userSessions).omit({ id: true, startTime: true, endTime: true });
+export const insertBabyDevelopmentSchema = createInsertSchema(babyDevelopment).omit({ id: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -228,3 +241,5 @@ export type UserAnalytics = typeof userAnalytics.$inferSelect;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type BabyDevelopment = typeof babyDevelopment.$inferSelect;
+export type InsertBabyDevelopment = z.infer<typeof insertBabyDevelopmentSchema>;

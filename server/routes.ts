@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import { sendPasswordResetEmail } from "./nodemailer";
@@ -604,6 +604,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ comment });
     } catch (error) {
       res.status(400).json({ error: "Invalid comment data" });
+    }
+  });
+
+  // Baby Development routes
+  app.get("/api/baby-development/:week", requireAuth, async (req, res) => {
+    try {
+      const week = parseInt(req.params.week);
+      if (isNaN(week) || week < 1 || week > 42) {
+        return res.status(400).json({ error: "Invalid week number" });
+      }
+      
+      const developmentData = await storage.getBabyDevelopmentByWeek(week);
+      if (!developmentData) {
+        return res.status(404).json({ error: "Development data not found for this week" });
+      }
+      
+      res.json({ developmentData });
+    } catch (error) {
+      console.error("Error fetching baby development data:", error);
+      res.status(500).json({ error: "Failed to get development data" });
+    }
+  });
+
+  app.get("/api/baby-development", requireAuth, async (req, res) => {
+    try {
+      const allDevelopmentData = await storage.getAllBabyDevelopmentData();
+      res.json({ developmentData: allDevelopmentData });
+    } catch (error) {
+      console.error("Error fetching all baby development data:", error);
+      res.status(500).json({ error: "Failed to get development data" });
+    }
+  });
+
+  app.post("/api/baby-development", requireAuth, async (req, res) => {
+    try {
+      const developmentData = insertBabyDevelopmentSchema.parse(req.body);
+      const newDevelopment = await storage.createBabyDevelopment(developmentData);
+      res.json({ developmentData: newDevelopment });
+    } catch (error) {
+      console.error("Error creating baby development data:", error);
+      res.status(400).json({ error: "Invalid development data" });
     }
   });
 
