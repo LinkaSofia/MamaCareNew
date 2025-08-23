@@ -3,14 +3,15 @@ import postgres from "postgres";
 import { 
   users, pregnancies, kickCounts, weightRecords, birthPlans, consultations, 
   shoppingItems, photos, diaryEntries, symptoms, medications, communityPosts, 
-  communityComments, communityLikes, accessLogs,
+  communityComments, communityLikes, accessLogs, userAnalytics, userSessions,
   type User, type InsertUser, type Pregnancy, type InsertPregnancy,
   type KickCount, type InsertKickCount, type WeightRecord, type InsertWeightRecord,
   type BirthPlan, type InsertBirthPlan, type Consultation, type InsertConsultation,
   type ShoppingItem, type InsertShoppingItem, type Photo, type InsertPhoto,
   type DiaryEntry, type InsertDiaryEntry, type Symptom, type InsertSymptom,
   type Medication, type InsertMedication, type CommunityPost, type InsertCommunityPost,
-  type CommunityComment, type InsertCommunityComment, type AccessLog, type InsertAccessLog
+  type CommunityComment, type InsertCommunityComment, type AccessLog, type InsertAccessLog,
+  type UserAnalytics, type InsertUserAnalytics, type UserSession, type InsertUserSession
 } from "@shared/schema";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -99,6 +100,13 @@ export interface IStorage {
   getAccessLogs(userId?: string, limit?: number): Promise<AccessLog[]>;
   updateUserLoginInfo(userId: string, ipAddress: string, userAgent: string): Promise<void>;
 
+  // Sistema de Analytics
+  createUserAnalytics(analytics: InsertUserAnalytics): Promise<UserAnalytics>;
+  getUserAnalytics(userId: string, limit?: number): Promise<UserAnalytics[]>;
+  startUserSession(sessionData: InsertUserSession): Promise<UserSession>;
+  updateUserSession(sessionId: string, updates: Partial<InsertUserSession>): Promise<void>;
+  endUserSession(sessionId: string, endTime: Date, totalDuration: number): Promise<void>;
+
   // Recuperação de senha
   setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void>;
   resetPasswordWithToken(token: string, newPassword: string): Promise<boolean>;
@@ -152,95 +160,54 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const hashedPassword = await bcrypt.hash(user.password, 10);
-    const userId = randomUUID();
-    
-    console.log("📝 Creating user:", { id: userId, email: user.email, name: user.name });
+    console.log("📝 Creating user:", { email: user.email, name: user.name });
     
     try {
-      // Tentar criar a tabela users se não existir e configurar políticas RLS
+      // Garantir que a coluna created_at existe na tabela
       await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS users (
-          id VARCHAR PRIMARY KEY,
-          email TEXT NOT NULL UNIQUE,
-          password TEXT NOT NULL,
-          name TEXT NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW()
-        )
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()
       `);
-      console.log("✅ Tabela users verificada/criada");
       
-      // Configurar RLS policies para permitir inserção
-      try {
-        // Desabilitar RLS temporariamente se estiver ativado
-        await db.execute(sql`ALTER TABLE users DISABLE ROW LEVEL SECURITY`);
-        console.log("✅ RLS desabilitado na tabela users");
-      } catch (rlsError) {
-        console.log("⚠️ Não foi possível desabilitar RLS:", rlsError);
-      }
-      
-      // Primeiro verificar se o usuário já existe
-      const existingUser = await db.execute(sql`
+      // Verificar primeiro se o usuário já existe (sem usar created_at)
+      const existingUserResult = await db.execute(sql`
         SELECT id FROM users WHERE LOWER(email) = LOWER(${user.email})
       `);
       
-      if (existingUser.rows && existingUser.rows.length > 0) {
+      if (existingUserResult.length > 0) {
+        console.log("❌ Email já cadastrado:", user.email);
         throw new Error("Email já está cadastrado");
       }
       
-      // Tentar inserir usando a sintaxe do Drizzle diretamente
-      console.log("🔄 Tentando inserir com Drizzle ORM...");
+      // Criar usuário com data de criação usando SQL direto
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      const userId = randomUUID();
       
-      try {
-        const drizzleResult = await db.insert(users).values({
-          id: userId,
-          email: user.email,
-          password: hashedPassword,
-          name: user.name,
-        }).returning();
-        
-        if (drizzleResult && drizzleResult.length > 0) {
-          console.log("✅ User successfully created with Drizzle:", drizzleResult[0]);
-          
-          // Verificar imediatamente se o usuário foi realmente salvo
-          const verifyResult = await db.execute(sql`
-            SELECT id, email FROM users WHERE id = ${userId}
-          `);
-          console.log("🔍 Immediate verification:", verifyResult.rows?.length || 0, "rows found");
-          
-          return drizzleResult[0];
-        }
-      } catch (drizzleError) {
-        console.log("⚠️ Drizzle insert failed:", drizzleError);
-      }
-      
-      // Fallback para SQL direto
-      console.log("🔄 Tentando com SQL direto...");
       const result = await db.execute(sql`
-        INSERT INTO users (id, email, password, name) 
-        VALUES (${userId}, ${user.email}, ${hashedPassword}, ${user.name})
-        RETURNING id, email, name
+        INSERT INTO users (id, email, password, name, created_at) 
+        VALUES (${userId}, ${user.email.toLowerCase().trim()}, ${hashedPassword}, ${user.name}, NOW())
+        RETURNING id, email, name, created_at
       `);
       
-      console.log("✅ Insert result:", result);
-      
-      if (result.rows && result.rows.length > 0) {
-        console.log("✅ User successfully created with SQL");
-        const row = result.rows[0] as any;
+      if (result.length > 0) {
+        const newUser = result[0] as any;
+        console.log("✅ User successfully created:", { id: newUser.id, email: newUser.email });
         return {
-          id: row.id,
-          email: row.email,
+          id: newUser.id,
+          email: newUser.email,
           password: hashedPassword,
-          name: row.name,
-          createdAt: null
+          name: newUser.name,
+          createdAt: newUser.created_at || new Date()
         } as User;
       } else {
-        throw new Error("Insert não retornou dados - possível problema com RLS");
+        throw new Error("Falha ao criar usuário");
       }
-      
-    } catch (error) {
-      console.error("❌ Error creating user in Supabase:", error);
-      throw new Error(`Erro ao criar usuário: ${error}`);
+    } catch (error: any) {
+      console.error("❌ Error creating user:", error?.message || error);
+      if (error?.message?.includes("já está cadastrado")) {
+        throw error; // Re-throw specific errors
+      }
+      throw new Error("Erro ao criar usuário");
     }
   }
 
@@ -699,6 +666,102 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error resetting password:", error);
       return false;
+    }
+  }
+
+  // Sistema de Analytics completo
+  async createUserAnalytics(analytics: InsertUserAnalytics): Promise<UserAnalytics> {
+    try {
+      // Garantir que a tabela de analytics existe
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS user_analytics (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR REFERENCES users(id),
+          session_id TEXT NOT NULL,
+          action TEXT NOT NULL,
+          page TEXT NOT NULL,
+          element TEXT,
+          duration INTEGER,
+          metadata JSONB,
+          timestamp TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      const [newAnalytics] = await db.insert(userAnalytics).values({
+        ...analytics,
+        id: randomUUID(),
+      }).returning();
+      
+      return newAnalytics;
+    } catch (error: any) {
+      console.log("Analytics creation failed:", error?.message || "Unknown error");
+      // Retornar um objeto vazio ao invés de falhar
+      return {} as UserAnalytics;
+    }
+  }
+
+  async getUserAnalytics(userId: string, limit = 100): Promise<UserAnalytics[]> {
+    try {
+      return await db.select().from(userAnalytics)
+        .where(eq(userAnalytics.userId, userId))
+        .orderBy(desc(userAnalytics.timestamp))
+        .limit(limit);
+    } catch (error) {
+      console.log("Error fetching analytics:", error);
+      return [];
+    }
+  }
+
+  async startUserSession(sessionData: InsertUserSession): Promise<UserSession> {
+    try {
+      // Garantir que a tabela de sessions existe
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS user_sessions (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR REFERENCES users(id) NOT NULL,
+          session_id TEXT NOT NULL UNIQUE,
+          start_time TIMESTAMP DEFAULT NOW(),
+          end_time TIMESTAMP,
+          total_duration INTEGER,
+          pages_visited JSONB DEFAULT '[]'::jsonb,
+          actions_count INTEGER DEFAULT 0,
+          user_agent TEXT,
+          ip_address TEXT
+        )
+      `);
+
+      const [newSession] = await db.insert(userSessions).values({
+        ...sessionData,
+        id: randomUUID(),
+      }).returning();
+      
+      return newSession;
+    } catch (error: any) {
+      console.log("Session creation failed:", error?.message || "Unknown error");
+      return {} as UserSession;
+    }
+  }
+
+  async updateUserSession(sessionId: string, updates: Partial<InsertUserSession>): Promise<void> {
+    try {
+      await db.update(userSessions)
+        .set(updates)
+        .where(eq(userSessions.sessionId, sessionId));
+    } catch (error) {
+      console.log("Session update failed:", error);
+    }
+  }
+
+  async endUserSession(sessionId: string, endTime: Date, totalDuration: number): Promise<void> {
+    try {
+      await db.update(userSessions)
+        .set({ 
+          endTime: endTime,
+          totalDuration: totalDuration 
+        })
+        .where(eq(userSessions.sessionId, sessionId));
+    } catch (error) {
+      console.log("Session end failed:", error);
     }
   }
 }

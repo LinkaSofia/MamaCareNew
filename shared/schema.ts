@@ -8,7 +8,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  // createdAt: timestamp("created_at").defaultNow(), // Comentado temporariamente - problema no Supabase
+  // createdAt: timestamp("created_at").defaultNow(), // Will add back after migration
 });
 
 // Tabela de logs de acesso para auditoria completa
@@ -23,6 +23,33 @@ export const accessLogs = pgTable("access_logs", {
   errorMessage: text("error_message"),
   sessionId: text("session_id"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Tabela de analytics e comportamento do usuário
+export const userAnalytics = pgTable("user_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sessionId: text("session_id").notNull(),
+  action: text("action").notNull(), // 'page_view', 'click', 'scroll', 'focus', 'blur'
+  page: text("page").notNull(), // '/dashboard', '/kick-counter', etc.
+  element: text("element"), // button id, link, etc.
+  duration: integer("duration"), // tempo em milissegundos para page_view
+  metadata: jsonb("metadata").$type<Record<string, any>>(), // dados adicionais específicos da ação
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Tabela para sessões de usuário com tempo total
+export const userSessions = pgTable("user_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sessionId: text("session_id").notNull().unique(),
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time"),
+  totalDuration: integer("total_duration"), // em segundos
+  pagesVisited: jsonb("pages_visited").$type<string[]>().default([]),
+  actionsCount: integer("actions_count").default(0),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
 });
 
 export const pregnancies = pgTable("pregnancies", {
@@ -165,6 +192,8 @@ export const insertMedicationSchema = createInsertSchema(medications).omit({ id:
 export const insertCommunityPostSchema = createInsertSchema(communityPosts).omit({ id: true, likes: true, commentsCount: true, createdAt: true });
 export const insertCommunityCommentSchema = createInsertSchema(communityComments).omit({ id: true, createdAt: true });
 export const insertAccessLogSchema = createInsertSchema(accessLogs).omit({ id: true, createdAt: true });
+export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit({ id: true, timestamp: true });
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({ id: true, startTime: true, endTime: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -195,3 +224,7 @@ export type CommunityComment = typeof communityComments.$inferSelect;
 export type InsertCommunityComment = z.infer<typeof insertCommunityCommentSchema>;
 export type AccessLog = typeof accessLogs.$inferSelect;
 export type InsertAccessLog = z.infer<typeof insertAccessLogSchema>;
+export type UserAnalytics = typeof userAnalytics.$inferSelect;
+export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
