@@ -73,7 +73,7 @@ export default function Login() {
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(localStorage.getItem("rememberMe") === "true");
-  const [errors, setErrors] = useState<{email?: string; password?: string; general?: string}>({});
+  const [errors, setErrors] = useState<{email?: string; password?: string; name?: string; birthDate?: string; general?: string}>({});
   const [formData, setFormData] = useState({
     email: localStorage.getItem("rememberedEmail") || "",
     password: "",
@@ -85,7 +85,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
 
   const validateForm = () => {
-    const newErrors: {email?: string; password?: string; general?: string} = {};
+    const newErrors: {email?: string; password?: string; name?: string; birthDate?: string; general?: string} = {};
 
     if (!formData.email) {
       newErrors.email = "Email é obrigatório";
@@ -97,6 +97,10 @@ export default function Login() {
       newErrors.password = "Senha é obrigatória";
     } else if (!isLoginMode && formData.password.length < 6) {
       newErrors.password = "Senha deve ter pelo menos 6 caracteres";
+    }
+
+    if (!isLoginMode && !formData.name.trim()) {
+      newErrors.name = "Nome é obrigatório";
     }
 
     setErrors(newErrors);
@@ -133,13 +137,19 @@ export default function Login() {
       console.log("Login/Register error:", error);
       const errorMessage = error.message || "";
       
+      // Verificar se temos erros de campo específicos do backend
+      if (error.response && error.response.fieldErrors) {
+        setErrors(error.response.fieldErrors);
+        return;
+      }
+      
       if (errorMessage.includes("não encontrado")) {
         setErrors({ email: "Usuário não cadastrado" });
       } else if (errorMessage.includes("Senha incorreta")) {
         setErrors({ password: "Senha incorreta" });
       } else if (errorMessage.includes("credentials") || errorMessage.includes("Invalid")) {
         setErrors({ general: "Email ou senha incorretos" });
-      } else if (errorMessage.includes("already exists") || errorMessage.includes("User already exists")) {
+      } else if (errorMessage.includes("already exists") || errorMessage.includes("User already exists") || errorMessage.includes("já está cadastrado")) {
         setErrors({ email: "Este email já possui cadastro" });
       } else if (error.response?.status === 401) {
         // Para erros 401, vamos mostrar mensagens mais específicas
@@ -323,10 +333,20 @@ export default function Login() {
                     placeholder="Seu nome completo"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className={`pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark ${
+                      errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''
+                    }`}
                     data-testid="input-name"
                   />
                 </div>
+                {errors.name && (
+                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1 text-red-500" />
+                      {errors.name}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -340,10 +360,20 @@ export default function Login() {
                     placeholder="Data de nascimento"
                     value={formData.birthDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, birthDate: e.target.value }))}
-                    className="pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className={`pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark ${
+                      errors.birthDate ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''
+                    }`}
                     data-testid="input-birth-date"
                   />
                 </div>
+                {errors.birthDate && (
+                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1 text-red-500" />
+                      {errors.birthDate}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

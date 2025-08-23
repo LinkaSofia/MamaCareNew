@@ -42,19 +42,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verificar se usuário existe usando SQL direto
       const existingUserQuery = await db.execute(sql`SELECT id FROM users WHERE LOWER(email) = LOWER(${userData.email}) LIMIT 1`);
-      const existingUser = existingUserQuery.rows && existingUserQuery.rows.length > 0 ? existingUserQuery.rows[0] : null;
+      const existingUser = existingUserQuery.length > 0 ? existingUserQuery[0] : null;
       
       if (existingUser) {
-        return res.status(400).json({ error: "User already exists" });
+        return res.status(400).json({ error: "Email já está cadastrado", field: "email" });
       }
       
       const user = await storage.createUser(userData);
       req.session.userId = user.id;
 
-      res.json({ user: { id: user.id, email: user.email, name: user.name } });
+      res.json({ user: { id: user.id, email: user.email, name: user.name, profilePhotoUrl: user.profilePhotoUrl, birthDate: user.birthDate } });
     } catch (error) {
       console.error("Registration error:", error);
-      res.status(400).json({ error: "Invalid registration data" });
+      
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        for (const issue of error.issues) {
+          const field = issue.path[0] as string;
+          if (field === 'email') {
+            fieldErrors.email = "Email inválido";
+          } else if (field === 'password') {
+            fieldErrors.password = "Senha deve ter pelo menos 6 caracteres";
+          } else if (field === 'name') {
+            fieldErrors.name = "Nome é obrigatório";
+          } else if (field === 'birthDate') {
+            fieldErrors.birthDate = "Data de nascimento inválida";
+          } else {
+            fieldErrors[field] = issue.message;
+          }
+        }
+        return res.status(400).json({ error: "Dados inválidos", fieldErrors });
+      }
+      
+      res.status(400).json({ error: "Erro interno do servidor" });
     }
   });
 

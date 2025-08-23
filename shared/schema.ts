@@ -192,7 +192,9 @@ export const babyDevelopment = pgTable("baby_development", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true }).extend({
+  birthDate: z.string().optional().transform((val) => val ? new Date(val) : undefined),
+});
 export const insertPregnancySchema = createInsertSchema(pregnancies).omit({ id: true, createdAt: true });
 export const insertKickCountSchema = createInsertSchema(kickCounts).omit({ id: true });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords).omit({ id: true });
