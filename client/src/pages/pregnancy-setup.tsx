@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Calendar, Info, Baby, Heart, User } from "lucide-react";
+import { ArrowLeft, Calendar, Info, Baby, Heart, User, Upload } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
+import { ObjectUploader } from "@/components/ObjectUploader";
 
 export default function PregnancySetup() {
   const [, setLocation] = useLocation();
@@ -19,6 +20,7 @@ export default function PregnancySetup() {
   const [calculationMethod, setCalculationMethod] = useState<"lmp" | "due">("lmp");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState<string>("");
 
   const calculateDueDate = (lmp: string) => {
     const lmpDate = new Date(lmp);
@@ -79,21 +81,49 @@ export default function PregnancySetup() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1 flex flex-col items-center">
-              {user?.profilePhotoUrl && (
-                <div className="mb-3">
-                  <div className="w-16 h-16 border-4 border-white shadow-lg rounded-full overflow-hidden bg-gradient-to-r from-baby-pink to-baby-blue flex items-center justify-center">
-                    {user.profilePhotoUrl ? (
-                      <img 
-                        src={user.profilePhotoUrl} 
-                        alt={user.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <User className="w-8 h-8 text-white" />
-                    )}
+              <div className="mb-3">
+                <div className="w-20 h-20 border-4 border-white shadow-lg rounded-full overflow-hidden bg-gradient-to-r from-baby-pink to-baby-blue flex items-center justify-center relative">
+                  {profilePhoto || user?.profilePhotoUrl ? (
+                    <img 
+                      src={profilePhoto || user.profilePhotoUrl} 
+                      alt={user.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-10 h-10 text-white" />
+                  )}
+                  <div className="absolute -bottom-1 -right-1">
+                    <ObjectUploader
+                      maxNumberOfFiles={1}
+                      maxFileSize={5242880}
+                      onGetUploadParameters={async () => {
+                        const response = await apiRequest("POST", "/api/uploads/profile-photo");
+                        return {
+                          method: "PUT" as const,
+                          url: response.uploadURL,
+                        };
+                      }}
+                      onComplete={async (result) => {
+                        if (result.successful?.[0]) {
+                          const uploadURL = result.successful[0].uploadURL;
+                          setProfilePhoto(uploadURL);
+                          
+                          try {
+                            await apiRequest("PATCH", "/api/auth/profile", {
+                              profilePhotoUrl: uploadURL,
+                            });
+                          } catch (error) {
+                            console.error("Erro ao salvar foto:", error);
+                          }
+                        }
+                      }}
+                      buttonClassName="w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center p-0 min-w-0 h-8"
+                    >
+                      <Upload className="w-4 h-4 text-baby-pink-dark" />
+                    </ObjectUploader>
                   </div>
                 </div>
-              )}
+              </div>
               <CardTitle className="text-2xl font-bold text-charcoal">
                 Dados da Gravidez
               </CardTitle>

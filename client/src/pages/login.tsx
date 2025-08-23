@@ -383,6 +383,8 @@ export default function Login() {
                     className={`pl-10 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark ${
                       errors.birthDate ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''
                     }`}
+                    max="2024-12-31"
+                    min="1900-01-01"
                     data-testid="input-birth-date"
                     required
                   />
