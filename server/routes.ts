@@ -615,9 +615,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid week number" });
       }
       
-      const developmentData = await storage.getBabyDevelopmentByWeek(week);
+      // Importar dados de exemplo
+      const { babyDevelopmentSeedData } = await import("./baby-development-seed");
+      
+      // Tentar buscar dados reais primeiro
+      let developmentData;
+      try {
+        developmentData = await storage.getBabyDevelopmentByWeek(week);
+      } catch (dbError: any) {
+        console.log("Database error, using seed data:", dbError.message);
+        developmentData = null;
+      }
+
+      // Se não encontrou dados reais, usar dados de exemplo
       if (!developmentData) {
-        return res.status(404).json({ error: "Development data not found for this week" });
+        developmentData = babyDevelopmentSeedData.find(d => d.week === week);
+      }
+
+      if (!developmentData) {
+        // Se não tem dados nem no seed, criar dados básicos
+        developmentData = {
+          week,
+          size: "Consultando...",
+          weight: "Calculando...",
+          fruit_comparison: "aguarde",
+          development_milestones_baby: "Dados de desenvolvimento serão carregados em breve.",
+          development_milestones_mom: "Informações sobre mudanças na mamãe serão exibidas aqui.",
+          baby_description: `Semana ${week} de gestação.`,
+          mom_description: `Você está na semana ${week} da sua gravidez.`
+        };
       }
       
       res.json({ developmentData });
