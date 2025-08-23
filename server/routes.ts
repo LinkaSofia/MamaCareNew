@@ -6,6 +6,7 @@ import { ObjectPermission } from "./objectAcl";
 import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
+import FileStore from "session-file-store";
 import { sendPasswordResetEmail } from "./nodemailer";
 import { randomUUID } from "crypto";
 import { db } from "./storage";
@@ -19,11 +20,20 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // File-based session storage para persistir sessões
+  const FileStoreSession = FileStore(session);
+  
   // Session middleware for authentication
   app.use(session({
     secret: process.env.SESSION_SECRET || "maternity-app-secret-key-for-mama-care-app",
-    resave: true, // Force session save even if unmodified
-    saveUninitialized: true, // Save uninitialized sessions
+    store: new FileStoreSession({
+      path: './sessions', // Diretório para salvar sessões
+      ttl: 86400, // 24 horas em segundos
+      retries: 3,
+      reapInterval: 3600 // Limpar sessões expiradas a cada hora
+    }),
+    resave: false, 
+    saveUninitialized: false,
     cookie: { 
       secure: false, // Allow non-HTTPS in development
       httpOnly: true, 
