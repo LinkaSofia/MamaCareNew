@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePregnancy } from "@/hooks/use-pregnancy";
 import { useBabyDevelopment } from "@/hooks/use-baby-development";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,13 +26,15 @@ interface PregnancyTrackerProps {
 }
 
 export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
+  const { user, isLoading: authLoading } = useAuth();
   const { pregnancy, weekInfo, isLoading: pregnancyLoading } = usePregnancy();
   const { data: developmentData, isLoading: developmentLoading } = useBabyDevelopment(weekInfo?.week || 0);
   const [activeTab, setActiveTab] = useState("baby");
+  const [, setLocation] = useLocation();
 
-  const isLoading = pregnancyLoading || developmentLoading;
+  const isLoading = authLoading || pregnancyLoading || developmentLoading;
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
         <LoadingSpinner size="lg" />
@@ -38,16 +42,34 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
     );
   }
 
-  if (!pregnancy || !weekInfo) {
+  if (!user) {
+    setLocation("/login");
+    return null;
+  }
+
+  if (pregnancyLoading || developmentLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!pregnancy) {
+    setLocation("/setup");
+    return null;
+  }
+
+  if (!weekInfo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
         <div className="text-center p-6">
           <Baby className="mx-auto h-12 w-12 text-pink-400 mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Configure sua gravidez
+            Erro ao calcular semana
           </h2>
           <p className="text-gray-600 mb-4">
-            Precisamos de algumas informações para mostrar o desenvolvimento do seu bebê
+            Verifique os dados da sua gravidez
           </p>
           <Button onClick={onBack} variant="outline">
             Voltar

@@ -2,8 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { calculatePregnancyWeek, calculateProgress } from "@/lib/pregnancy-calculator";
 
 export function usePregnancy() {
-  const { data: pregnancyData, isLoading } = useQuery({
+  const { data: pregnancyData, isLoading, error } = useQuery({
     queryKey: ["/api/pregnancies/active"],
+    retry: false,
   });
 
   const pregnancy = pregnancyData?.pregnancy;
@@ -16,5 +17,6 @@ export function usePregnancy() {
     weekInfo,
     progress,
     isLoading,
+    error,
   };
 }
