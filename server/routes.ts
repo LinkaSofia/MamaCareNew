@@ -25,12 +25,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Session middleware for authentication
   app.use(session({
-    secret: process.env.SESSION_SECRET || "maternity-app-secret-key-for-mama-care-app",
+    secret: process.env.SESSION_SECRET || "maternity-app-secret-key-for-mama-care-app-v2",
     store: new FileStoreSession({
       path: './sessions', // Diretório para salvar sessões
       ttl: 86400, // 24 horas em segundos
-      retries: 3,
-      reapInterval: 3600 // Limpar sessões expiradas a cada hora
+      retries: 0, // Don't retry on missing files
+      reapInterval: 3600, // Limpar sessões expiradas a cada hora
+      logFn: () => {} // Disable logging to reduce noise
     }),
     resave: false, 
     saveUninitialized: false,
@@ -40,7 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax' // Allow same-site requests
     },
-    name: 'mama-care-session' // Custom session name
+    name: 'mama-care-session-v2' // Force new session cookie
   }));
 
   // Authentication middleware
