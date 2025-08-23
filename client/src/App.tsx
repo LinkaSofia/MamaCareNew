@@ -1,19 +1,48 @@
-function TestPage() {
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+
+// Import apenas as páginas essenciais primeiro
+import Login from "@/pages/login";
+import Dashboard from "@/pages/dashboard";
+import PregnancySetup from "@/pages/pregnancy-setup";
+import Setup from "@/pages/setup";
+
+function Router() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-white to-blue-100">
-      <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Mama Care</h1>
-        <p className="text-gray-600">Aplicação carregando...</p>
-        <div className="mt-4">
-          <a href="/login" className="text-blue-600 hover:underline">Ir para Login</a>
+    <Switch>
+      <Route path="/login" component={Login} />
+      <Route path="/pregnancy-setup" component={PregnancySetup} />
+      <Route path="/setup" component={Setup} />
+      <Route path="/" component={Dashboard} />
+      <Route>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-white to-blue-100">
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Página não encontrada</h1>
+            <a href="/login" className="text-blue-600 hover:underline">Voltar ao Login</a>
+          </div>
         </div>
-      </div>
-    </div>
+      </Route>
+    </Switch>
   );
 }
 
 function App() {
-  return <TestPage />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <div className="App">
+            <Router />
+          </div>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 }
 
 export default App;
