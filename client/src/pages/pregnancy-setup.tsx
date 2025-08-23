@@ -57,8 +57,8 @@ export default function PregnancySetup() {
         isActive: true,
       });
 
-      // Redirecionar para a tela de setup do perfil
-      setLocation("/setup");
+      // Redirecionar para o dashboard após salvar
+      setLocation("/");
     } catch (error: any) {
       setError(error.message || "Erro ao salvar dados da gravidez");
     } finally {
@@ -106,14 +106,17 @@ export default function PregnancySetup() {
                       onComplete={async (result) => {
                         if (result.successful?.[0]) {
                           const uploadURL = result.successful[0].uploadURL;
+                          console.log("Upload URL:", uploadURL);
                           setProfilePhoto(uploadURL);
                           
                           try {
-                            await apiRequest("PATCH", "/api/auth/profile", {
+                            const response = await apiRequest("PATCH", "/api/auth/profile", {
                               profilePhotoUrl: uploadURL,
                             });
+                            console.log("Profile updated:", response);
                           } catch (error) {
                             console.error("Erro ao salvar foto:", error);
+                            setError("Erro ao salvar foto de perfil");
                           }
                         }
                       }}
