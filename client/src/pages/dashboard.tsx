@@ -219,9 +219,9 @@ export default function Dashboard() {
               <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
             </div>
             
-            {/* Progress Ring ao lado da imagem */}
+            {/* Progress Ring ao lado da imagem - MAIOR */}
             <div className="relative ml-8">
-              <svg className="w-24 h-24" viewBox="0 0 120 120">
+              <svg className="w-32 h-32" viewBox="0 0 120 120">
                 <circle
                   cx="60"
                   cy="60"
@@ -238,7 +238,7 @@ export default function Dashboard() {
                   stroke="url(#gradient)"
                   strokeWidth="8"
                   strokeLinecap="round"
-                  strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
+                  strokeDasharray={`${Math.round((weekInfo.week / 40) * 314)} 314`}
                   className="progress-ring animate-pulse"
                   style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
                 />
@@ -251,8 +251,8 @@ export default function Dashboard() {
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-gray-800">
-                    {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
+                  <div className="text-3xl font-bold text-gray-800">
+                    {Math.round((weekInfo.week / 40) * 100)}%
                   </div>
                   <div className="text-gray-600 text-xs">
                     Concluído
