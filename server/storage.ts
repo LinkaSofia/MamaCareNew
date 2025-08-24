@@ -855,10 +855,54 @@ export class DatabaseStorage implements IStorage {
         .where(eq(babyDevelopment.week, week))
         .limit(1);
       
+      // Se encontrou dados mas não tem length_cm e weight_grams, atualiza
+      if (result[0] && (!result[0].length_cm || result[0].length_cm === 0)) {
+        console.log(`🔄 Atualizando dados da semana ${week} com medidas...`);
+        await this.updateWeekMeasurements(week);
+        
+        // Busca novamente após atualização
+        const updatedResult = await db.select().from(babyDevelopment)
+          .where(eq(babyDevelopment.week, week))
+          .limit(1);
+        return updatedResult[0];
+      }
+      
       return result[0];
     } catch (error) {
       console.error("Error fetching baby development data:", error);
       return undefined;
+    }
+  }
+
+  private async updateWeekMeasurements(week: number): Promise<void> {
+    const measurements: Record<number, { length_cm: number; weight_grams: number }> = {
+      1: { length_cm: 0.1, weight_grams: 0.1 },
+      4: { length_cm: 0.2, weight_grams: 0.1 },
+      8: { length_cm: 1.6, weight_grams: 1 },
+      12: { length_cm: 5.4, weight_grams: 14 },
+      16: { length_cm: 11.6, weight_grams: 100 },
+      20: { length_cm: 16.4, weight_grams: 300 },
+      24: { length_cm: 21, weight_grams: 630 },
+      28: { length_cm: 25, weight_grams: 1000 },
+      32: { length_cm: 28, weight_grams: 1700 },
+      36: { length_cm: 32.2, weight_grams: 2600 },
+      40: { length_cm: 36.2, weight_grams: 3400 }
+    };
+
+    const data = measurements[week];
+    if (data) {
+      try {
+        await db.update(babyDevelopment)
+          .set({
+            length_cm: data.length_cm,
+            weight_grams: data.weight_grams
+          })
+          .where(eq(babyDevelopment.week, week));
+        
+        console.log(`✅ Dados da semana ${week} atualizados: ${data.length_cm}cm, ${data.weight_grams}g`);
+      } catch (error) {
+        console.log(`❌ Erro ao atualizar semana ${week}:`, error);
+      }
     }
   }
 
