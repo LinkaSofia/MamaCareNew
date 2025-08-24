@@ -124,12 +124,53 @@ export default function Dashboard() {
   const momMilestones = development ? parseMilestones(development.development_milestones_mom) : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-blue-50 pb-20 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-pink-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-200/20 rounded-full blur-3xl animate-breathe"></div>
+    <div className="min-h-screen gradient-bg pb-20 relative overflow-hidden">
+      {/* Background decorative elements - same as login */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Corações flutuantes */}
+        {[...Array(8)].map((_, i) => (
+          <Heart
+            key={`heart-${i}`}
+            className={`absolute text-pink-300/30 animate-float-${i % 4 + 1}`}
+            size={20 + (i % 3) * 10}
+            style={{
+              left: `${10 + (i * 12) % 80}%`,
+              top: `${15 + (i * 15) % 70}%`,
+              animationDelay: `${i * 0.7}s`,
+              animationDuration: `${3 + (i % 3)}s`
+            }}
+          />
+        ))}
+        
+        {/* Bolinhas flutuantes */}
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={`bubble-${i}`}
+            className={`absolute rounded-full bg-gradient-to-r from-pink-200/20 to-blue-200/20 animate-bounce`}
+            style={{
+              width: `${8 + (i % 4) * 6}px`,
+              height: `${8 + (i % 4) * 6}px`,
+              left: `${5 + (i * 8) % 90}%`,
+              top: `${10 + (i * 8) % 80}%`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: `${4 + (i % 3)}s`
+            }}
+          />
+        ))}
+        
+        {/* Estrelas piscantes */}
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={`star-${i}`}
+            className={`absolute w-2 h-2 bg-yellow-300/40 animate-pulse`}
+            style={{
+              left: `${20 + (i * 15) % 60}%`,
+              top: `${20 + (i * 12) % 60}%`,
+              animationDelay: `${i * 1.2}s`,
+              clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+            }}
+          />
+        ))}
       </div>
       
       {/* Header Section */}
@@ -173,68 +214,88 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
 
-        {/* Hero Baby Section */}
-        <div className="text-center mb-8">
-          <div className="relative">
-            {/* Baby 3D Component */}
-            <div className="mx-auto w-80 h-80 mb-6">
+        {/* Hero Section - Compacto */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mx-4">
+            {/* Baby 3D Component - Menor */}
+            <div className="w-32 h-32">
               <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
             </div>
             
-            {/* Progress Ring */}
-            <div className="relative inline-flex mb-4">
-              <svg className="w-32 h-32" viewBox="0 0 120 120">
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="50"
-                  fill="none"
-                  stroke="rgba(255, 255, 255, 0.2)"
-                  strokeWidth="8"
-                />
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="50"
-                  fill="none"
-                  stroke="url(#gradient)"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
-                  className="progress-ring animate-pulse"
-                  style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
-                />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#ec4899" />
-                    <stop offset="100%" stopColor="#8b5cf6" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-800">
-                    {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
-                  </div>
-                  <div className="text-gray-600 text-xs">
-                    Concluído
+            {/* Progress e Informações do Lado */}
+            <div className="flex-1 ml-6">
+              <div className="flex items-center justify-between mb-4">
+                {/* Progress Ring - Menor */}
+                <div className="relative">
+                  <svg className="w-20 h-20" viewBox="0 0 120 120">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="50"
+                      fill="none"
+                      stroke="rgba(156, 163, 175, 0.3)"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="50"
+                      fill="none"
+                      stroke="url(#gradient)"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
+                      className="progress-ring animate-pulse"
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                    />
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#ec4899" />
+                        <stop offset="100%" stopColor="#8b5cf6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-gray-800">
+                        {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
+                      </div>
+                    </div>
                   </div>
                 </div>
+                
+                {/* Informações Importantes */}
+                <div className="text-right">
+                  <p className="text-gray-600 text-sm mb-1">
+                    Faltam
+                  </p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {weekInfo.weeksRemaining} semanas
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    para conhecer seu bebê!
+                  </p>
+                </div>
               </div>
+              
+              {/* Informações do Bebê - Linha */}
+              {development && (
+                <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 flex items-center justify-between">
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500">Tamanho</p>
+                    <p className="font-semibold text-gray-800 text-sm">{development.size || "N/A"}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500">Peso</p>
+                    <p className="font-semibold text-gray-800 text-sm">{development.weight || "N/A"}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500">Como</p>
+                    <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "N/A"}</p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-          
-          <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80">
-            <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              Faltam aproximadamente
-            </p>
-            <p className="text-4xl font-bold text-gray-800 mb-2">
-              {weekInfo.weeksRemaining} semanas
-            </p>
-            <p className="text-gray-600 text-sm">
-              para conhecer seu bebê!
-            </p>
           </div>
         </div>
       </div>
@@ -270,51 +331,34 @@ export default function Dashboard() {
       {/* Content Area */}
       <div className="relative z-10 px-4">
 
-        {activeTab === "baby" && development && (
+        {activeTab === "baby" && (
           <Card className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl mb-6">
             <CardContent className="p-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-4 text-center">
-                  <Ruler className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                  <p className="text-gray-600 text-xs mb-1">Tamanho</p>
-                  <p className="text-gray-800 font-bold text-lg" data-testid="text-baby-size">
-                    {development.size || "12 cm"}
-                  </p>
-                </div>
-                <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-2xl p-4 text-center">
-                  <Weight className="h-8 w-8 mx-auto mb-2 text-pink-600" />
-                  <p className="text-gray-600 text-xs mb-1">Peso</p>
-                  <p className="text-gray-800 font-bold text-lg" data-testid="text-baby-weight">
-                    {development.weight || "150g"}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Comparison Card */}
-              <div className="bg-gradient-to-r from-rose-50 to-blue-50 rounded-2xl p-6 text-center mb-4">
-                <p className="text-gray-700 text-sm mb-2">Tamanho comparativo:</p>
-                <div className="text-4xl mb-2">🍎</div>
-                <p className="text-gray-800 font-semibold">
-                  {development.fruit_comparison || "Como uma maçã"}
-                </p>
-              </div>
-
               {/* Baby Development Milestones */}
-              {babyMilestones.length > 0 && (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4">
+              {babyMilestones.length > 0 ? (
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4">
                   <h3 className="text-gray-800 font-semibold mb-3 flex items-center gap-2">
-                    <Baby className="h-4 w-4 text-green-600" />
+                    <Baby className="h-4 w-4 text-blue-600" />
                     Desenvolvimento do Bebê
                   </h3>
                   <div className="space-y-2">
                     {babyMilestones.map((milestone, index) => (
                       <div key={index} className="flex items-start gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-gray-700 text-sm">{milestone}</p>
                       </div>
                     ))}
                   </div>
+                </div>
+              ) : (
+                <div className="bg-blue-50 rounded-2xl p-6 text-center">
+                  <Baby className="h-12 w-12 mx-auto mb-4 text-blue-400" />
+                  <h3 className="text-gray-800 font-semibold mb-2">
+                    Desenvolvimento do Bebê
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Nenhuma informação específica disponível para esta semana.
+                  </p>
                 </div>
               )}
             </CardContent>
