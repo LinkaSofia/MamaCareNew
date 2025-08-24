@@ -102,26 +102,23 @@ export default function Dashboard() {
 
   const development = developmentData?.developmentData;
 
-  // Parse development milestones - if they're strings, split them; if they're arrays, use them
-  const parseMilestones = (milestones: string | string[]): string[] => {
-    if (Array.isArray(milestones)) {
-      return milestones;
+  // Processar informações como texto corrido
+  const getBabyText = (text: string | string[]): string => {
+    if (Array.isArray(text)) {
+      return text.join(' ');
     }
-    if (typeof milestones === 'string') {
-      // Try to parse as JSON array first, then split by common delimiters
-      try {
-        const parsed = JSON.parse(milestones);
-        if (Array.isArray(parsed)) return parsed;
-      } catch {
-        // If not JSON, split by common separators
-        return milestones.split(/[;,\n]/).map(item => item.trim()).filter(Boolean);
-      }
-    }
-    return [];
+    return typeof text === 'string' ? text : '';
   };
 
-  const babyMilestones = development ? parseMilestones(development.development_milestones_baby) : [];
-  const momMilestones = development ? parseMilestones(development.development_milestones_mom) : [];
+  const getMomText = (text: string | string[]): string => {
+    if (Array.isArray(text)) {
+      return text.join(' ');
+    }
+    return typeof text === 'string' ? text : '';
+  };
+
+  const babyText = development ? getBabyText(development.development_milestones_baby) : '';
+  const momText = development ? getMomText(development.development_milestones_mom) : '';
 
   return (
     <div className="min-h-screen gradient-bg pb-20 relative overflow-hidden">
@@ -214,88 +211,93 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
 
-        {/* Hero Section - Compacto */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mx-4">
-            {/* Baby 3D Component - Menor */}
-            <div className="w-32 h-32">
-              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
-            </div>
-            
-            {/* Progress e Informações do Lado */}
-            <div className="flex-1 ml-6">
-              <div className="flex items-center justify-between mb-4">
-                {/* Progress Ring - Menor */}
-                <div className="relative">
-                  <svg className="w-20 h-20" viewBox="0 0 120 120">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="50"
-                      fill="none"
-                      stroke="rgba(156, 163, 175, 0.3)"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="50"
-                      fill="none"
-                      stroke="url(#gradient)"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
-                      className="progress-ring animate-pulse"
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
-                    />
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#ec4899" />
-                        <stop offset="100%" stopColor="#8b5cf6" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-800">
-                        {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
-                      </div>
+        {/* Hero Section - Layout melhorado */}
+        <div className="text-center mb-8">
+          {/* Baby 3D Component - Maior e centralizado */}
+          <div className="mx-auto w-48 h-48 mb-6">
+            <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
+          </div>
+          
+          {/* Informações principais em card */}
+          <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              {/* Progress Ring */}
+              <div className="relative">
+                <svg className="w-24 h-24" viewBox="0 0 120 120">
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="rgba(156, 163, 175, 0.3)"
+                    strokeWidth="8"
+                  />
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="url(#gradient)"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
+                    className="progress-ring animate-pulse"
+                    style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#ec4899" />
+                      <stop offset="100%" stopColor="#8b5cf6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-gray-800">
+                      {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
+                    </div>
+                    <div className="text-gray-600 text-xs">
+                      Concluído
                     </div>
                   </div>
                 </div>
-                
-                {/* Informações Importantes */}
-                <div className="text-right">
-                  <p className="text-gray-600 text-sm mb-1">
-                    Faltam
-                  </p>
-                  <p className="text-2xl font-bold text-gray-800">
-                    {weekInfo.weeksRemaining} semanas
-                  </p>
-                  <p className="text-gray-500 text-xs">
-                    para conhecer seu bebê!
-                  </p>
-                </div>
               </div>
               
-              {/* Informações do Bebê - Linha */}
-              {development && (
-                <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 flex items-center justify-between">
-                  <div className="text-center">
-                    <p className="text-xs text-gray-500">Tamanho</p>
-                    <p className="font-semibold text-gray-800 text-sm">{development.size || "N/A"}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-gray-500">Peso</p>
-                    <p className="font-semibold text-gray-800 text-sm">{development.weight || "N/A"}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-gray-500">Como</p>
-                    <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "N/A"}</p>
-                  </div>
-                </div>
-              )}
+              {/* Informações da gestação */}
+              <div className="text-right flex-1 ml-6">
+                <p className="text-gray-700 text-lg mb-2 flex items-center justify-end gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Faltam aproximadamente
+                </p>
+                <p className="text-3xl font-bold text-gray-800 mb-2">
+                  {weekInfo.weeksRemaining} semanas
+                </p>
+                <p className="text-gray-600 text-sm">
+                  para conhecer seu bebê!
+                </p>
+              </div>
             </div>
+            
+            {/* Informações do bebê - horizontal */}
+            {development && (
+              <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
+                <div className="text-center">
+                  <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
+                  <p className="text-xs text-gray-500 mb-1">Tamanho</p>
+                  <p className="font-semibold text-gray-800">{development.size || "Calculando..."}</p>
+                </div>
+                <div className="text-center">
+                  <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
+                  <p className="text-xs text-gray-500 mb-1">Peso</p>
+                  <p className="font-semibold text-gray-800">{development.weight || "Calculando..."}</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-1">🍎</div>
+                  <p className="text-xs text-gray-500 mb-1">Como</p>
+                  <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "Calculando..."}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -334,21 +336,16 @@ export default function Dashboard() {
         {activeTab === "baby" && (
           <Card className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl mb-6">
             <CardContent className="p-6">
-              {/* Baby Development Milestones */}
-              {babyMilestones.length > 0 ? (
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4">
-                  <h3 className="text-gray-800 font-semibold mb-3 flex items-center gap-2">
-                    <Baby className="h-4 w-4 text-blue-600" />
+              {/* Baby Development Information */}
+              {babyText ? (
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6">
+                  <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+                    <Baby className="h-5 w-5 text-blue-600" />
                     Desenvolvimento do Bebê
                   </h3>
-                  <div className="space-y-2">
-                    {babyMilestones.map((milestone, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <p className="text-gray-700 text-sm">{milestone}</p>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    {babyText}
+                  </p>
                 </div>
               ) : (
                 <div className="bg-blue-50 rounded-2xl p-6 text-center">
@@ -357,7 +354,7 @@ export default function Dashboard() {
                     Desenvolvimento do Bebê
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    Nenhuma informação específica disponível para esta semana.
+                    Consultando informações sobre o desenvolvimento do bebê para esta semana...
                   </p>
                 </div>
               )}
@@ -366,39 +363,32 @@ export default function Dashboard() {
         )}
 
         {activeTab === "mom" && (
-          <div className="space-y-4">
-            {/* Mom Development Milestones */}
-            {momMilestones.length > 0 ? (
-              <Card className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl mb-6">
-                <CardContent className="p-6">
+          <Card className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl mb-6">
+            <CardContent className="p-6">
+              {/* Mom Development Information */}
+              {momText ? (
+                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6">
                   <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-pink-500" />
+                    <Heart className="h-5 w-5 text-rose-600" />
                     Mudanças na Mamãe
                   </h3>
-                  <div className="space-y-3">
-                    {momMilestones.map((milestone, index) => (
-                      <div key={index} className="flex items-start gap-3 bg-pink-50 rounded-xl p-3">
-                        <div className="w-2 h-2 bg-pink-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <p className="text-gray-700 text-sm">{milestone}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl mb-6">
-                <CardContent className="p-6 text-center">
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    {momText}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-pink-50 rounded-2xl p-6 text-center">
                   <Heart className="h-12 w-12 mx-auto mb-4 text-pink-400" />
                   <h3 className="text-gray-800 font-semibold mb-2">
-                    Informações da Mamãe
+                    Mudanças na Mamãe
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    Nenhuma informação específica disponível para esta semana.
+                    Consultando informações sobre mudanças no corpo da mamãe para esta semana...
                   </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
       </div>
