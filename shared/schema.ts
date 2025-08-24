@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, decimal, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, decimal, boolean, jsonb, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -189,6 +189,8 @@ export const babyDevelopment = pgTable("baby_development", {
   development_milestones_mom: text("development_milestones_mom").notNull(),
   baby_description: text("baby_description"),
   mom_description: text("mom_description"),
+  length_cm: numeric("length_cm").default(sql`0`),
+  weight_grams: numeric("weight_grams").default(sql`0`),
 });
 
 // Insert schemas

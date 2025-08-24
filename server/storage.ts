@@ -896,6 +896,14 @@ export class DatabaseStorage implements IStorage {
       try {
         await db.execute(sql`ALTER TABLE baby_development ADD COLUMN IF NOT EXISTS mom_description TEXT DEFAULT ''`);
       } catch (e) {}
+      
+      try {
+        await db.execute(sql`ALTER TABLE baby_development ADD COLUMN IF NOT EXISTS length_cm NUMERIC DEFAULT 0`);
+      } catch (e) {}
+      
+      try {
+        await db.execute(sql`ALTER TABLE baby_development ADD COLUMN IF NOT EXISTS weight_grams NUMERIC DEFAULT 0`);
+      } catch (e) {}
     } catch (error) {
       console.log("Table structure update error:", error);
     }

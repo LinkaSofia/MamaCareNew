@@ -211,85 +211,88 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
 
-        {/* Hero Section - Layout melhorado */}
-        <div className="text-center mb-8">
-          {/* Baby 3D Component - Maior e centralizado */}
-          <div className="mx-auto w-48 h-48 mb-6">
-            <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
-          </div>
-          
-          {/* Informações principais em card */}
-          <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
-            <div className="flex items-center justify-between mb-4">
-              {/* Progress Ring */}
-              <div className="relative">
-                <svg className="w-24 h-24" viewBox="0 0 120 120">
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="50"
-                    fill="none"
-                    stroke="rgba(156, 163, 175, 0.3)"
-                    strokeWidth="8"
-                  />
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="50"
-                    fill="none"
-                    stroke="url(#gradient)"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
-                    className="progress-ring animate-pulse"
-                    style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
-                  />
-                  <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#ec4899" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-gray-800">
-                      {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
-                    </div>
-                    <div className="text-gray-600 text-xs">
-                      Concluído
-                    </div>
+        {/* Hero Section - % ao lado da imagem */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center mb-6 px-4">
+            {/* Baby 3D Component com % ao lado */}
+            <div className="w-48 h-48">
+              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
+            </div>
+            
+            {/* Progress Ring ao lado da imagem */}
+            <div className="relative ml-8">
+              <svg className="w-24 h-24" viewBox="0 0 120 120">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="rgba(156, 163, 175, 0.3)"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="url(#gradient)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
+                  className="progress-ring animate-pulse"
+                  style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#ec4899" />
+                    <stop offset="100%" stopColor="#8b5cf6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-gray-800">
+                    {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
+                  </div>
+                  <div className="text-gray-600 text-xs">
+                    Concluído
                   </div>
                 </div>
               </div>
-              
-              {/* Informações da gestação */}
-              <div className="text-right flex-1 ml-6">
-                <p className="text-gray-700 text-lg mb-2 flex items-center justify-end gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  Faltam aproximadamente
-                </p>
-                <p className="text-3xl font-bold text-gray-800 mb-2">
-                  {weekInfo.weeksRemaining} semanas
-                </p>
-                <p className="text-gray-600 text-sm">
-                  para conhecer seu bebê!
-                </p>
-              </div>
             </div>
-            
-            {/* Informações do bebê - horizontal */}
-            {development && (
+          </div>
+          
+          {/* Informações da gestação */}
+          <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4 text-center">
+            <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Faltam aproximadamente
+            </p>
+            <p className="text-3xl font-bold text-gray-800 mb-2">
+              {weekInfo.weeksRemaining} semanas
+            </p>
+            <p className="text-gray-600 text-sm">
+              para conhecer seu bebê!
+            </p>
+          </div>
+          
+          {/* Informações do bebê - horizontal */}
+          {development && (
+            <div className="glass-effect rounded-2xl p-4 mx-4 backdrop-blur-md bg-white/80">
               <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
                 <div className="text-center">
                   <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
                   <p className="text-xs text-gray-500 mb-1">Tamanho</p>
-                  <p className="font-semibold text-gray-800">{development.size || "Calculando..."}</p>
+                  <p className="font-semibold text-gray-800">
+                    {development.length_cm ? `${development.length_cm} cm` : development.size || "Calculando..."}
+                  </p>
                 </div>
                 <div className="text-center">
                   <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
                   <p className="text-xs text-gray-500 mb-1">Peso</p>
-                  <p className="font-semibold text-gray-800">{development.weight || "Calculando..."}</p>
+                  <p className="font-semibold text-gray-800">
+                    {development.weight_grams ? `${development.weight_grams}g` : development.weight || "Calculando..."}
+                  </p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl mb-1">🍎</div>
@@ -297,8 +300,8 @@ export default function Dashboard() {
                   <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "Calculando..."}</p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
