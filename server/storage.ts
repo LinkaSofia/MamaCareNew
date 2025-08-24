@@ -848,20 +848,8 @@ export class DatabaseStorage implements IStorage {
   // Baby Development methods
   async getBabyDevelopmentByWeek(week: number): Promise<BabyDevelopment | undefined> {
     try {
-      // Create table if it doesn't exist
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS baby_development (
-          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-          week INTEGER NOT NULL UNIQUE,
-          size TEXT NOT NULL,
-          weight TEXT NOT NULL,
-          fruit_comparison TEXT NOT NULL,
-          development_milestones_baby TEXT NOT NULL,
-          development_milestones_mom TEXT NOT NULL,
-          baby_description TEXT,
-          mom_description TEXT
-        )
-      `);
+      // Ensure table exists with correct structure
+      await this.ensureBabyDevelopmentTable();
 
       const result = await db.select().from(babyDevelopment)
         .where(eq(babyDevelopment.week, week))
@@ -874,22 +862,41 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAllBabyDevelopmentData(): Promise<BabyDevelopment[]> {
+  private async ensureBabyDevelopmentTable(): Promise<void> {
     try {
       // Create table if it doesn't exist
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS baby_development (
           id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
           week INTEGER NOT NULL UNIQUE,
-          size TEXT NOT NULL,
-          weight TEXT NOT NULL,
-          fruit_comparison TEXT NOT NULL,
           development_milestones_baby TEXT NOT NULL,
           development_milestones_mom TEXT NOT NULL,
           baby_description TEXT,
           mom_description TEXT
         )
       `);
+
+      // Add missing columns if they don't exist
+      try {
+        await db.execute(sql`ALTER TABLE baby_development ADD COLUMN IF NOT EXISTS size TEXT DEFAULT ''`);
+      } catch (e) {}
+      
+      try {
+        await db.execute(sql`ALTER TABLE baby_development ADD COLUMN IF NOT EXISTS weight TEXT DEFAULT ''`);
+      } catch (e) {}
+      
+      try {
+        await db.execute(sql`ALTER TABLE baby_development ADD COLUMN IF NOT EXISTS fruit_comparison TEXT DEFAULT ''`);
+      } catch (e) {}
+    } catch (error) {
+      console.log("Table structure update error:", error);
+    }
+  }
+
+  async getAllBabyDevelopmentData(): Promise<BabyDevelopment[]> {
+    try {
+      // Ensure table exists with correct structure
+      await this.ensureBabyDevelopmentTable();
 
       const result = await db.select().from(babyDevelopment)
         .orderBy(babyDevelopment.week);
@@ -903,20 +910,8 @@ export class DatabaseStorage implements IStorage {
 
   async createBabyDevelopment(development: InsertBabyDevelopment): Promise<BabyDevelopment> {
     try {
-      // Create table if it doesn't exist
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS baby_development (
-          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-          week INTEGER NOT NULL UNIQUE,
-          size TEXT NOT NULL,
-          weight TEXT NOT NULL,
-          fruit_comparison TEXT NOT NULL,
-          development_milestones_baby TEXT NOT NULL,
-          development_milestones_mom TEXT NOT NULL,
-          baby_description TEXT,
-          mom_description TEXT
-        )
-      `);
+      // Ensure table exists with correct structure
+      await this.ensureBabyDevelopmentTable();
 
       const [newDevelopment] = await db.insert(babyDevelopment).values({
         ...development,
