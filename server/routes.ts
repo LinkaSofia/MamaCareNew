@@ -808,25 +808,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid week number" });
       }
       
-      // Importar dados de exemplo
-      const { babyDevelopmentSeedData } = await import("./baby-development-seed");
-      
       // Tentar buscar dados reais primeiro
       let developmentData;
       try {
         developmentData = await storage.getBabyDevelopmentByWeek(week);
+        
+        // Se não encontrou dados, popular a tabela com dados seed
+        if (!developmentData) {
+          console.log(`🌱 Nenhum dado encontrado para semana ${week}, populando tabela...`);
+          const { seedBabyDevelopment } = await import("./seed-baby-development");
+          await seedBabyDevelopment();
+          
+          // Tentar buscar novamente após popular
+          developmentData = await storage.getBabyDevelopmentByWeek(week);
+        }
       } catch (dbError: any) {
-        console.log("Database error, using seed data:", dbError.message);
-        developmentData = null;
-      }
-
-      // Se não encontrou dados reais, usar dados de exemplo
-      if (!developmentData) {
+        console.log("❌ Erro na database:", dbError.message);
+        
+        // Fallback para dados seed diretos
+        const { babyDevelopmentSeedData } = await import("./baby-development-seed");
         developmentData = babyDevelopmentSeedData.find(d => d.week === week);
       }
 
+      // Se ainda não encontrou dados, criar dados básicos
       if (!developmentData) {
-        // Se não tem dados nem no seed, criar dados básicos
         developmentData = {
           week,
           size: "Consultando...",
@@ -841,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ developmentData });
     } catch (error) {
-      console.error("Error fetching baby development data:", error);
+      console.error("❌ Erro ao buscar dados de desenvolvimento:", error);
       res.status(500).json({ error: "Failed to get development data" });
     }
   });
@@ -864,6 +869,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating baby development data:", error);
       res.status(400).json({ error: "Invalid development data" });
+    }
+  });
+
+  // Rota para popular dados de desenvolvimento do bebê
+  app.post("/api/baby-development/seed", requireAuth, async (req, res) => {
+    try {
+      const { seedBabyDevelopment } = await import("./seed-baby-development");
+      const success = await seedBabyDevelopment();
+      
+      if (success) {
+        res.json({ success: true, message: "Dados de desenvolvimento populados com sucesso!" });
+      } else {
+        res.status(500).json({ error: "Erro ao popular dados de desenvolvimento" });
+      }
+    } catch (error) {
+      console.error("❌ Erro ao popular dados:", error);
+      res.status(500).json({ error: "Failed to seed development data" });
     }
   });
 
