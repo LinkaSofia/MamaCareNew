@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// import ThreeDBaby from "@/components/three-d-baby";
+import Baby3D from "@/components/Baby3D";
 import { 
   Bell, 
   Baby, 
@@ -27,7 +27,9 @@ import {
   Book,
   Settings,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  TrendingUp
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -122,9 +124,16 @@ export default function Dashboard() {
   const momMilestones = development ? parseMilestones(development.development_milestones_mom) : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-300 via-purple-300 to-blue-400 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 pb-20 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-breathe"></div>
+      </div>
+      
       {/* Header Section */}
-      <div className="px-4 pt-12 pb-8">
+      <div className="relative z-10 px-4 pt-12 pb-8">
         <div className="flex items-center justify-end mb-8">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -164,29 +173,69 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
 
-        {/* Progress Circle */}
+        {/* Hero Baby Section */}
         <div className="text-center mb-8">
-          <div className="relative inline-flex">
-            <div className="w-40 h-40 rounded-full border-8 border-white/30 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-white">
-                  {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
-                </div>
-                <div className="text-white/80 text-sm">
-                  Concluído
+          <div className="relative">
+            {/* Baby 3D Component */}
+            <div className="mx-auto w-80 h-80 mb-6">
+              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
+            </div>
+            
+            {/* Progress Ring */}
+            <div className="relative inline-flex mb-4">
+              <svg className="w-32 h-32" viewBox="0 0 120 120">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.2)"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="url(#gradient)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${Math.round(((40 - weekInfo.weeksRemaining) / 40) * 314)} 314`}
+                  className="progress-ring animate-pulse"
+                  style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#ec4899" />
+                    <stop offset="100%" stopColor="#8b5cf6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">
+                    {Math.round(((40 - weekInfo.weeksRemaining) / 40) * 100)}%
+                  </div>
+                  <div className="text-white/60 text-xs">
+                    Concluído
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="text-center">
-          <p className="text-white/80 text-lg mb-2">
-            Faltam aproximadamente
-          </p>
-          <p className="text-3xl font-bold text-white">
-            {weekInfo.weeksRemaining} semanas
-          </p>
+          
+          <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/10">
+            <p className="text-white/90 text-lg mb-2 flex items-center justify-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Faltam aproximadamente
+            </p>
+            <p className="text-4xl font-bold text-white mb-2">
+              {weekInfo.weeksRemaining} semanas
+            </p>
+            <p className="text-white/70 text-sm">
+              para conhecer seu bebê!
+            </p>
+          </div>
         </div>
       </div>
 
@@ -219,49 +268,53 @@ export default function Dashboard() {
       </div>
 
       {/* Content Area */}
-      <div className="px-4">
+      <div className="relative z-10 px-4">
 
         {activeTab === "baby" && development && (
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-xl mb-6">
+          <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl mb-6">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-gray-600 text-sm">Size</p>
-                  <p className="text-gray-800 font-semibold" data-testid="text-baby-size">
-                    {development.fruit_comparison || development.size || "N/A"}
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl p-4 text-center">
+                  <Ruler className="h-8 w-8 mx-auto mb-2 text-white" />
+                  <p className="text-white/70 text-xs mb-1">Tamanho</p>
+                  <p className="text-white font-bold text-lg" data-testid="text-baby-size">
+                    {development.size || "12 cm"}
                   </p>
                 </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full flex items-center justify-center">
-                  <Baby className="h-8 w-8 text-purple-600" />
-                </div>
-                <div className="text-right">
-                  <p className="text-gray-600 text-sm">Weight</p>
-                  <p className="text-gray-800 font-semibold" data-testid="text-baby-weight">
-                    {development.weight || "N/A"}
+                <div className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl p-4 text-center">
+                  <Weight className="h-8 w-8 mx-auto mb-2 text-white" />
+                  <p className="text-white/70 text-xs mb-1">Peso</p>
+                  <p className="text-white font-bold text-lg" data-testid="text-baby-weight">
+                    {development.weight || "150g"}
                   </p>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-2xl p-4 text-center">
-                <div className="text-6xl mb-2">🍎</div>
-                <div className="flex items-center justify-center space-x-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-800">
-                      {development.size || "12 cm"}
-                    </p>
-                  </div>
-                  <span className="text-gray-400 text-lg">vs</span>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-800">
-                      {development.weight || "150g"}
-                    </p>
-                  </div>
-                </div>
+              {/* Comparison Card */}
+              <div className="bg-gradient-to-r from-white/10 to-white/20 rounded-2xl p-6 text-center mb-4">
+                <p className="text-white/80 text-sm mb-2">Tamanho comparativo:</p>
+                <div className="text-4xl mb-2">🍎</div>
+                <p className="text-white font-semibold">
+                  {development.fruit_comparison || "Como uma maçã"}
+                </p>
               </div>
 
-              {development.baby_description && (
-                <div className="mt-4 p-4 bg-purple-50 rounded-xl">
-                  <p className="text-gray-700 text-sm">{development.baby_description}</p>
+              {/* Development Milestones */}
+              {babyMilestones.length > 0 && (
+                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl p-4">
+                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Desenvolvimento do Bebê
+                  </h3>
+                  <div className="space-y-2">
+                    {babyMilestones.slice(0, 3).map((milestone, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-white/90 text-sm">{milestone}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -269,73 +322,122 @@ export default function Dashboard() {
         )}
 
         {activeTab === "mom" && (
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
-              <CardContent className="p-4 text-center">
-                <Heart className="h-8 w-8 mx-auto mb-2 text-red-400" />
-                <p className="text-sm font-medium text-gray-800">
-                  Contador de Chutes
-                </p>
-              </CardContent>
-            </Card>
+          <div className="space-y-4">
+            {/* Mom Development Milestones */}
+            {momMilestones.length > 0 && (
+              <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl mb-6">
+                <CardContent className="p-6">
+                  <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-pink-400" />
+                    Mudanças na Mamãe
+                  </h3>
+                  <div className="space-y-3">
+                    {momMilestones.slice(0, 4).map((milestone, index) => (
+                      <div key={index} className="flex items-start gap-3 bg-white/5 rounded-xl p-3">
+                        <div className="w-2 h-2 bg-pink-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-white/90 text-sm">{milestone}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             
-            <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
-              <CardContent className="p-4 text-center">
-                <Weight className="h-8 w-8 mx-auto mb-2 text-blue-400" />
-                <p className="text-sm font-medium text-gray-800">
-                  Controle de Peso
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
-              <CardContent className="p-4 text-center">
-                <Activity className="h-8 w-8 mx-auto mb-2 text-purple-400" />
-                <p className="text-sm font-medium text-gray-800">
-                  Sintomas
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
-              <CardContent className="p-4 text-center">
-                <Book className="h-8 w-8 mx-auto mb-2 text-green-400" />
-                <p className="text-sm font-medium text-gray-800">
-                  Diário
-                </p>
-              </CardContent>
-            </Card>
+            {/* Feature Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md border border-white/20 shadow-lg cursor-pointer hover:scale-105 transition-all duration-300">
+                <CardContent className="p-4 text-center">
+                  <div className="bg-white/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <Heart className="h-6 w-6 text-red-300" />
+                  </div>
+                  <p className="text-sm font-medium text-white">
+                    Contador de Chutes
+                  </p>
+                  <p className="text-xs text-white/60 mt-1">
+                    Monitore os movimentos
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 backdrop-blur-md border border-white/20 shadow-lg cursor-pointer hover:scale-105 transition-all duration-300">
+                <CardContent className="p-4 text-center">
+                  <div className="bg-white/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <Weight className="h-6 w-6 text-blue-300" />
+                  </div>
+                  <p className="text-sm font-medium text-white">
+                    Controle de Peso
+                  </p>
+                  <p className="text-xs text-white/60 mt-1">
+                    Acompanhe seu ganho
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-purple-500/20 to-violet-500/20 backdrop-blur-md border border-white/20 shadow-lg cursor-pointer hover:scale-105 transition-all duration-300">
+                <CardContent className="p-4 text-center">
+                  <div className="bg-white/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <Activity className="h-6 w-6 text-purple-300" />
+                  </div>
+                  <p className="text-sm font-medium text-white">
+                    Sintomas
+                  </p>
+                  <p className="text-xs text-white/60 mt-1">
+                    Registre como se sente
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border border-white/20 shadow-lg cursor-pointer hover:scale-105 transition-all duration-300">
+                <CardContent className="p-4 text-center">
+                  <div className="bg-white/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <Book className="h-6 w-6 text-green-300" />
+                  </div>
+                  <p className="text-sm font-medium text-white">
+                    Diário
+                  </p>
+                  <p className="text-xs text-white/60 mt-1">
+                    Escreva suas memórias
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200/20">
-        <div className="flex justify-around py-2">
-          <button className="flex flex-col items-center py-2 px-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/20 backdrop-blur-md border-t border-white/10">
+        <div className="flex justify-around py-3">
+          <button className="flex flex-col items-center py-2 px-4 group">
             <div className="relative">
-              <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-white rounded-full"></div>
+              <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                <div className="w-3 h-3 bg-white rounded-full"></div>
               </div>
-              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-gray-800 rounded-full"></div>
+              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full animate-pulse"></div>
             </div>
-            <span className="text-xs text-gray-800 font-medium mt-1">Início</span>
+            <span className="text-xs text-white font-medium mt-1">Início</span>
           </button>
           
-          <button className="flex flex-col items-center py-2 px-4">
-            <Baby className="h-6 w-6 text-gray-400" />
-            <span className="text-xs text-gray-400 mt-1">Bebê</span>
+          <button className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform">
+            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <Baby className="h-5 w-5 text-white/70" />
+            </div>
+            <span className="text-xs text-white/70 mt-1">Bebê</span>
           </button>
           
-          <button className="flex flex-col items-center py-2 px-4">
-            <Book className="h-6 w-6 text-gray-400" />
-            <span className="text-xs text-gray-400 mt-1">Diário</span>
+          <button className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform">
+            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <Book className="h-5 w-5 text-white/70" />
+            </div>
+            <span className="text-xs text-white/70 mt-1">Diário</span>
           </button>
           
-          <button className="flex flex-col items-center py-2 px-4">
-            <Heart className="h-6 w-6 text-gray-400" />
-            <span className="text-xs text-gray-400 mt-1">Dicas</span>
+          <button className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform">
+            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <Heart className="h-5 w-5 text-white/70" />
+            </div>
+            <span className="text-xs text-white/70 mt-1">Dicas</span>
           </button>
         </div>
       </div>
