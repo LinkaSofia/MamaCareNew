@@ -33,6 +33,7 @@ import Medications from "@/pages/medications";
 import Community from "@/pages/community";
 import { MobileMenu } from "@/components/Navigation";
 import NotFound from "@/pages/not-found";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 function Router() {
   return (
@@ -77,6 +78,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
+          <PWAInstallPrompt />
           <div className="App">
             <Router />
           </div>

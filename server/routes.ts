@@ -147,7 +147,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sessionUserId: req.session.userId
         });
       
-        // Tentar registrar log de acesso (opcional)
+        // Log de acesso temporariamente desabilitado
+        // TODO: Reabilitar após criação da tabela access_logs
+        /*
         storage.createAccessLog({
           userId: user.id,
           email: user.email,
@@ -157,9 +159,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           sessionId: req.sessionID
         }).catch((logError: any) => {
-          // Falha no log não deve impedir o login
-          console.log("Log creation skipped:", logError?.message || "Unknown error");
+          console.log("Access log creation failed:", logError?.message || "Unknown error");
         });
+        */
         
         // Verificar se o usuário tem dados de gravidez, se não criar um básico
         storage.getActivePregnancy(user.id).then(pregnancy => {
@@ -469,11 +471,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/kick-counts", requireAuth, async (req, res) => {
     try {
+      console.log("🦵 Kick count data received:", req.body);
       const kickCountData = insertKickCountSchema.parse(req.body);
       const kickCount = await storage.createKickCount(kickCountData);
       res.json({ kickCount });
     } catch (error) {
-      res.status(400).json({ error: "Invalid kick count data" });
+      console.error("❌ Kick count validation error:", error);
+      res.status(400).json({ error: "Invalid kick count data", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -490,11 +494,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/weight-records", requireAuth, async (req, res) => {
     try {
+      console.log("⚖️ Weight record data received:", req.body);
       const weightData = insertWeightRecordSchema.parse(req.body);
       const record = await storage.createWeightRecord(weightData);
       res.json({ record });
     } catch (error) {
-      res.status(400).json({ error: "Invalid weight record data" });
+      console.error("❌ Weight record validation error:", error);
+      res.status(400).json({ error: "Invalid weight record data", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
