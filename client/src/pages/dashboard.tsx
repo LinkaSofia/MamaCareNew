@@ -203,6 +203,10 @@ export default function Dashboard() {
                 <Settings className="h-4 w-4 mr-2" />
                 Perfil
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLocation("/analytics")} className="cursor-pointer">
+                <Activity className="h-4 w-4 mr-2" />
+                Analytics
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair

@@ -20,28 +20,52 @@ export function PWAInstallPrompt() {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    // Verificar se foi dispensado recentemente
+    const dismissed = localStorage.getItem('pwa-prompt-dismissed');
+    if (dismissed) {
+      const dismissedTime = parseInt(dismissed);
+      const now = Date.now();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      
+      if (now - dismissedTime < twentyFourHours) {
+        return; // Não mostrar se foi dispensado há menos de 24 horas
+      }
+    }
+
     // Verificar se já está instalado como PWA
     const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
     const isIOSStandalone = (window.navigator as any).standalone === true;
     setIsStandalone(isInStandaloneMode || isIOSStandalone);
 
-    // Listener para o evento de instalação
+    // Se já estiver instalado, não mostrar
+    if (isInStandaloneMode || isIOSStandalone) {
+      return;
+    }
+
+    // Listener para o evento de instalação (Android/Chrome)
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       
-      // Mostrar o prompt após 3 segundos se não estiver instalado
+      // Mostrar o prompt após 3 segundos
       setTimeout(() => {
-        if (!isInStandaloneMode && !isIOSStandalone) {
-          setShowInstallPrompt(true);
-        }
+        setShowInstallPrompt(true);
       }, 3000);
     };
 
+    // Para dispositivos que suportam PWA nativo
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Para iOS e outros navegadores, mostrar após 3 segundos
+    const timer = setTimeout(() => {
+      if (!isInStandaloneMode && !isIOSStandalone) {
+        setShowInstallPrompt(true);
+      }
+    }, 3000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -68,18 +92,6 @@ export function PWAInstallPrompt() {
     // Não mostrar novamente por 24 horas
     localStorage.setItem('pwa-prompt-dismissed', Date.now().toString());
   };
-
-  // Verificar se foi dispensado recentemente
-  useEffect(() => {
-    const dismissed = localStorage.getItem('pwa-prompt-dismissed');
-    if (dismissed) {
-      const dismissedTime = parseInt(dismissed);
-      const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-      if (dismissedTime > oneDayAgo) {
-        setShowInstallPrompt(false);
-      }
-    }
-  }, []);
 
   // Detectar iOS para instruções especiais
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);

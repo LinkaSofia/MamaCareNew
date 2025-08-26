@@ -20,3 +20,5 @@ export function LoadingSpinner({ className, size = "md" }: LoadingSpinnerProps) 
     />
   );
 }
+
+export default LoadingSpinner;

@@ -641,6 +641,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Implementação dos logs de auditoria
+  // Sistema Completo de Logs de Usuário
   async createAccessLog(log: InsertAccessLog): Promise<AccessLog> {
     try {
       const [newLog] = await db.insert(accessLogs).values({
@@ -650,8 +651,50 @@ export class DatabaseStorage implements IStorage {
       return newLog;
     } catch (error: any) {
       console.log("Access log creation failed:", error?.message || "Unknown error");
-      // Retornar um objeto vazio ao invés de falhar
       return {} as AccessLog;
+    }
+  }
+
+  async trackPageVisit(userId: string, page: string, duration?: number): Promise<void> {
+    try {
+      await db.insert(userAnalytics).values({
+        id: randomUUID(),
+        userId,
+        sessionId: 'temp-session',
+        action: 'page_view',
+        page,
+        duration: duration || 0,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.log("Page visit tracking failed:", error);
+    }
+  }
+
+  async trackUserAction(userId: string, action: string, page: string, element?: string): Promise<void> {
+    try {
+      await db.insert(userAnalytics).values({
+        id: randomUUID(),
+        userId,
+        sessionId: 'temp-session',
+        action,
+        page,
+        element,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.log("User action tracking failed:", error);
+    }
+  }
+
+  async getUserAnalytics(userId: string, startDate?: Date, endDate?: Date): Promise<UserAnalytics[]> {
+    try {
+      return await db.select().from(userAnalytics)
+        .where(eq(userAnalytics.userId, userId))
+        .orderBy(desc(userAnalytics.timestamp));
+    } catch (error) {
+      console.error("Error getting user analytics:", error);
+      return [];
     }
   }
 
@@ -746,89 +789,6 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error resetting password:", error);
       return false;
-    }
-  }
-
-  // Sistema de Analytics completo
-  async createUserAnalytics(analytics: InsertUserAnalytics): Promise<UserAnalytics> {
-    try {
-      // Garantir que a tabela de analytics existe
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS user_analytics (
-          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR REFERENCES users(id),
-          session_id TEXT NOT NULL,
-          action TEXT NOT NULL,
-          page TEXT NOT NULL,
-          element TEXT,
-          duration INTEGER,
-          metadata JSONB,
-          timestamp TIMESTAMP DEFAULT NOW()
-        )
-      `);
-
-      const [newAnalytics] = await db.insert(userAnalytics).values({
-        ...analytics,
-        id: randomUUID(),
-      }).returning();
-      
-      return newAnalytics;
-    } catch (error: any) {
-      console.log("Analytics creation failed:", error?.message || "Unknown error");
-      // Retornar um objeto vazio ao invés de falhar
-      return {} as UserAnalytics;
-    }
-  }
-
-  async getUserAnalytics(userId: string, limit = 100): Promise<UserAnalytics[]> {
-    try {
-      return await db.select().from(userAnalytics)
-        .where(eq(userAnalytics.userId, userId))
-        .orderBy(desc(userAnalytics.timestamp))
-        .limit(limit);
-    } catch (error) {
-      console.log("Error fetching analytics:", error);
-      return [];
-    }
-  }
-
-  async startUserSession(sessionData: InsertUserSession): Promise<UserSession> {
-    try {
-      // Garantir que a tabela de sessions existe
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS user_sessions (
-          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR REFERENCES users(id) NOT NULL,
-          session_id TEXT NOT NULL UNIQUE,
-          start_time TIMESTAMP DEFAULT NOW(),
-          end_time TIMESTAMP,
-          total_duration INTEGER,
-          pages_visited JSONB DEFAULT '[]'::jsonb,
-          actions_count INTEGER DEFAULT 0,
-          user_agent TEXT,
-          ip_address TEXT
-        )
-      `);
-
-      const [newSession] = await db.insert(userSessions).values({
-        ...sessionData,
-        id: randomUUID(),
-      }).returning();
-      
-      return newSession;
-    } catch (error: any) {
-      console.log("Session creation failed:", error?.message || "Unknown error");
-      return {} as UserSession;
-    }
-  }
-
-  async updateUserSession(sessionId: string, updates: Partial<InsertUserSession>): Promise<void> {
-    try {
-      await db.update(userSessions)
-        .set(updates)
-        .where(eq(userSessions.sessionId, sessionId));
-    } catch (error) {
-      console.log("Session update failed:", error);
     }
   }
 

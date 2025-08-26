@@ -68,9 +68,9 @@ export default function WeightTracking() {
 
     addWeightMutation.mutate({
       pregnancyId: pregnancy!.id,
-      weight: parseFloat(weight),
-      date: new Date().toISOString(),
-      notes: notes.trim() || null,
+      weight: parseFloat(weight).toFixed(2), // Converter para string decimal
+      date: new Date(),
+      notes: notes.trim() || undefined,
     });
   };
 

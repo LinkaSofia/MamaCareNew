@@ -806,6 +806,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics routes
+  app.post("/api/analytics/page-visit", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { page, duration } = req.body;
+      
+      await storage.trackPageVisit(userId, page, duration);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking page visit:", error);
+      res.status(500).json({ error: "Failed to track page visit" });
+    }
+  });
+
+  app.post("/api/analytics/action", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { action, page, element } = req.body;
+      
+      await storage.trackUserAction(userId, action, page, element);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking action:", error);
+      res.status(500).json({ error: "Failed to track action" });
+    }
+  });
+
+  app.get("/api/analytics/user", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const analytics = await storage.getUserAnalytics(userId);
+      res.json({ analytics });
+    } catch (error) {
+      console.error("Error getting user analytics:", error);
+      res.status(500).json({ error: "Failed to get analytics" });
+    }
+  });
+
   // Baby Development routes
   app.get("/api/baby-development/:week", requireAuth, async (req, res) => {
     try {

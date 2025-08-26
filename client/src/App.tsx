@@ -31,11 +31,20 @@ import { Progress } from "@/pages/progress";
 import Symptoms from "@/pages/symptoms";
 import Medications from "@/pages/medications";
 import Community from "@/pages/community";
+import Analytics from "@/pages/analytics";
 import { MobileMenu } from "@/components/Navigation";
 import NotFound from "@/pages/not-found";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { useUserTracking } from "@/hooks/useUserTracking";
 
 function Router() {
+  // Inicializar tracking automático
+  const { trackPageVisit, trackAction } = useUserTracking({
+    trackPageViews: true,
+    trackClicks: true,
+    trackTime: true
+  });
+
   return (
     <Layout>
       <Switch>
@@ -62,6 +71,7 @@ function Router() {
         <Route path="/symptoms" component={Symptoms} />
         <Route path="/medications" component={Medications} />
         <Route path="/community" component={Community} />
+        <Route path="/analytics" component={Analytics} />
         <Route path="/profile" component={Profile} />
         <Route path="/menu" component={MobileMenu} />
         
