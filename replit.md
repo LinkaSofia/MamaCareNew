@@ -8,6 +8,23 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## UI/UX Overhaul - Page-Based Navigation (August 26, 2025)
+- **Removed sidebar menu from dashboard**:
+  - Replaced sidebar with direct page-based menu interface
+  - Added comprehensive menu of options directly in dashboard page
+  - Created grid-based button layout with color-coded categories
+  - Each feature now accessible through dedicated buttons on main page
+- **Weight tracking system rebuilt**:
+  - Fixed weight registration with new weight_entries table
+  - Added proper date field to weight registration form
+  - Updated API endpoints to use /api/weight-entries
+  - Corrected database schema for weight tracking functionality
+- **Enhanced mobile-first design**:
+  - Improved bottom navigation with functional buttons
+  - Optimized for mobile interaction patterns
+  - Color-coded feature buttons for better visual hierarchy
+  - Consistent gradient design across all interface elements
+
 ## Full Authentication System Working with Supabase (August 23, 2025)
 - **Complete Supabase integration operational**:
   - Database connection established and stable

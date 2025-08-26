@@ -398,6 +398,85 @@ export default function Dashboard() {
           </Card>
         )}
 
+        {/* Menu de Opções - direto na página */}
+        <div className="px-4 mt-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">O que você gostaria de fazer?</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              onClick={() => setLocation("/weight-tracking")}
+              className="h-20 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-weight-tracking"
+            >
+              <Weight className="h-6 w-6" />
+              <span className="text-sm font-medium">Controle de Peso</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/kick-counter")}
+              className="h-20 bg-gradient-to-r from-blue-400 to-indigo-400 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-kick-counter"
+            >
+              <Activity className="h-6 w-6" />
+              <span className="text-sm font-medium">Contar Chutes</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/birth-plan")}
+              className="h-20 bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-birth-plan"
+            >
+              <Heart className="h-6 w-6" />
+              <span className="text-sm font-medium">Plano de Parto</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/consultations")}
+              className="h-20 bg-gradient-to-r from-purple-400 to-violet-400 hover:from-purple-500 hover:to-violet-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-consultations"
+            >
+              <Calendar className="h-6 w-6" />
+              <span className="text-sm font-medium">Consultas</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/shopping-list")}
+              className="h-20 bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-shopping"
+            >
+              <Apple className="h-6 w-6" />
+              <span className="text-sm font-medium">Lista de Compras</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/photos")}
+              className="h-20 bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-500 hover:to-cyan-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-photos"
+            >
+              <Info className="h-6 w-6" />
+              <span className="text-sm font-medium">Fotos</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/diary")}
+              className="h-20 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-diary"
+            >
+              <Book className="h-6 w-6" />
+              <span className="text-sm font-medium">Diário</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/analytics")}
+              className="h-20 bg-gradient-to-r from-indigo-400 to-blue-400 hover:from-indigo-500 hover:to-blue-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-analytics"
+            >
+              <TrendingUp className="h-6 w-6" />
+              <span className="text-sm font-medium">Analytics</span>
+            </Button>
+          </div>
+        </div>
+
       </div>
 
       {/* Bottom Navigation */}
@@ -413,28 +492,38 @@ export default function Dashboard() {
             <span className="text-xs text-gray-800 font-medium mt-1">Início</span>
           </button>
           
-          <button className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform">
+          <button 
+            className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform"
+            onClick={() => setLocation("/kick-counter")}
+          >
             <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-              <Baby className="h-5 w-5 text-gray-600" />
+              <Activity className="h-5 w-5 text-gray-600" />
             </div>
-            <span className="text-xs text-gray-600 mt-1">Bebê</span>
+            <span className="text-xs text-gray-600 mt-1">Chutes</span>
           </button>
           
-          <button className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform">
+          <button 
+            className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform"
+            onClick={() => setLocation("/diary")}
+          >
             <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors">
               <Book className="h-5 w-5 text-gray-600" />
             </div>
             <span className="text-xs text-gray-600 mt-1">Diário</span>
           </button>
           
-          <button className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform">
+          <button 
+            className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform"
+            onClick={() => setLocation("/profile")}
+          >
             <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-              <Heart className="h-5 w-5 text-gray-600" />
+              <User className="h-5 w-5 text-gray-600" />
             </div>
-            <span className="text-xs text-gray-600 mt-1">Dicas</span>
+            <span className="text-xs text-gray-600 mt-1">Perfil</span>
           </button>
         </div>
       </div>
+
     </div>
   );
 }

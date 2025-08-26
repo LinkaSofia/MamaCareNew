@@ -90,7 +90,7 @@ export default function WeightTracking() {
     );
   }
 
-  const entries = weightData?.entries || [];
+  const entries = (weightData as any)?.entries || [];
   const records = entries; // Para compatibilidade com componentes existentes
   const latestWeight = entries.length > 0 ? entries[0] : null;
   
@@ -188,7 +188,7 @@ export default function WeightTracking() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {records.slice(0, 5).map((record) => (
+                {records.slice(0, 5).map((record: any) => (
                   <div key={record.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <div className="font-medium" data-testid={`text-record-weight-${record.id}`}>
