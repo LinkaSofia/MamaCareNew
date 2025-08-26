@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Safe area utilities */
+@layer utilities {
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}
+
 /* PWA specific styles */
 @media (display-mode: standalone) {
   body {

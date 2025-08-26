@@ -121,7 +121,7 @@ export default function Dashboard() {
   const momText = development ? getMomText(development.development_milestones_mom) : '';
 
   return (
-    <div className="min-h-screen gradient-bg pb-20 relative overflow-hidden">
+    <div className="min-h-screen gradient-bg relative overflow-hidden">
       {/* Background decorative elements - same as login */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Corações flutuantes */}
@@ -171,8 +171,8 @@ export default function Dashboard() {
       </div>
       
       {/* Header Section */}
-      <div className="relative z-10 px-4 pt-12 pb-8">
-        <div className="flex items-center justify-end mb-8">
+      <div className="relative z-10 px-4 pt-safe pb-4">
+        <div className="flex items-center justify-end mb-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center space-x-3 text-right hover:bg-white/10 rounded-lg p-2 transition-colors">

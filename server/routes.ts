@@ -495,7 +495,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/weight-records", requireAuth, async (req, res) => {
     try {
       console.log("⚖️ Weight record data received:", req.body);
-      const weightData = insertWeightRecordSchema.parse(req.body);
+      // Converter string de data para objeto Date se necessário
+      const requestData = {
+        ...req.body,
+        date: typeof req.body.date === 'string' ? new Date(req.body.date) : req.body.date
+      };
+      const weightData = insertWeightRecordSchema.parse(requestData);
       const record = await storage.createWeightRecord(weightData);
       res.json({ record });
     } catch (error) {
