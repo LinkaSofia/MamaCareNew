@@ -1,19 +1,19 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { 
-  users, pregnancies, kickCounts, weightRecords, birthPlans, consultations, 
+  users, pregnancies, kickCounts, weightRecords, weightEntries, birthPlans, consultations, 
   shoppingItems, photos, diaryEntries, symptoms, medications, communityPosts, 
   communityComments, communityLikes, accessLogs, userAnalytics, userSessions,
   babyDevelopment,
   type User, type InsertUser, type Pregnancy, type InsertPregnancy,
   type KickCount, type InsertKickCount, type WeightRecord, type InsertWeightRecord,
-  type BirthPlan, type InsertBirthPlan, type Consultation, type InsertConsultation,
-  type ShoppingItem, type InsertShoppingItem, type Photo, type InsertPhoto,
-  type DiaryEntry, type InsertDiaryEntry, type Symptom, type InsertSymptom,
-  type Medication, type InsertMedication, type CommunityPost, type InsertCommunityPost,
-  type CommunityComment, type InsertCommunityComment, type AccessLog, type InsertAccessLog,
-  type UserAnalytics, type InsertUserAnalytics, type UserSession, type InsertUserSession,
-  type BabyDevelopment, type InsertBabyDevelopment
+  type WeightEntry, type InsertWeightEntry, type BirthPlan, type InsertBirthPlan, 
+  type Consultation, type InsertConsultation, type ShoppingItem, type InsertShoppingItem, 
+  type Photo, type InsertPhoto, type DiaryEntry, type InsertDiaryEntry, type Symptom, 
+  type InsertSymptom, type Medication, type InsertMedication, type CommunityPost, 
+  type InsertCommunityPost, type CommunityComment, type InsertCommunityComment, 
+  type AccessLog, type InsertAccessLog, type UserAnalytics, type InsertUserAnalytics, 
+  type UserSession, type InsertUserSession, type BabyDevelopment, type InsertBabyDevelopment
 } from "@shared/schema";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -50,6 +50,11 @@ export interface IStorage {
   getWeightRecords(pregnancyId: string): Promise<WeightRecord[]>;
   createWeightRecord(weightRecord: InsertWeightRecord): Promise<WeightRecord>;
   getLatestWeight(pregnancyId: string): Promise<WeightRecord | undefined>;
+  
+  // Weight Entries
+  getWeightEntries(pregnancyId: string): Promise<WeightEntry[]>;
+  createWeightEntry(weightEntry: InsertWeightEntry): Promise<WeightEntry>;
+  getLatestWeightEntry(pregnancyId: string): Promise<WeightEntry | undefined>;
 
   // Birth Plans
   getBirthPlan(pregnancyId: string): Promise<BirthPlan | undefined>;
@@ -376,6 +381,28 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select().from(weightRecords)
       .where(eq(weightRecords.pregnancyId, pregnancyId))
       .orderBy(desc(weightRecords.date))
+      .limit(1);
+    return result[0];
+  }
+
+  async getWeightEntries(pregnancyId: string): Promise<WeightEntry[]> {
+    return await db.select().from(weightEntries)
+      .where(eq(weightEntries.pregnancyId, pregnancyId))
+      .orderBy(desc(weightEntries.date));
+  }
+
+  async createWeightEntry(weightEntry: InsertWeightEntry): Promise<WeightEntry> {
+    const [newEntry] = await db.insert(weightEntries).values({
+      ...weightEntry,
+      id: randomUUID(),
+    }).returning();
+    return newEntry;
+  }
+
+  async getLatestWeightEntry(pregnancyId: string): Promise<WeightEntry | undefined> {
+    const result = await db.select().from(weightEntries)
+      .where(eq(weightEntries.pregnancyId, pregnancyId))
+      .orderBy(desc(weightEntries.date))
       .limit(1);
     return result[0];
   }

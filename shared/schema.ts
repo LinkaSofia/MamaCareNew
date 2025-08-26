@@ -79,6 +79,15 @@ export const weightRecords = pgTable("weight_records", {
   notes: text("notes"),
 });
 
+export const weightEntries = pgTable("weight_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
+  weight: decimal("weight", { precision: 5, scale: 2 }).notNull(),
+  date: timestamp("date").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const birthPlans = pgTable("birth_plans", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
@@ -200,6 +209,7 @@ export const insertUserSchema = createInsertSchema(users).omit({ id: true }).ext
 export const insertPregnancySchema = createInsertSchema(pregnancies).omit({ id: true, createdAt: true });
 export const insertKickCountSchema = createInsertSchema(kickCounts).omit({ id: true });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords).omit({ id: true });
+export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true });
 export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true });
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
@@ -223,6 +233,8 @@ export type KickCount = typeof kickCounts.$inferSelect;
 export type InsertKickCount = z.infer<typeof insertKickCountSchema>;
 export type WeightRecord = typeof weightRecords.$inferSelect;
 export type InsertWeightRecord = z.infer<typeof insertWeightRecordSchema>;
+export type WeightEntry = typeof weightEntries.$inferSelect;
+export type InsertWeightEntry = z.infer<typeof insertWeightEntrySchema>;
 export type BirthPlan = typeof birthPlans.$inferSelect;
 export type InsertBirthPlan = z.infer<typeof insertBirthPlanSchema>;
 export type Consultation = typeof consultations.$inferSelect;

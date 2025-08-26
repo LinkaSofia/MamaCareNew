@@ -18,6 +18,7 @@ import { ArrowLeft, Scale, Plus, TrendingUp } from "lucide-react";
 export default function WeightTracking() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [weight, setWeight] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState("");
   const { user } = useAuth();
   const { pregnancy } = usePregnancy();
@@ -26,29 +27,31 @@ export default function WeightTracking() {
   const { toast } = useToast();
 
   const { data: weightData, isLoading } = useQuery({
-    queryKey: ["/api/weight-records", pregnancy?.id],
+    queryKey: ["/api/weight-entries"],
     enabled: !!pregnancy,
   });
 
   const addWeightMutation = useMutation({
-    mutationFn: async (weightRecord: any) => {
-      const response = await apiRequest("POST", "/api/weight-records", weightRecord);
+    mutationFn: async (weightEntry: any) => {
+      const response = await apiRequest("POST", "/api/weight-entries", weightEntry);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/weight-records", pregnancy?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/weight-entries"] });
       setShowAddForm(false);
       setWeight("");
+      setDate(new Date().toISOString().split('T')[0]);
       setNotes("");
       toast({
         title: "Peso registrado!",
         description: "Seu peso foi adicionado com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Erro ao registrar peso:", error);
       toast({
-        title: "Erro",
-        description: "Erro ao registrar peso. Tente novamente.",
+        title: "Erro ao Registrar peso",
+        description: `Erro: ${error?.message || "Erro desconhecido"}. Verifique os dados e tente novamente.`,
         variant: "destructive",
       });
     },
@@ -69,7 +72,7 @@ export default function WeightTracking() {
     addWeightMutation.mutate({
       pregnancyId: pregnancy!.id,
       weight: parseFloat(weight).toFixed(2), // Converter para string decimal
-      date: new Date(),
+      date: new Date(date),
       notes: notes.trim() || undefined,
     });
   };
@@ -87,8 +90,9 @@ export default function WeightTracking() {
     );
   }
 
-  const records = weightData?.records || [];
-  const latestWeight = weightData?.latest;
+  const entries = weightData?.entries || [];
+  const records = entries; // Para compatibilidade com componentes existentes
+  const latestWeight = entries.length > 0 ? entries[0] : null;
   
   // Calculate weight gain from first record
   const firstWeight = records.length > 0 ? records[records.length - 1].weight : null;
@@ -229,6 +233,21 @@ export default function WeightTracking() {
                     onChange={(e) => setWeight(e.target.value)}
                     className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     data-testid="input-weight"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="date" className="text-charcoal font-medium">
+                    Data
+                  </Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    data-testid="input-date"
                     required
                   />
                 </div>

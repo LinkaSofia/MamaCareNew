@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import FileStore from "session-file-store";
@@ -220,7 +220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: email, 
           name: "Usuário Simulado",
           password: "temp-hash",
-          createdAt: null
+          profilePhotoUrl: null,
+          birthDate: null
         };
       } else {
         console.log("📧 Found real user:", user.email);
@@ -230,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
       const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hora
 
-      await storage.setPasswordResetToken(user.id as string, resetToken, resetTokenExpires);
+      await storage.setPasswordResetToken(user!.id as string, resetToken, resetTokenExpires);
 
       // Enviar email - em desenvolvimento, simular sempre sucesso
       try {
@@ -492,20 +493,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/weight-records", requireAuth, async (req, res) => {
+  app.post("/api/weight-entries", requireAuth, async (req, res) => {
     try {
-      console.log("⚖️ Weight record data received:", req.body);
+      console.log("⚖️ Weight entry data received:", req.body);
       // Converter string de data para objeto Date se necessário
       const requestData = {
         ...req.body,
         date: typeof req.body.date === 'string' ? new Date(req.body.date) : req.body.date
       };
-      const weightData = insertWeightRecordSchema.parse(requestData);
-      const record = await storage.createWeightRecord(weightData);
-      res.json({ record });
+      const weightData = insertWeightEntrySchema.parse(requestData);
+      const entry = await storage.createWeightEntry(weightData);
+      res.json({ entry });
     } catch (error) {
-      console.error("❌ Weight record validation error:", error);
-      res.status(400).json({ error: "Invalid weight record data", details: error instanceof Error ? error.message : "Unknown error" });
+      console.error("❌ Weight entry validation error:", error);
+      res.status(400).json({ error: "Invalid weight entry data", details: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+
+  app.get("/api/weight-entries", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const pregnancy = await storage.getActivePregnancy(userId);
+      
+      if (!pregnancy) {
+        return res.json({ entries: [] });
+      }
+      
+      const entries = await storage.getWeightEntries(pregnancy.id);
+      res.json({ entries });
+    } catch (error) {
+      console.error("Error fetching weight entries:", error);
+      res.status(500).json({ error: "Failed to get weight entries" });
     }
   });
 
