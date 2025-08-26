@@ -392,11 +392,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWeightEntry(weightEntry: InsertWeightEntry): Promise<WeightEntry> {
-    const [newEntry] = await db.insert(weightEntries).values({
-      ...weightEntry,
-      id: randomUUID(),
-    }).returning();
-    return newEntry;
+    console.log("📊 Creating weight entry:", weightEntry);
+    try {
+      const entryData = {
+        ...weightEntry,
+        id: randomUUID(),
+      };
+      console.log("📊 Entry data to insert:", entryData);
+      
+      const [newEntry] = await db.insert(weightEntries).values(entryData).returning();
+      console.log("✅ Weight entry created successfully:", newEntry);
+      return newEntry;
+    } catch (error) {
+      console.error("❌ Error creating weight entry:", error);
+      throw error;
+    }
   }
 
   async getLatestWeightEntry(pregnancyId: string): Promise<WeightEntry | undefined> {
