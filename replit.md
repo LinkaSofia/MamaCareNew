@@ -17,6 +17,7 @@ Preferred communication style: Simple, everyday language.
 - **Comprehensive activity tracking now operational**:
   - Weight registration logs automatically with exact timestamps
   - Every user action recorded with user ID, session ID, page, and metadata
+  - **Login/logout events logged in access_logs table**
   - Endpoint `/api/user-logs` provides complete activity history
   - Real-time logging of user behavior patterns and app usage
 - **Database integration fully functional**:

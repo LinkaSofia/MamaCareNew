@@ -122,6 +122,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔄 Validation result:", user ? "SUCCESS" : "FAILED");
       
       if (!user) {
+        // Log login failure
+        await storage.logAccessEvent({
+          email,
+          action: 'login',
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
+          success: false,
+          errorMessage: 'Invalid credentials',
+          sessionId: req.sessionID
+        });
         return res.status(401).json({ error: "Senha incorreta" });
       }
       
@@ -147,21 +157,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sessionUserId: req.session.userId
         });
       
-        // Log de acesso temporariamente desabilitado
-        // TODO: Reabilitar após criação da tabela access_logs
-        /*
-        storage.createAccessLog({
+        // Log successful login
+        storage.logAccessEvent({
           userId: user.id,
           email: user.email,
           action: 'login',
-          ipAddress: req.ip || req.connection.remoteAddress || '',
-          userAgent: req.get('User-Agent') || '',
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
           success: true,
           sessionId: req.sessionID
         }).catch((logError: any) => {
-          console.log("Access log creation failed:", logError?.message || "Unknown error");
+          console.log("❌ Access log creation failed:", logError?.message || "Unknown error");
         });
-        */
         
         // Verificar se o usuário tem dados de gravidez, se não criar um básico
         storage.getActivePregnancy(user.id).then(pregnancy => {
@@ -193,7 +200,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/logout", (req, res) => {
+  app.post("/api/auth/logout", async (req, res) => {
+    const userId = req.session.userId;
+    const sessionId = req.sessionID;
+    
+    // Log logout event before destroying session
+    if (userId) {
+      await storage.logAccessEvent({
+        userId,
+        action: 'logout',
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        success: true,
+        sessionId
+      });
+    }
+    
     req.session.destroy(() => {
       res.json({ success: true });
     });
@@ -634,6 +656,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to get user logs" });
     }
   });
+
+
 
   // Birth plan routes
   app.get("/api/birth-plans/:pregnancyId", requireAuth, async (req, res) => {

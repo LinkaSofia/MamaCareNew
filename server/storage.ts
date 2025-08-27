@@ -1120,6 +1120,30 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async logAccessEvent(eventData: {
+    userId?: string;
+    email?: string;
+    action: string;
+    ipAddress?: string;
+    userAgent?: string;
+    success: boolean;
+    errorMessage?: string;
+    sessionId?: string;
+  }): Promise<void> {
+    try {
+      await this.ensureAnalyticsTablesExist();
+      
+      await db.execute(sql`
+        INSERT INTO access_logs (id, user_id, email, action, ip_address, user_agent, success, error_message, session_id)
+        VALUES (${randomUUID()}, ${eventData.userId || null}, ${eventData.email || null}, ${eventData.action}, ${eventData.ipAddress || null}, ${eventData.userAgent || null}, ${eventData.success}, ${eventData.errorMessage || null}, ${eventData.sessionId || null})
+      `);
+      
+      console.log("🔐 Access event logged:", eventData.action);
+    } catch (error) {
+      console.error("Error logging access event:", error);
+    }
+  }
+
   async getAccessLogs(userId: string): Promise<any[]> {
     try {
       await this.ensureAnalyticsTablesExist();
