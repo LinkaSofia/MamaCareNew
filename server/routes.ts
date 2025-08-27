@@ -496,11 +496,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/weight-entries", requireAuth, async (req, res) => {
     try {
       console.log("⚖️ Weight entry data received:", req.body);
-      // Converter string de data para objeto Date se necessário
+      
+      // Buscar gravidez ativa do usuário
+      const userId = req.session.userId!;
+      const pregnancy = await storage.getActivePregnancy(userId);
+      
+      if (!pregnancy) {
+        return res.status(400).json({ error: "Nenhuma gravidez ativa encontrada" });
+      }
+      
+      // Preparar dados com pregnancyId
       const requestData = {
         ...req.body,
+        pregnancyId: pregnancy.id,
         date: typeof req.body.date === 'string' ? new Date(req.body.date) : req.body.date
       };
+      
+      console.log("⚖️ Processed weight data:", requestData);
       const weightData = insertWeightEntrySchema.parse(requestData);
       const entry = await storage.createWeightEntry(weightData);
       res.json({ entry });

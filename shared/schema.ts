@@ -209,7 +209,10 @@ export const insertUserSchema = createInsertSchema(users).omit({ id: true }).ext
 export const insertPregnancySchema = createInsertSchema(pregnancies).omit({ id: true, createdAt: true });
 export const insertKickCountSchema = createInsertSchema(kickCounts).omit({ id: true });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords).omit({ id: true });
-export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true });
+export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true }).extend({
+  date: z.string().optional().transform((val) => val ? new Date(val) : new Date()),
+  weight: z.coerce.number().or(z.string().transform((val) => parseFloat(val)))
+});
 export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true });
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
