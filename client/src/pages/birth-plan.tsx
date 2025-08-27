@@ -372,7 +372,7 @@ export default function BirthPlan() {
       painRelief: Object.keys(formData.painRelief).filter(key => 
         formData.painRelief[key as keyof typeof formData.painRelief] === true
       ),
-      companions: formData.companions.split(",").map(c => c.trim()).filter(Boolean),
+      companions: formData.companions,
       specialRequests: formData.specialRequests,
       preferences: {
         birthType: formData.birthType,
