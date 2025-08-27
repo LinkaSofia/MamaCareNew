@@ -471,15 +471,24 @@ export default function BirthPlan() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-2">
-                      {birthPlansData.birthPlan.painRelief?.slice(0, 3).map((pain: string, index: number) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {pain}
-                        </Badge>
-                      ))}
-                      {birthPlansData.birthPlan.painRelief?.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{birthPlansData.birthPlan.painRelief.length - 3} mais
-                        </Badge>
+                      {birthPlansData.birthPlan.painRelief && (
+                        <>
+                          {birthPlansData.birthPlan.painRelief.natural && (
+                            <Badge variant="outline" className="text-xs">
+                              Natural
+                            </Badge>
+                          )}
+                          {birthPlansData.birthPlan.painRelief.epidural && (
+                            <Badge variant="outline" className="text-xs">
+                              Epidural
+                            </Badge>
+                          )}
+                          {birthPlansData.birthPlan.painRelief.other && (
+                            <Badge variant="outline" className="text-xs">
+                              {birthPlansData.birthPlan.painRelief.other}
+                            </Badge>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className="flex space-x-2">
