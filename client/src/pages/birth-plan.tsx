@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { generateBirthPlanPDF } from "@/lib/pdf-generator";
@@ -36,10 +38,31 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
-  Check
+  Check,
+  Plus,
+  Edit,
+  Trash2,
+  Calendar
 } from "lucide-react";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+
+interface BirthPlan {
+  id: string;
+  pregnancyId: string;
+  location: string;
+  painRelief: string[];
+  companions: string[];
+  specialRequests: string;
+  preferences: any;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+type ViewMode = 'list' | 'create' | 'edit' | 'view';
 
 export default function BirthPlan() {
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [selectedPlan, setSelectedPlan] = useState<BirthPlan | null>(null);
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
     // Informações Básicas
@@ -63,119 +86,220 @@ export default function BirthPlan() {
     environment: {
       lighting: "",
       music: false,
-      aromatherapy: false,
-      personalItems: "",
       photography: false,
-      videography: false,
+      visitors: "",
+      privacy: "",
     },
     
     // Acompanhantes
     companions: "",
-    supportTeam: {
-      partner: true,
-      mother: false,
-      doula: false,
-      other: "",
-    },
+    supportTeam: "",
     
     // Nascimento
     birthPreferences: {
       position: "",
-      skinToSkin: true,
-      cordClamping: "",
-      placentaDelivery: "",
+      cutting: "",
+      delayed: false,
+      skinToSkin: false,
+      breastfeeding: false,
     },
     
     // Pós-parto
     postBirth: {
-      breastfeeding: true,
-      rooming: true,
-      eyeOintment: true,
-      vitaminK: true,
+      rooming: false,
+      feeding: "",
+      circumcision: false,
+      vitamins: false,
     },
     
     specialRequests: "",
     emergencyPreferences: "",
   });
 
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { pregnancy } = usePregnancy();
-  const [, setLocation] = useLocation();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: birthPlanData, isLoading } = useQuery({
+  // Query para buscar planos de parto existentes
+  const { data: birthPlansData, isLoading: isLoadingPlans } = useQuery({
     queryKey: ["/api/birth-plans", pregnancy?.id],
-    enabled: !!pregnancy,
+    enabled: !!pregnancy?.id,
   });
 
-  const saveBirthPlanMutation = useMutation({
-    mutationFn: async (birthPlan: any) => {
-      const response = await apiRequest("POST", "/api/birth-plans", {
-        ...birthPlan,
-        pregnancyId: pregnancy?.id,
+  // Mutation para criar plano de parto
+  const createPlanMutation = useMutation({
+    mutationFn: async (planData: any) => {
+      return apiRequest("/api/birth-plans", {
+        method: "POST",
+        body: JSON.stringify({ ...planData, pregnancyId: pregnancy?.id }),
       });
-      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/birth-plans", pregnancy?.id] });
       toast({
-        title: "✨ Plano de parto salvo!",
-        description: "Suas preferências foram salvas com sucesso.",
+        title: "Sucesso!",
+        description: "Plano de parto criado com sucesso.",
       });
+      queryClient.invalidateQueries({ queryKey: ["/api/birth-plans"] });
+      setViewMode('list');
+      resetForm();
     },
     onError: () => {
       toast({
-        title: "❌ Erro",
-        description: "Erro ao salvar plano de parto. Tente novamente.",
+        title: "Erro",
+        description: "Erro ao criar plano de parto.",
         variant: "destructive",
       });
     },
   });
 
-  const handleSave = () => {
-    saveBirthPlanMutation.mutate(formData);
-  };
-
-  const handleGeneratePDF = async () => {
-    if (!user || !pregnancy) {
+  // Mutation para atualizar plano de parto
+  const updatePlanMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return apiRequest(`/api/birth-plans/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ ...data, pregnancyId: pregnancy?.id }),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso!",
+        description: "Plano de parto atualizado com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/birth-plans"] });
+      setViewMode('list');
+      resetForm();
+    },
+    onError: () => {
       toast({
         title: "Erro",
-        description: "É necessário estar logado para gerar o PDF.",
+        description: "Erro ao atualizar plano de parto.",
         variant: "destructive",
       });
-      return;
-    }
+    },
+  });
 
-    try {
-      const pdfData = {
-        motherName: user.name || "Futura Mamãe",
-        partnerName: formData.supportTeam.other,
-        dueDate: pregnancy.dueDate || "",
-        ...formData,
-        preferences: formData,
-      };
-
-      await generateBirthPlanPDF(pdfData);
-      
-      toast({
-        title: "📄 PDF gerado!",
-        description: "Seu plano de parto foi baixado com sucesso.",
+  // Mutation para excluir plano de parto
+  const deletePlanMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/birth-plans/${id}`, {
+        method: "DELETE",
       });
-    } catch (error) {
+    },
+    onSuccess: () => {
       toast({
-        title: "❌ Erro",
-        description: "Erro ao gerar PDF. Tente novamente.",
+        title: "Sucesso!",
+        description: "Plano de parto excluído com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/birth-plans"] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir plano de parto.",
         variant: "destructive",
       });
-    }
+    },
+  });
+
+  // Resetar formulário
+  const resetForm = () => {
+    setFormData({
+      location: "",
+      birthType: "",
+      hospital: "",
+      doctor: "",
+      doula: "",
+      painRelief: {
+        natural: false,
+        epidural: false,
+        nitrous: false,
+        massage: false,
+        hydrotherapy: false,
+        other: "",
+      },
+      environment: {
+        lighting: "",
+        music: false,
+        photography: false,
+        visitors: "",
+        privacy: "",
+      },
+      companions: "",
+      supportTeam: "",
+      birthPreferences: {
+        position: "",
+        cutting: "",
+        delayed: false,
+        skinToSkin: false,
+        breastfeeding: false,
+      },
+      postBirth: {
+        rooming: false,
+        feeding: "",
+        circumcision: false,
+        vitamins: false,
+      },
+      specialRequests: "",
+      emergencyPreferences: "",
+    });
+    setActiveStep(0);
+    setSelectedPlan(null);
   };
 
+  // Carregar dados do plano selecionado
+  const loadPlanData = (plan: BirthPlan) => {
+    if (plan.preferences) {
+      setFormData({
+        location: plan.location || "",
+        birthType: plan.preferences.birthType || "",
+        hospital: plan.preferences.hospital || "",
+        doctor: plan.preferences.doctor || "",
+        doula: plan.preferences.doula || "",
+        painRelief: plan.preferences.painRelief || {
+          natural: false,
+          epidural: false,
+          nitrous: false,
+          massage: false,
+          hydrotherapy: false,
+          other: "",
+        },
+        environment: plan.preferences.environment || {
+          lighting: "",
+          music: false,
+          photography: false,
+          visitors: "",
+          privacy: "",
+        },
+        companions: plan.companions?.join(", ") || "",
+        supportTeam: plan.preferences.supportTeam || "",
+        birthPreferences: plan.preferences.birthPreferences || {
+          position: "",
+          cutting: "",
+          delayed: false,
+          skinToSkin: false,
+          breastfeeding: false,
+        },
+        postBirth: plan.preferences.postBirth || {
+          rooming: false,
+          feeding: "",
+          circumcision: false,
+          vitamins: false,
+        },
+        specialRequests: plan.specialRequests || "",
+        emergencyPreferences: plan.preferences.emergencyPreferences || "",
+      });
+    }
+    setSelectedPlan(plan);
+  };
+
+  // Passos do formulário
   const steps = [
     {
       title: "Informações Básicas",
       icon: Building,
-      fields: ["location", "birthType", "hospital", "doctor", "doula"]
+      fields: ["location", "birthType", "hospital", "doctor"]
     },
     {
       title: "Alívio da Dor",
@@ -216,17 +340,6 @@ export default function BirthPlan() {
     }
   };
 
-  // Load existing birth plan data
-  useEffect(() => {
-    if (birthPlanData && 'birthPlan' in birthPlanData) {
-      const plan = birthPlanData.birthPlan;
-      setFormData(prev => ({
-        ...prev,
-        ...plan
-      }));
-    }
-  }, [birthPlanData]);
-
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -244,7 +357,52 @@ export default function BirthPlan() {
     }));
   };
 
-  if (isLoading) {
+  const handleSave = () => {
+    const planData = {
+      location: formData.location,
+      painRelief: Object.keys(formData.painRelief).filter(key => 
+        formData.painRelief[key as keyof typeof formData.painRelief] === true
+      ),
+      companions: formData.companions.split(",").map(c => c.trim()).filter(Boolean),
+      specialRequests: formData.specialRequests,
+      preferences: {
+        birthType: formData.birthType,
+        hospital: formData.hospital,
+        doctor: formData.doctor,
+        doula: formData.doula,
+        painRelief: formData.painRelief,
+        environment: formData.environment,
+        supportTeam: formData.supportTeam,
+        birthPreferences: formData.birthPreferences,
+        postBirth: formData.postBirth,
+        emergencyPreferences: formData.emergencyPreferences,
+      }
+    };
+
+    if (viewMode === 'edit' && selectedPlan) {
+      updatePlanMutation.mutate({ id: selectedPlan.id, data: planData });
+    } else {
+      createPlanMutation.mutate(planData);
+    }
+  };
+
+  const handleGeneratePDF = async (plan: BirthPlan) => {
+    try {
+      await generateBirthPlanPDF(plan);
+      toast({
+        title: "PDF Gerado!",
+        description: "Seu plano de parto foi baixado em PDF.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao gerar PDF do plano de parto.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoadingPlans) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-blue-50">
         <LoadingSpinner size="lg" />
@@ -252,6 +410,294 @@ export default function BirthPlan() {
     );
   }
 
+  // Lista de planos de parto
+  if (viewMode === 'list') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
+        <div className="container mx-auto px-4 py-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation("/dashboard")}
+                className="mr-2"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Planos de Parto</h1>
+                <p className="text-gray-600">Gerencie seus planos de parto</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => {
+                resetForm();
+                setViewMode('create');
+              }}
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+              data-testid="button-create-plan"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Plano
+            </Button>
+          </div>
+
+          {/* Lista de planos */}
+          <div className="space-y-4">
+            {birthPlansData && birthPlansData.birthPlan ? (
+              <Card className="border-pink-200/30 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <FileText className="w-5 h-5 text-pink-600 mr-2" />
+                      <div>
+                        <CardTitle className="text-lg text-pink-700">
+                          Plano de Parto Principal
+                        </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Local: {birthPlansData.birthPlan.location || "Não especificado"}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-pink-100 text-pink-700">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      Ativo
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap gap-2">
+                      {birthPlansData.birthPlan.painRelief?.slice(0, 3).map((pain: string, index: number) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {pain}
+                        </Badge>
+                      ))}
+                      {birthPlansData.birthPlan.painRelief?.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{birthPlansData.birthPlan.painRelief.length - 3} mais
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          loadPlanData(birthPlansData.birthPlan);
+                          setViewMode('view');
+                        }}
+                        data-testid="button-view-plan"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          loadPlanData(birthPlansData.birthPlan);
+                          setViewMode('edit');
+                        }}
+                        data-testid="button-edit-plan"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleGeneratePDF(birthPlansData.birthPlan)}
+                        data-testid="button-download-plan"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                            data-testid="button-delete-plan"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir Plano de Parto</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir este plano de parto? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deletePlanMutation.mutate(birthPlansData.birthPlan.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-dashed border-2 border-pink-200 bg-pink-50/30">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <FileText className="w-16 h-16 text-pink-300 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    Nenhum plano de parto encontrado
+                  </h3>
+                  <p className="text-gray-600 text-center mb-6">
+                    Crie seu primeiro plano de parto para se preparar para o nascimento do seu bebê.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      resetForm();
+                      setViewMode('create');
+                    }}
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Primeiro Plano
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
+
+  // Visualização do plano
+  if (viewMode === 'view' && selectedPlan) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
+        <div className="container mx-auto px-4 py-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="mr-2"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Plano de Parto</h1>
+                <p className="text-gray-600">Visualizar detalhes</p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setViewMode('edit')}
+                data-testid="button-edit"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </Button>
+              <Button
+                onClick={() => handleGeneratePDF(selectedPlan)}
+                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                data-testid="button-download"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download PDF
+              </Button>
+            </div>
+          </div>
+
+          {/* Conteúdo do plano */}
+          <div className="space-y-6">
+            <Card className="border-pink-200/30">
+              <CardHeader>
+                <CardTitle className="flex items-center text-pink-700">
+                  <Building className="w-5 h-5 mr-2" />
+                  Informações Básicas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Local do Parto</Label>
+                    <p className="text-gray-900">{selectedPlan.location || "Não especificado"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Tipo de Parto</Label>
+                    <p className="text-gray-900">{selectedPlan.preferences?.birthType || "Não especificado"}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-pink-200/30">
+              <CardHeader>
+                <CardTitle className="flex items-center text-pink-700">
+                  <Heart className="w-5 h-5 mr-2" />
+                  Alívio da Dor
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPlan.painRelief?.map((pain, index) => (
+                    <Badge key={index} variant="secondary" className="bg-pink-100 text-pink-700">
+                      {pain}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-pink-200/30">
+              <CardHeader>
+                <CardTitle className="flex items-center text-pink-700">
+                  <Users className="w-5 h-5 mr-2" />
+                  Acompanhantes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPlan.companions?.map((companion, index) => (
+                    <Badge key={index} variant="outline">
+                      {companion}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {selectedPlan.specialRequests && (
+              <Card className="border-pink-200/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-pink-700">
+                    <Shield className="w-5 h-5 mr-2" />
+                    Solicitações Especiais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-900">{selectedPlan.specialRequests}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
+
+  // Formulário de criação/edição
   const renderStepContent = () => {
     const currentStep = steps[activeStep];
     
@@ -268,48 +714,69 @@ export default function BirthPlan() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="birthType">Tipo de parto preferido</Label>
-                  <Select value={formData.birthType} onValueChange={(value) => updateFormData("birthType", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de parto" />
+                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                    Local do Parto
+                  </Label>
+                  <Select value={formData.location} onValueChange={(value) => updateFormData("location", value)}>
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Selecione o local" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="normal">Parto Normal</SelectItem>
-                      <SelectItem value="cesariana">Cesariana</SelectItem>
-                      <SelectItem value="domiciliar">Parto Domiciliar</SelectItem>
-                      <SelectItem value="agua">Parto na Água</SelectItem>
-                      <SelectItem value="flexible">Flexível</SelectItem>
+                      <SelectItem value="hospital">Hospital</SelectItem>
+                      <SelectItem value="casa">Casa de Parto</SelectItem>
+                      <SelectItem value="domicilio">Domicílio</SelectItem>
+                      <SelectItem value="centro">Centro de Parto</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="hospital">Hospital/Maternidade</Label>
+                  <Label htmlFor="birthType" className="text-sm font-medium text-gray-700">
+                    Tipo de Parto Preferido
+                  </Label>
+                  <RadioGroup 
+                    value={formData.birthType} 
+                    onValueChange={(value) => updateFormData("birthType", value)}
+                    className="mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="normal" id="normal" />
+                      <Label htmlFor="normal">Parto Normal</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="cesariana" id="cesariana" />
+                      <Label htmlFor="cesariana">Cesariana</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="forceps" id="forceps" />
+                      <Label htmlFor="forceps">Fórceps</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div>
+                  <Label htmlFor="hospital" className="text-sm font-medium text-gray-700">
+                    Hospital/Clínica
+                  </Label>
                   <Input
                     id="hospital"
                     value={formData.hospital}
                     onChange={(e) => updateFormData("hospital", e.target.value)}
-                    placeholder="Nome do local onde pretende dar à luz"
+                    placeholder="Nome do hospital ou clínica"
+                    className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="doctor">Médico/Obstetra</Label>
+                  <Label htmlFor="doctor" className="text-sm font-medium text-gray-700">
+                    Médico(a) Obstetra
+                  </Label>
                   <Input
                     id="doctor"
                     value={formData.doctor}
                     onChange={(e) => updateFormData("doctor", e.target.value)}
-                    placeholder="Nome do seu médico"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="doula">Doula (opcional)</Label>
-                  <Input
-                    id="doula"
-                    value={formData.doula}
-                    onChange={(e) => updateFormData("doula", e.target.value)}
-                    placeholder="Nome da sua doula"
+                    placeholder="Nome do médico obstetra"
+                    className="mt-1"
                   />
                 </div>
               </CardContent>
@@ -324,7 +791,7 @@ export default function BirthPlan() {
               <CardHeader>
                 <CardTitle className="flex items-center text-pink-700">
                   <Heart className="w-5 h-5 mr-2" />
-                  Como você gostaria de gerenciar a dor?
+                  Métodos de Alívio da Dor
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -337,9 +804,7 @@ export default function BirthPlan() {
                         updateNestedFormData("painRelief", "natural", checked)
                       }
                     />
-                    <Label htmlFor="natural" className="flex items-center">
-                      🌿 Métodos naturais
-                    </Label>
+                    <Label htmlFor="natural">Métodos Naturais</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -350,9 +815,7 @@ export default function BirthPlan() {
                         updateNestedFormData("painRelief", "epidural", checked)
                       }
                     />
-                    <Label htmlFor="epidural" className="flex items-center">
-                      💉 Anestesia epidural
-                    </Label>
+                    <Label htmlFor="epidural">Anestesia Epidural</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -363,9 +826,7 @@ export default function BirthPlan() {
                         updateNestedFormData("painRelief", "nitrous", checked)
                       }
                     />
-                    <Label htmlFor="nitrous" className="flex items-center">
-                      🫧 Óxido nitroso (gás)
-                    </Label>
+                    <Label htmlFor="nitrous">Óxido Nitroso</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -376,9 +837,7 @@ export default function BirthPlan() {
                         updateNestedFormData("painRelief", "massage", checked)
                       }
                     />
-                    <Label htmlFor="massage" className="flex items-center">
-                      👐 Massagem
-                    </Label>
+                    <Label htmlFor="massage">Massagem</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -389,19 +848,20 @@ export default function BirthPlan() {
                         updateNestedFormData("painRelief", "hydrotherapy", checked)
                       }
                     />
-                    <Label htmlFor="hydrotherapy" className="flex items-center">
-                      🛁 Hidroterapia/banho
-                    </Label>
+                    <Label htmlFor="hydrotherapy">Hidroterapia</Label>
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="painReliefOther">Outros métodos</Label>
-                  <Input
-                    id="painReliefOther"
+                  <Label htmlFor="painOther" className="text-sm font-medium text-gray-700">
+                    Outros Métodos
+                  </Label>
+                  <Textarea
+                    id="painOther"
                     value={formData.painRelief.other}
                     onChange={(e) => updateNestedFormData("painRelief", "other", e.target.value)}
-                    placeholder="Outros métodos de alívio da dor"
+                    placeholder="Descreva outros métodos de alívio da dor..."
+                    className="mt-1"
                   />
                 </div>
               </CardContent>
@@ -416,94 +876,62 @@ export default function BirthPlan() {
               <CardHeader>
                 <CardTitle className="flex items-center text-pink-700">
                   <Home className="w-5 h-5 mr-2" />
-                  Como você quer que seja o ambiente?
+                  Ambiente de Parto
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Iluminação preferida</Label>
-                  <RadioGroup
-                    value={formData.environment.lighting}
+                  <Label htmlFor="lighting" className="text-sm font-medium text-gray-700">
+                    Iluminação Preferida
+                  </Label>
+                  <Select 
+                    value={formData.environment.lighting} 
                     onValueChange={(value) => updateNestedFormData("environment", "lighting", value)}
-                    className="mt-2"
                   >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="dim" id="dim" />
-                      <Label htmlFor="dim">🌙 Luz baixa/ambiente</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="natural" id="natural" />
-                      <Label htmlFor="natural">☀️ Luz natural</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="bright" id="bright" />
-                      <Label htmlFor="bright">💡 Luz normal</Label>
-                    </div>
-                  </RadioGroup>
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Selecione a iluminação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dim">Luz Baixa</SelectItem>
+                      <SelectItem value="natural">Luz Natural</SelectItem>
+                      <SelectItem value="bright">Luz Clara</SelectItem>
+                      <SelectItem value="candles">Velas</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="music"
-                      checked={formData.environment.music}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("environment", "music", checked)
-                      }
-                    />
-                    <Label htmlFor="music" className="flex items-center">
-                      🎵 Música relaxante
-                    </Label>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="music"
+                    checked={formData.environment.music}
+                    onCheckedChange={(checked) => 
+                      updateNestedFormData("environment", "music", checked)
+                    }
+                  />
+                  <Label htmlFor="music">Permitir Música</Label>
+                </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="aromatherapy"
-                      checked={formData.environment.aromatherapy}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("environment", "aromatherapy", checked)
-                      }
-                    />
-                    <Label htmlFor="aromatherapy" className="flex items-center">
-                      🌸 Aromaterapia
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="photography"
-                      checked={formData.environment.photography}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("environment", "photography", checked)
-                      }
-                    />
-                    <Label htmlFor="photography" className="flex items-center">
-                      📸 Fotografias
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="videography"
-                      checked={formData.environment.videography}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("environment", "videography", checked)
-                      }
-                    />
-                    <Label htmlFor="videography" className="flex items-center">
-                      🎬 Filmagem
-                    </Label>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="photography"
+                    checked={formData.environment.photography}
+                    onCheckedChange={(checked) => 
+                      updateNestedFormData("environment", "photography", checked)
+                    }
+                  />
+                  <Label htmlFor="photography">Permitir Fotografia</Label>
                 </div>
 
                 <div>
-                  <Label htmlFor="personalItems">Itens pessoais importantes</Label>
+                  <Label htmlFor="visitors" className="text-sm font-medium text-gray-700">
+                    Política de Visitantes
+                  </Label>
                   <Textarea
-                    id="personalItems"
-                    value={formData.environment.personalItems}
-                    onChange={(e) => updateNestedFormData("environment", "personalItems", e.target.value)}
-                    placeholder="Ex: travesseiro, cobertor, objetos especiais..."
-                    rows={3}
+                    id="visitors"
+                    value={formData.environment.visitors}
+                    onChange={(e) => updateNestedFormData("environment", "visitors", e.target.value)}
+                    placeholder="Descreva suas preferências sobre visitantes..."
+                    className="mt-1"
                   />
                 </div>
               </CardContent>
@@ -518,69 +946,33 @@ export default function BirthPlan() {
               <CardHeader>
                 <CardTitle className="flex items-center text-pink-700">
                   <Users className="w-5 h-5 mr-2" />
-                  Quem você quer ao seu lado?
+                  Quem estará com você?
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="partner"
-                      checked={formData.supportTeam.partner}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("supportTeam", "partner", checked)
-                      }
-                    />
-                    <Label htmlFor="partner" className="flex items-center">
-                      💕 Parceiro(a)
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="mother"
-                      checked={formData.supportTeam.mother}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("supportTeam", "mother", checked)
-                      }
-                    />
-                    <Label htmlFor="mother" className="flex items-center">
-                      👩 Minha mãe
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="doulaSupport"
-                      checked={formData.supportTeam.doula}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("supportTeam", "doula", checked)
-                      }
-                    />
-                    <Label htmlFor="doulaSupport" className="flex items-center">
-                      🤱 Doula
-                    </Label>
-                  </div>
-                </div>
-
                 <div>
-                  <Label htmlFor="otherSupport">Outros acompanhantes</Label>
+                  <Label htmlFor="companions" className="text-sm font-medium text-gray-700">
+                    Acompanhantes (separados por vírgula)
+                  </Label>
                   <Input
-                    id="otherSupport"
-                    value={formData.supportTeam.other}
-                    onChange={(e) => updateNestedFormData("supportTeam", "other", e.target.value)}
-                    placeholder="Ex: irmã, amiga, sogra..."
+                    id="companions"
+                    value={formData.companions}
+                    onChange={(e) => updateFormData("companions", e.target.value)}
+                    placeholder="Ex: Esposo, Mãe, Doula"
+                    className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="companions">Detalhes sobre acompanhantes</Label>
+                  <Label htmlFor="supportTeam" className="text-sm font-medium text-gray-700">
+                    Equipe de Apoio
+                  </Label>
                   <Textarea
-                    id="companions"
-                    value={formData.companions}
-                    onChange={(e) => updateFormData("companions", e.target.value)}
-                    placeholder="Descreva como você gostaria que seus acompanhantes participassem..."
-                    rows={3}
+                    id="supportTeam"
+                    value={formData.supportTeam}
+                    onChange={(e) => updateFormData("supportTeam", e.target.value)}
+                    placeholder="Descreva sua equipe de apoio (doula, fisioterapeuta, etc.)"
+                    className="mt-1"
                   />
                 </div>
               </CardContent>
@@ -595,83 +987,64 @@ export default function BirthPlan() {
               <CardHeader>
                 <CardTitle className="flex items-center text-pink-700">
                   <Baby className="w-5 h-5 mr-2" />
-                  Momento do nascimento
+                  Momento do Nascimento
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Posição preferida para dar à luz</Label>
-                  <RadioGroup
-                    value={formData.birthPreferences.position}
-                    onValueChange={(value) => updateNestedFormData("birthPreferences", "position", value)}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="squatting" id="squatting" />
-                      <Label htmlFor="squatting">🏃‍♀️ Cócoras</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="side-lying" id="side-lying" />
-                      <Label htmlFor="side-lying">🛌 Deitada de lado</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="standing" id="standing" />
-                      <Label htmlFor="standing">🚶‍♀️ Em pé</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="back" id="back" />
-                      <Label htmlFor="back">🛏️ Deitada de costas</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label>Clampeamento do cordão umbilical</Label>
-                  <RadioGroup
-                    value={formData.birthPreferences.cordClamping}
-                    onValueChange={(value) => updateNestedFormData("birthPreferences", "cordClamping", value)}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="delayed" id="delayed" />
-                      <Label htmlFor="delayed">⏰ Clampeamento tardio (recomendado)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="immediate" id="immediate" />
-                      <Label htmlFor="immediate">⚡ Clampeamento imediato</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label>Dequitação da placenta</Label>
-                  <RadioGroup
-                    value={formData.birthPreferences.placentaDelivery}
-                    onValueChange={(value) => updateNestedFormData("birthPreferences", "placentaDelivery", value)}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="natural" id="natural-placenta" />
-                      <Label htmlFor="natural-placenta">🌿 Dequitação natural</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="managed" id="managed" />
-                      <Label htmlFor="managed">💉 Dequitação dirigida</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="skinToSkin"
-                    checked={formData.birthPreferences.skinToSkin}
-                    onCheckedChange={(checked) => 
-                      updateNestedFormData("birthPreferences", "skinToSkin", checked)
-                    }
-                  />
-                  <Label htmlFor="skinToSkin" className="flex items-center">
-                    🤱 Contato pele a pele imediato
+                  <Label htmlFor="position" className="text-sm font-medium text-gray-700">
+                    Posição para o Parto
                   </Label>
+                  <Select 
+                    value={formData.birthPreferences.position} 
+                    onValueChange={(value) => updateNestedFormData("birthPreferences", "position", value)}
+                  >
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Selecione a posição" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="squatting">Cócoras</SelectItem>
+                      <SelectItem value="standing">Em pé</SelectItem>
+                      <SelectItem value="side">De lado</SelectItem>
+                      <SelectItem value="back">Deitada</SelectItem>
+                      <SelectItem value="hands-knees">Quatro apoios</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="delayed"
+                      checked={formData.birthPreferences.delayed}
+                      onCheckedChange={(checked) => 
+                        updateNestedFormData("birthPreferences", "delayed", checked)
+                      }
+                    />
+                    <Label htmlFor="delayed">Clampeamento Tardio do Cordão</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="skinToSkin"
+                      checked={formData.birthPreferences.skinToSkin}
+                      onCheckedChange={(checked) => 
+                        updateNestedFormData("birthPreferences", "skinToSkin", checked)
+                      }
+                    />
+                    <Label htmlFor="skinToSkin">Contato Pele a Pele</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="breastfeeding"
+                      checked={formData.birthPreferences.breastfeeding}
+                      onCheckedChange={(checked) => 
+                        updateNestedFormData("birthPreferences", "breastfeeding", checked)
+                      }
+                    />
+                    <Label htmlFor="breastfeeding">Amamentação Imediata</Label>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -685,24 +1058,11 @@ export default function BirthPlan() {
               <CardHeader>
                 <CardTitle className="flex items-center text-pink-700">
                   <Shield className="w-5 h-5 mr-2" />
-                  Após o nascimento
+                  Cuidados Pós-parto
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="breastfeeding"
-                      checked={formData.postBirth.breastfeeding}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("postBirth", "breastfeeding", checked)
-                      }
-                    />
-                    <Label htmlFor="breastfeeding" className="flex items-center">
-                      🤱 Amamentação imediata
-                    </Label>
-                  </div>
-
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="rooming"
@@ -711,57 +1071,68 @@ export default function BirthPlan() {
                         updateNestedFormData("postBirth", "rooming", checked)
                       }
                     />
-                    <Label htmlFor="rooming" className="flex items-center">
-                      🏨 Alojamento conjunto
-                    </Label>
+                    <Label htmlFor="rooming">Alojamento Conjunto</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="eyeOintment"
-                      checked={formData.postBirth.eyeOintment}
+                      id="vitamins"
+                      checked={formData.postBirth.vitamins}
                       onCheckedChange={(checked) => 
-                        updateNestedFormData("postBirth", "eyeOintment", checked)
+                        updateNestedFormData("postBirth", "vitamins", checked)
                       }
                     />
-                    <Label htmlFor="eyeOintment" className="flex items-center">
-                      👁️ Pomada nos olhos
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="vitaminK"
-                      checked={formData.postBirth.vitaminK}
-                      onCheckedChange={(checked) => 
-                        updateNestedFormData("postBirth", "vitaminK", checked)
-                      }
-                    />
-                    <Label htmlFor="vitaminK" className="flex items-center">
-                      💉 Vitamina K
-                    </Label>
+                    <Label htmlFor="vitamins">Vitamina K para o Bebê</Label>
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="specialRequests">Pedidos especiais</Label>
+                  <Label htmlFor="feeding" className="text-sm font-medium text-gray-700">
+                    Preferências de Alimentação
+                  </Label>
+                  <RadioGroup 
+                    value={formData.postBirth.feeding} 
+                    onValueChange={(value) => updateNestedFormData("postBirth", "feeding", value)}
+                    className="mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="breast" id="breast" />
+                      <Label htmlFor="breast">Somente Amamentação</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="formula" id="formula" />
+                      <Label htmlFor="formula">Fórmula</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="mixed" id="mixed" />
+                      <Label htmlFor="mixed">Misto</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div>
+                  <Label htmlFor="specialRequests" className="text-sm font-medium text-gray-700">
+                    Solicitações Especiais
+                  </Label>
                   <Textarea
                     id="specialRequests"
                     value={formData.specialRequests}
                     onChange={(e) => updateFormData("specialRequests", e.target.value)}
-                    placeholder="Qualquer coisa especial que você gostaria que fosse considerada..."
-                    rows={3}
+                    placeholder="Descreva qualquer solicitação especial..."
+                    className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="emergencyPreferences">Em caso de emergência</Label>
+                  <Label htmlFor="emergencyPreferences" className="text-sm font-medium text-gray-700">
+                    Preferências em Emergência
+                  </Label>
                   <Textarea
                     id="emergencyPreferences"
                     value={formData.emergencyPreferences}
                     onChange={(e) => updateFormData("emergencyPreferences", e.target.value)}
-                    placeholder="Como você gostaria que emergências fossem tratadas..."
-                    rows={3}
+                    placeholder="Como você gostaria que as decisões de emergência fossem tomadas..."
+                    className="mt-1"
                   />
                 </div>
               </CardContent>
@@ -775,137 +1146,85 @@ export default function BirthPlan() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-pink-400/20 to-blue-400/20 border-b border-pink-200/30 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation("/")}
-                className="mr-4"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-              
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center">
-                  <FileText className="w-8 h-8 text-pink-500 mr-3" />
-                  Meu Plano de Parto
-                </h1>
-                <p className="text-gray-600">Planeje cada detalhe do nascimento do seu bebê</p>
-              </div>
-            </div>
-
-            <Badge variant="secondary" className="bg-pink-100 text-pink-700 px-3 py-1">
-              <Sparkles className="w-4 h-4 mr-1" />
-              Passo {activeStep + 1} de {steps.length}
-            </Badge>
-          </div>
-
-          {/* Progress */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-600">
-                {steps[activeStep].title}
-              </span>
-              <span className="text-sm text-gray-600">
-                {Math.round(((activeStep + 1) / steps.length) * 100)}%
-              </span>
-            </div>
-            <Progress value={((activeStep + 1) / steps.length) * 100} className="h-2" />
-          </div>
-
-          {/* Steps Navigation */}
-          <div className="flex justify-center">
-            <div className="flex space-x-2">
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setActiveStep(index)}
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center transition-all
-                      ${index === activeStep 
-                        ? 'bg-pink-500 text-white shadow-lg' 
-                        : index < activeStep
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-500'
-                      }
-                    `}
-                  >
-                    {index < activeStep ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <Icon className="w-5 h-5" />
-                    )}
-                  </button>
-                );
-              })}
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="mr-2"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {viewMode === 'edit' ? 'Editar Plano de Parto' : 'Novo Plano de Parto'}
+              </h1>
+              <p className="text-gray-600">
+                {steps[activeStep].title} - Passo {activeStep + 1} de {steps.length}
+              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto p-6">
+        {/* Progress */}
+        <div className="mb-8">
+          <Progress value={((activeStep + 1) / steps.length) * 100} className="w-full" />
+          <div className="flex justify-between mt-2 text-xs text-gray-600">
+            {steps.map((step, index) => (
+              <span key={index} className={index <= activeStep ? "text-pink-600 font-medium" : ""}>
+                {step.title}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Step Content */}
         {renderStepContent()}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+        {/* Navigation */}
+        <div className="flex justify-between mt-8">
           <Button
             variant="outline"
             onClick={prevStep}
             disabled={activeStep === 0}
-            className="flex items-center"
+            data-testid="button-prev"
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
             Anterior
           </Button>
 
-          <div className="flex space-x-3">
+          {activeStep === steps.length - 1 ? (
             <Button
-              variant="outline"
               onClick={handleSave}
-              disabled={saveBirthPlanMutation.isPending}
-              className="flex items-center"
+              disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+              data-testid="button-save"
             >
-              <Save className="w-4 h-4 mr-2" />
-              {saveBirthPlanMutation.isPending ? "Salvando..." : "Salvar"}
+              {createPlanMutation.isPending || updatePlanMutation.isPending ? (
+                <LoadingSpinner size="sm" className="mr-2" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {viewMode === 'edit' ? 'Atualizar Plano' : 'Salvar Plano'}
             </Button>
-
+          ) : (
             <Button
-              variant="outline"
-              onClick={handleGeneratePDF}
-              className="flex items-center text-blue-600 border-blue-300 hover:bg-blue-50"
+              onClick={nextStep}
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+              data-testid="button-next"
             >
-              <Download className="w-4 h-4 mr-2" />
-              Gerar PDF
+              Próximo
+              <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
-          </div>
-
-          <Button
-            onClick={activeStep === steps.length - 1 ? handleSave : nextStep}
-            disabled={activeStep === steps.length - 1 && saveBirthPlanMutation.isPending}
-            className="flex items-center bg-pink-500 hover:bg-pink-600"
-          >
-            {activeStep === steps.length - 1 ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Finalizar
-              </>
-            ) : (
-              <>
-                Próximo
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
+          )}
         </div>
       </div>
+      <BottomNavigation />
     </div>
   );
 }

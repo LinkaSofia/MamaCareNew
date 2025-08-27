@@ -439,7 +439,6 @@ export class DatabaseStorage implements IStorage {
           companions: birthPlan.companions,
           specialRequests: birthPlan.specialRequests,
           preferences: birthPlan.preferences,
-
         })
         .where(eq(birthPlans.id, existing.id))
         .returning();
@@ -456,6 +455,25 @@ export class DatabaseStorage implements IStorage {
       }).returning();
       return created;
     }
+  }
+
+  async updateBirthPlan(id: string, birthPlan: InsertBirthPlan): Promise<BirthPlan> {
+    const [updated] = await db.update(birthPlans)
+      .set({
+        pregnancyId: birthPlan.pregnancyId,
+        location: birthPlan.location,
+        painRelief: birthPlan.painRelief as any,
+        companions: birthPlan.companions,
+        specialRequests: birthPlan.specialRequests,
+        preferences: birthPlan.preferences,
+      })
+      .where(eq(birthPlans.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBirthPlan(id: string): Promise<void> {
+    await db.delete(birthPlans).where(eq(birthPlans.id, id));
   }
 
   async getConsultations(pregnancyId: string): Promise<Consultation[]> {

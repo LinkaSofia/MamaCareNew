@@ -679,6 +679,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/birth-plans/:id", requireAuth, async (req, res) => {
+    try {
+      const birthPlanData = insertBirthPlanSchema.parse(req.body);
+      const birthPlan = await storage.updateBirthPlan(req.params.id, birthPlanData);
+      res.json({ birthPlan });
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update birth plan" });
+    }
+  });
+
+  app.delete("/api/birth-plans/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteBirthPlan(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete birth plan" });
+    }
+  });
+
   // Consultation routes
   app.get("/api/consultations/:pregnancyId", requireAuth, async (req, res) => {
     try {
