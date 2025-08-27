@@ -131,10 +131,7 @@ export default function BirthPlan() {
   // Mutation para criar plano de parto
   const createPlanMutation = useMutation({
     mutationFn: async (planData: any) => {
-      return apiRequest("/api/birth-plans", {
-        method: "POST",
-        body: JSON.stringify({ ...planData, pregnancyId: pregnancy?.id }),
-      });
+      return apiRequest("POST", "/api/birth-plans", { ...planData, pregnancyId: pregnancy?.id });
     },
     onSuccess: () => {
       toast({
@@ -157,10 +154,7 @@ export default function BirthPlan() {
   // Mutation para atualizar plano de parto
   const updatePlanMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return apiRequest(`/api/birth-plans/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ ...data, pregnancyId: pregnancy?.id }),
-      });
+      return apiRequest("PUT", `/api/birth-plans/${id}`, { ...data, pregnancyId: pregnancy?.id });
     },
     onSuccess: () => {
       toast({
@@ -183,9 +177,7 @@ export default function BirthPlan() {
   // Mutation para excluir plano de parto
   const deletePlanMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/birth-plans/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/birth-plans/${id}`);
     },
     onSuccess: () => {
       toast({
@@ -498,7 +490,7 @@ export default function BirthPlan() {
 
           {/* Lista de planos */}
           <div className="space-y-4">
-            {birthPlansData && birthPlansData.birthPlan ? (
+            {birthPlansData?.birthPlan ? (
               <Card className="border-pink-200/30 hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -509,7 +501,7 @@ export default function BirthPlan() {
                           Plano de Parto Principal
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
-                          Local: {birthPlansData.birthPlan.location || "Não especificado"}
+                          Local: {birthPlansData?.birthPlan?.location || "Não especificado"}
                         </p>
                       </div>
                     </div>
@@ -522,7 +514,7 @@ export default function BirthPlan() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-2">
-                      {birthPlansData.birthPlan.painRelief && (
+                      {birthPlansData?.birthPlan?.painRelief && typeof birthPlansData.birthPlan.painRelief === 'object' && (
                         <>
                           {birthPlansData.birthPlan.painRelief.natural && (
                             <Badge variant="outline" className="text-xs">
@@ -547,8 +539,10 @@ export default function BirthPlan() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          loadPlanData(birthPlansData.birthPlan);
-                          setViewMode('view');
+                          if (birthPlansData?.birthPlan) {
+                            loadPlanData(birthPlansData.birthPlan);
+                            setViewMode('view');
+                          }
                         }}
                         data-testid="button-view-plan"
                       >
@@ -558,8 +552,10 @@ export default function BirthPlan() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          loadPlanData(birthPlansData.birthPlan);
-                          setViewMode('edit');
+                          if (birthPlansData?.birthPlan) {
+                            loadPlanData(birthPlansData.birthPlan);
+                            setViewMode('edit');
+                          }
                         }}
                         data-testid="button-edit-plan"
                       >
@@ -568,7 +564,7 @@ export default function BirthPlan() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleGeneratePDF(birthPlansData.birthPlan)}
+                        onClick={() => birthPlansData?.birthPlan && handleGeneratePDF(birthPlansData.birthPlan)}
                         data-testid="button-download-plan"
                       >
                         <Download className="w-4 h-4" />
@@ -594,7 +590,7 @@ export default function BirthPlan() {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => deletePlanMutation.mutate(birthPlansData.birthPlan.id)}
+                              onClick={() => birthPlansData?.birthPlan?.id && deletePlanMutation.mutate(birthPlansData.birthPlan.id)}
                               className="bg-red-600 hover:bg-red-700"
                             >
                               Excluir
@@ -710,7 +706,7 @@ export default function BirthPlan() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {selectedPlan.painRelief && (
+                  {selectedPlan.painRelief && typeof selectedPlan.painRelief === 'object' && (
                     <>
                       {selectedPlan.painRelief.natural && (
                         <Badge variant="secondary" className="bg-pink-100 text-pink-700">
