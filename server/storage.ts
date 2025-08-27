@@ -984,6 +984,170 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Analytics and logging methods
+  private async ensureAnalyticsTablesExist(): Promise<void> {
+    try {
+      // Criar tabela user_analytics
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS user_analytics (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR NOT NULL,
+          session_id TEXT NOT NULL,
+          action TEXT NOT NULL,
+          page TEXT NOT NULL,
+          element TEXT,
+          duration INTEGER,
+          metadata JSONB,
+          timestamp TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Criar tabela access_logs
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS access_logs (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR,
+          email TEXT,
+          action TEXT NOT NULL,
+          ip_address TEXT,
+          user_agent TEXT,
+          success BOOLEAN DEFAULT true,
+          error_message TEXT,
+          session_id TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Criar tabela user_sessions
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS user_sessions (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR NOT NULL,
+          session_id TEXT NOT NULL UNIQUE,
+          start_time TIMESTAMP DEFAULT NOW(),
+          end_time TIMESTAMP,
+          total_duration INTEGER,
+          pages_visited JSONB DEFAULT '[]',
+          actions_count INTEGER DEFAULT 0,
+          user_agent TEXT,
+          ip_address TEXT
+        )
+      `);
+
+      console.log("✅ Analytics tables created/verified");
+    } catch (error) {
+      console.error("Error creating analytics tables:", error);
+    }
+  }
+
+  async logUserAction(actionData: {
+    userId: string;
+    sessionId: string;
+    action: string;
+    page: string;
+    element?: string;
+    metadata?: Record<string, any>;
+  }): Promise<void> {
+    try {
+      await this.ensureAnalyticsTablesExist();
+      
+      await db.execute(sql`
+        INSERT INTO user_analytics (id, user_id, session_id, action, page, element, metadata)
+        VALUES (${randomUUID()}, ${actionData.userId}, ${actionData.sessionId}, ${actionData.action}, ${actionData.page}, ${actionData.element || null}, ${JSON.stringify(actionData.metadata || {})})
+      `);
+      
+      console.log("📊 User action logged:", actionData.action);
+    } catch (error) {
+      console.error("Error logging user action:", error);
+    }
+  }
+
+  async getUserAnalytics(userId: string): Promise<any[]> {
+    try {
+      await this.ensureAnalyticsTablesExist();
+      
+      const result = await db.execute(sql`
+        SELECT * FROM user_analytics 
+        WHERE user_id = ${userId} 
+        ORDER BY timestamp DESC 
+        LIMIT 100
+      `);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        sessionId: row.session_id,
+        action: row.action,
+        page: row.page,
+        element: row.element,
+        duration: row.duration,
+        metadata: row.metadata,
+        timestamp: row.timestamp
+      }));
+    } catch (error) {
+      console.error("Error getting user analytics:", error);
+      return [];
+    }
+  }
+
+  async getUserSessions(userId: string): Promise<any[]> {
+    try {
+      await this.ensureAnalyticsTablesExist();
+      
+      const result = await db.execute(sql`
+        SELECT * FROM user_sessions 
+        WHERE user_id = ${userId} 
+        ORDER BY start_time DESC 
+        LIMIT 50
+      `);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        sessionId: row.session_id,
+        startTime: row.start_time,
+        endTime: row.end_time,
+        totalDuration: row.total_duration,
+        pagesVisited: row.pages_visited,
+        actionsCount: row.actions_count,
+        userAgent: row.user_agent,
+        ipAddress: row.ip_address
+      }));
+    } catch (error) {
+      console.error("Error getting user sessions:", error);
+      return [];
+    }
+  }
+
+  async getAccessLogs(userId: string): Promise<any[]> {
+    try {
+      await this.ensureAnalyticsTablesExist();
+      
+      const result = await db.execute(sql`
+        SELECT * FROM access_logs 
+        WHERE user_id = ${userId} 
+        ORDER BY created_at DESC 
+        LIMIT 100
+      `);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        email: row.email,
+        action: row.action,
+        ipAddress: row.ip_address,
+        userAgent: row.user_agent,
+        success: row.success,
+        errorMessage: row.error_message,
+        sessionId: row.session_id,
+        createdAt: row.created_at
+      }));
+    } catch (error) {
+      console.error("Error getting access logs:", error);
+      return [];
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
