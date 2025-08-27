@@ -194,8 +194,13 @@ export default function WeightTracking() {
                         {record.weight} kg
                       </div>
                       <div className="text-sm text-gray-500" data-testid={`text-record-date-${record.id}`}>
-                        {new Date(record.date).toLocaleDateString('pt-BR')}
+                        📅 {new Date(record.date).toLocaleDateString('pt-BR')}
                       </div>
+                      {record.createdAt && (
+                        <div className="text-xs text-gray-400" data-testid={`text-record-created-${record.id}`}>
+                          🕒 Registrado: {new Date(record.createdAt).toLocaleDateString('pt-BR')} às {new Date(record.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      )}
                     </div>
                     {record.notes && (
                       <div className="text-sm text-gray-600 max-w-32 truncate" data-testid={`text-record-notes-${record.id}`}>

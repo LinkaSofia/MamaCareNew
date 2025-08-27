@@ -516,6 +516,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("⚖️ Processed weight data:", requestData);
       const weightData = insertWeightRecordSchema.parse(requestData);
       const entry = await storage.createWeightRecord(weightData);
+      
+      // Log da ação para analytics
+      await storage.logUserAction({
+        userId,
+        sessionId: req.sessionID,
+        action: 'weight_entry_created',
+        page: '/weight-tracking',
+        element: 'weight_form',
+        metadata: {
+          weight: requestData.weight,
+          date: requestData.date,
+          pregnancyId: pregnancy.id
+        }
+      });
+      
       res.json({ entry });
     } catch (error) {
       console.error("❌ Weight entry validation error:", error);
@@ -537,6 +552,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching weight entries:", error);
       res.status(500).json({ error: "Failed to get weight entries" });
+    }
+  });
+
+  // Endpoint para analytics de registro de peso
+  app.get("/api/weight-analytics", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const analytics = await storage.getUserAnalytics(userId);
+      
+      // Filtrar apenas actions relacionadas a peso
+      const weightAnalytics = analytics.filter(log => 
+        log.page.includes('weight') || 
+        log.action === 'weight_entry_created' ||
+        log.element?.includes('weight')
+      );
+      
+      res.json({ analytics: weightAnalytics });
+    } catch (error) {
+      console.error("Error fetching weight analytics:", error);
+      res.status(500).json({ error: "Failed to get weight analytics" });
     }
   });
 

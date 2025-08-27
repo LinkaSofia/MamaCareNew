@@ -77,6 +77,7 @@ export const weightRecords = pgTable("weight_records", {
   weight: decimal("weight", { precision: 5, scale: 2 }).notNull(),
   date: timestamp("date").notNull(),
   notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const weightEntries = pgTable("weight_entries", {
