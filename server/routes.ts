@@ -575,6 +575,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para visualizar todos os logs do usuário
+  app.get("/api/user-logs", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      
+      // Buscar todos os tipos de logs
+      const [accessLogs, analytics, sessions] = await Promise.all([
+        storage.getAccessLogs(userId),
+        storage.getUserAnalytics(userId),
+        storage.getUserSessions(userId)
+      ]);
+      
+      res.json({ 
+        accessLogs,    // Login/logout/registro
+        analytics,     // Cliques e navegação detalhada  
+        sessions       // Sessões completas com duração
+      });
+    } catch (error) {
+      console.error("Error fetching user logs:", error);
+      res.status(500).json({ error: "Failed to get user logs" });
+    }
+  });
+
   // Birth plan routes
   app.get("/api/birth-plans/:pregnancyId", requireAuth, async (req, res) => {
     try {
