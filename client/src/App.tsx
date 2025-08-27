@@ -27,6 +27,7 @@ import Recipes from "@/pages/recipes";
 
 // Import dos componentes que vou criar
 import BabyDevelopment from "@/pages/baby-development";
+import AuditLogs from "@/pages/audit-logs";
 import { Progress } from "@/pages/progress";
 import Symptoms from "@/pages/symptoms";
 import Medications from "@/pages/medications";
@@ -72,6 +73,7 @@ function Router() {
         <Route path="/medications" component={Medications} />
         <Route path="/community" component={Community} />
         <Route path="/analytics" component={Analytics} />
+        <Route path="/audit-logs" component={AuditLogs} />
         <Route path="/profile" component={Profile} />
         {/* <Route path="/menu" component={MobileMenu} /> */}
         

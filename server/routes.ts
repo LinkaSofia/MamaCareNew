@@ -664,7 +664,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
+  // Rota específica para logs de auditoria completa
+  app.get("/api/audit-logs", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { tableName, recordId, limit } = req.query;
+      
+      console.log("📋 Fetching audit logs for user:", userId);
+      
+      const auditLogs = await storage.getAuditLogs(
+        userId, 
+        tableName as string, 
+        recordId as string, 
+        parseInt(limit as string) || 50
+      );
+      
+      res.json({
+        auditLogs,
+        count: auditLogs.length,
+        filters: { userId, tableName, recordId }
+      });
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ error: "Failed to get audit logs" });
+    }
+  });
 
   // Birth plan routes
   app.get("/api/birth-plans/:pregnancyId", requireAuth, async (req, res) => {
@@ -678,8 +702,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/birth-plans", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId!;
+      const sessionId = req.sessionID;
+      
       const birthPlanData = insertBirthPlanSchema.parse(req.body);
       const birthPlan = await storage.createOrUpdateBirthPlan(birthPlanData);
+      
+      // Log da auditoria para criação
+      await storage.auditDataChange(
+        userId,
+        sessionId,
+        'birth_plans',
+        birthPlan.id,
+        'create',
+        null,
+        birthPlan,
+        req
+      );
+      
       res.json({ birthPlan });
     } catch (error) {
       res.status(400).json({ error: "Invalid birth plan data" });
@@ -688,11 +728,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/birth-plans/:id", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId!;
+      const sessionId = req.sessionID;
+      const recordId = req.params.id;
+      
       console.log("🔄 Updating birth plan with data:", JSON.stringify(req.body, null, 2));
+      
+      // Buscar dados antigos para auditoria
+      const oldPlan = await storage.getBirthPlanById(recordId);
+      
       const birthPlanData = insertBirthPlanSchema.parse(req.body);
       console.log("✅ Data parsed successfully");
+      
       const birthPlan = await storage.updateBirthPlan(req.params.id, birthPlanData);
       console.log("✅ Birth plan updated successfully");
+      
+      // Log da auditoria
+      await storage.auditDataChange(
+        userId,
+        sessionId,
+        'birth_plans',
+        recordId,
+        'update',
+        oldPlan,
+        birthPlan,
+        req
+      );
+      
       res.json({ birthPlan });
     } catch (error) {
       console.error("❌ Birth plan update error:", error);
@@ -705,7 +767,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/birth-plans/:id", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId!;
+      const sessionId = req.sessionID;
+      const recordId = req.params.id;
+      
+      // Buscar dados antigos para auditoria antes de deletar
+      const oldPlan = await storage.getBirthPlanById(recordId);
+      
       await storage.deleteBirthPlan(req.params.id);
+      
+      // Log da auditoria para exclusão
+      if (oldPlan) {
+        await storage.auditDataChange(
+          userId,
+          sessionId,
+          'birth_plans',
+          recordId,
+          'delete',
+          oldPlan,
+          null,
+          req
+        );
+      }
+      
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete birth plan" });

@@ -203,6 +203,22 @@ export const babyDevelopment = pgTable("baby_development", {
   weight_grams: numeric("weight_grams").default(sql`0`),
 });
 
+// Tabela de auditoria completa - registra todas as modificações de dados
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sessionId: text("session_id"),
+  tableName: text("table_name").notNull(), // birth_plans, kick_counts, weight_entries, etc
+  recordId: text("record_id").notNull(), // ID do registro modificado
+  action: text("action").notNull(), // 'create', 'update', 'delete'
+  oldValues: jsonb("old_values").$type<Record<string, any>>(), // dados antes da modificação
+  newValues: jsonb("new_values").$type<Record<string, any>>(), // dados depois da modificação
+  changedFields: jsonb("changed_fields").$type<string[]>(), // campos que mudaram
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true }).extend({
   birthDate: z.string().optional().transform((val) => val ? new Date(val) : undefined),
@@ -224,6 +240,7 @@ export const insertAccessLogSchema = createInsertSchema(accessLogs).omit({ id: t
 export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit({ id: true, timestamp: true });
 export const insertUserSessionSchema = createInsertSchema(userSessions).omit({ id: true, startTime: true, endTime: true });
 export const insertBabyDevelopmentSchema = createInsertSchema(babyDevelopment).omit({ id: true });
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, timestamp: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -262,3 +279,5 @@ export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type BabyDevelopment = typeof babyDevelopment.$inferSelect;
 export type InsertBabyDevelopment = z.infer<typeof insertBabyDevelopmentSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;

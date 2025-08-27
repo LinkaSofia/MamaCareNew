@@ -13,7 +13,8 @@ import {
   type InsertSymptom, type Medication, type InsertMedication, type CommunityPost, 
   type InsertCommunityPost, type CommunityComment, type InsertCommunityComment, 
   type AccessLog, type InsertAccessLog, type UserAnalytics, type InsertUserAnalytics, 
-  type UserSession, type InsertUserSession, type BabyDevelopment, type InsertBabyDevelopment
+  type UserSession, type InsertUserSession, type BabyDevelopment, type InsertBabyDevelopment,
+  type AuditLog, type InsertAuditLog, auditLogs
 } from "@shared/schema";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -58,7 +59,10 @@ export interface IStorage {
 
   // Birth Plans
   getBirthPlan(pregnancyId: string): Promise<BirthPlan | undefined>;
+  getBirthPlanById(planId: string): Promise<BirthPlan | undefined>;
   createOrUpdateBirthPlan(birthPlan: InsertBirthPlan): Promise<BirthPlan>;
+  updateBirthPlan(id: string, updates: Partial<InsertBirthPlan>): Promise<BirthPlan>;
+  deleteBirthPlan(id: string): Promise<void>;
 
   // Consultations
   getConsultations(pregnancyId: string): Promise<Consultation[]>;
@@ -124,9 +128,25 @@ export interface IStorage {
   getBabyDevelopmentByWeek(week: number): Promise<BabyDevelopment | undefined>;
   getAllBabyDevelopmentData(): Promise<BabyDevelopment[]>;
   createBabyDevelopment(development: InsertBabyDevelopment): Promise<BabyDevelopment>;
+
+  // Sistema de auditoria completa
+  createAuditLog(auditData: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(userId?: string, tableName?: string, recordId?: string, limit?: number): Promise<AuditLog[]>;
+  logUserAction(userId: string, action: string, page?: string, element?: string, metadata?: Record<string, any>): Promise<void>;
+  trackPageVisit(userId: string, page: string, duration?: number): Promise<void>;
+  getUserSessions(userId: string, limit?: number): Promise<UserSession[]>;
 }
 
 export class DatabaseStorage implements IStorage {
+  constructor() {
+    this.init();
+  }
+
+  private async init() {
+    await this.ensureUserTableColumns();
+    await this.ensureAnalyticsTablesExist();
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return result[0];
@@ -423,6 +443,13 @@ export class DatabaseStorage implements IStorage {
   async getBirthPlan(pregnancyId: string): Promise<BirthPlan | undefined> {
     const result = await db.select().from(birthPlans)
       .where(eq(birthPlans.pregnancyId, pregnancyId))
+      .limit(1);
+    return result[0];
+  }
+
+  async getBirthPlanById(planId: string): Promise<BirthPlan | undefined> {
+    const result = await db.select().from(birthPlans)
+      .where(eq(birthPlans.id, planId))
       .limit(1);
     return result[0];
   }
@@ -1004,6 +1031,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics and logging methods
+  private async ensureUserTableColumns(): Promise<void> {
+    try {
+      // Adicionar colunas que podem estar faltando na tabela users
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo_url TEXT`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date TIMESTAMP`);
+      console.log("✅ User table columns verified");
+    } catch (error) {
+      console.error("Error ensuring user table columns:", error);
+    }
+  }
+
   private async ensureAnalyticsTablesExist(): Promise<void> {
     try {
       // Criar tabela user_analytics
@@ -1053,6 +1091,24 @@ export class DatabaseStorage implements IStorage {
         )
       `);
 
+      // Criar tabela de auditoria completa
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS audit_logs (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR NOT NULL,
+          session_id TEXT,
+          table_name TEXT NOT NULL,
+          record_id TEXT NOT NULL,
+          action TEXT NOT NULL,
+          old_values JSONB,
+          new_values JSONB,
+          changed_fields JSONB,
+          ip_address TEXT,
+          user_agent TEXT,
+          timestamp TIMESTAMP DEFAULT NOW()
+        );
+      `);
+      
       console.log("✅ Analytics tables created/verified");
     } catch (error) {
       console.error("Error creating analytics tables:", error);
@@ -1188,6 +1244,103 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting access logs:", error);
       return [];
+    }
+  }
+
+  // Sistema de auditoria completa - métodos principais
+  async createAuditLog(auditData: InsertAuditLog): Promise<AuditLog> {
+    await this.ensureAnalyticsTablesExist();
+    
+    console.log(`📝 Creating audit log:`, { 
+      action: auditData.action, 
+      tableName: auditData.tableName, 
+      recordId: auditData.recordId 
+    });
+    
+    const auditId = randomUUID();
+    await db.execute(sql`
+      INSERT INTO audit_logs (id, user_id, session_id, table_name, record_id, action, old_values, new_values, changed_fields, ip_address, user_agent)
+      VALUES (${auditId}, ${auditData.userId}, ${auditData.sessionId || null}, ${auditData.tableName}, ${auditData.recordId}, ${auditData.action}, ${JSON.stringify(auditData.oldValues || {})}, ${JSON.stringify(auditData.newValues || {})}, ${JSON.stringify(auditData.changedFields || [])}, ${auditData.ipAddress || null}, ${auditData.userAgent || null})
+    `);
+    
+    return { ...auditData, id: auditId, timestamp: new Date() } as AuditLog;
+  }
+
+  async getAuditLogs(userId?: string, tableName?: string, recordId?: string, limit = 100): Promise<AuditLog[]> {
+    await this.ensureAnalyticsTablesExist();
+    
+    let whereClause = '';
+    const conditions = [];
+    
+    if (userId) conditions.push(`user_id = '${userId}'`);
+    if (tableName) conditions.push(`table_name = '${tableName}'`);
+    if (recordId) conditions.push(`record_id = '${recordId}'`);
+    
+    if (conditions.length > 0) {
+      whereClause = `WHERE ${conditions.join(' AND ')}`;
+    }
+    
+    const result = await db.execute(sql.raw(`
+      SELECT * FROM audit_logs 
+      ${whereClause}
+      ORDER BY timestamp DESC 
+      LIMIT ${limit}
+    `));
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      userId: row.user_id,
+      sessionId: row.session_id,
+      tableName: row.table_name,
+      recordId: row.record_id,
+      action: row.action,
+      oldValues: row.old_values,
+      newValues: row.new_values,
+      changedFields: row.changed_fields,
+      ipAddress: row.ip_address,
+      userAgent: row.user_agent,
+      timestamp: row.timestamp
+    })) as AuditLog[];
+  }
+
+  // Método auxiliar para automatizar auditoria
+  async auditDataChange(
+    userId: string, 
+    sessionId: string, 
+    tableName: string, 
+    recordId: string, 
+    action: 'create' | 'update' | 'delete',
+    oldValues?: Record<string, any>,
+    newValues?: Record<string, any>,
+    request?: any
+  ) {
+    try {
+      const changedFields = [];
+      
+      if (action === 'update' && oldValues && newValues) {
+        for (const key in newValues) {
+          if (JSON.stringify(oldValues[key]) !== JSON.stringify(newValues[key])) {
+            changedFields.push(key);
+          }
+        }
+      }
+
+      await this.createAuditLog({
+        userId,
+        sessionId,
+        tableName,
+        recordId,
+        action,
+        oldValues: oldValues || null,
+        newValues: newValues || null,
+        changedFields,
+        ipAddress: request?.ip || request?.connection?.remoteAddress,
+        userAgent: request?.get?.('User-Agent'),
+      });
+
+      console.log(`🔍 Audit logged: ${action} on ${tableName} record ${recordId} by user ${userId}`);
+    } catch (error) {
+      console.error('Error creating audit log:', error);
     }
   }
 }
