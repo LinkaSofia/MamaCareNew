@@ -479,6 +479,23 @@ export default function Dashboard() {
 
       </div>
 
+      {/* Footer com espaçamento */}
+      <footer className="mt-12 pb-24 px-4">
+        <div className="bg-gradient-to-r from-pink-50/80 to-blue-50/80 rounded-2xl p-6 text-center backdrop-blur-sm border border-white/50">
+          <div className="flex items-center justify-center mb-3">
+            <Heart className="h-5 w-5 text-pink-400 mr-2" />
+            <h3 className="text-gray-700 font-medium">Mama Care</h3>
+            <Heart className="h-5 w-5 text-pink-400 ml-2" />
+          </div>
+          <p className="text-gray-600 text-sm mb-2">
+            Cuidando de você e seu bebê em cada momento
+          </p>
+          <p className="text-gray-500 text-xs">
+            © 2025 Mama Care - Sua jornada da maternidade
+          </p>
+        </div>
+      </footer>
+
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200">
         <div className="flex justify-around py-3">
