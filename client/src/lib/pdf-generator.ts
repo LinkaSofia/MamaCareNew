@@ -104,8 +104,12 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
     console.warn('Logo não pôde ser carregada:', error);
   }
 
-  // Modern header with gradient-like background
-  pdf.setFillColor(...colors.secondary);
+  // Modern header with gradient-like background - ROSA COMPLETO
+  pdf.setFillColor(252, 231, 243); // rose-100 - rosa suave para toda a página
+  pdf.rect(0, 0, 210, 297, 'F'); // Página inteira rosa
+  
+  // Header mais vibrante
+  pdf.setFillColor(236, 72, 153); // rose-500 - rosa vibrante no header
   pdf.rect(0, 0, 210, 80, 'F');
   
   // Add decorative pattern (removed circles that were causing dots)
@@ -119,25 +123,25 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   pdf.circle(185, 35, 4, 'F');
   pdf.circle(195, 32, 3, 'F');
 
-  // Title with modern typography
+  // Title with modern typography - BRANCO no header rosa
   pdf.setFontSize(32);
-  pdf.setTextColor(...colors.primary);
+  pdf.setTextColor(255, 255, 255); // Branco para contraste
   pdf.text('Plano de Parto', 50, 35);
   
-  // Subtitle
+  // Subtitle - BRANCO
   pdf.setFontSize(14);
-  pdf.setTextColor(...colors.textLight);
+  pdf.setTextColor(255, 255, 255);
   pdf.text('Suas preferências para o momento especial', 50, 45);
   
-  // Mother's name with elegant styling
-  pdf.setFontSize(20);
-  pdf.setTextColor(...colors.text);
-  pdf.text(data.motherName, 50, 62);
+  // Mother's name with elegant styling - BRANCO e maior
+  pdf.setFontSize(24);
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(data.motherName || 'Nome não informado', 50, 62);
   
-  // Due date with icon
+  // Due date with icon - BRANCO
   if (data.dueDate) {
     pdf.setFontSize(12);
-    pdf.setTextColor(...colors.textLight);
+    pdf.setTextColor(255, 255, 255);
     pdf.text(`Data prevista: ${new Date(data.dueDate).toLocaleDateString('pt-BR')}`, 50, 73);
   }
   
@@ -150,43 +154,46 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
       yPosition = 30;
     }
     
-    // Section background with more vibrant colors
-    pdf.setFillColor(248, 250, 252); // Light gray background
+    // Section background com tema rosa
+    pdf.setFillColor(255, 255, 255); // Fundo branco para seções
     pdf.roundedRect(15, yPosition - 5, 180, 15 + content.length * 7, 5, 5, 'F');
     
-    // Add colored accent bar (wider for more color)
-    pdf.setFillColor(...color);
-    pdf.rect(15, yPosition - 5, 8, 15 + content.length * 7, 'F');
+    // Add colored accent bar rosa mais largo
+    pdf.setFillColor(236, 72, 153); // rose-500 
+    pdf.rect(15, yPosition - 5, 12, 15 + content.length * 7, 'F');
     
     // Add subtle shadow effect
     pdf.setFillColor(0, 0, 0, 0.1);
     pdf.rect(17, yPosition - 3, 180, 15 + content.length * 7, 'F');
     
-    // Section title
+    // Section title - rosa vibrante
     pdf.setFontSize(16);
-    pdf.setTextColor(...color);
-    pdf.text(title, 25, yPosition + 5);
+    pdf.setTextColor(190, 24, 93); // rose-700 - rosa escuro
+    pdf.text(title, 30, yPosition + 5);
     
     yPosition += 15;
     
-    // Section content with better spacing
+    // Section content with better spacing - texto rosa escuro
     pdf.setFontSize(11);
-    pdf.setTextColor(...colors.text);
+    pdf.setTextColor(136, 19, 55); // rose-900 - rosa muito escuro para legibilidade
     
     content.forEach(item => {
       if (yPosition > 270) {
         pdf.addPage();
+        // Manter o fundo rosa na nova página
+        pdf.setFillColor(252, 231, 243); // rose-100 - rosa suave para toda a página
+        pdf.rect(0, 0, 210, 297, 'F');
         yPosition = 30;
       }
       
-      // Add bullet point
-      pdf.setFillColor(...colors.primary);
-      pdf.circle(27, yPosition - 1, 1, 'F');
+      // Add bullet point rosa
+      pdf.setFillColor(236, 72, 153); // rose-500
+      pdf.circle(32, yPosition - 1, 1.5, 'F');
       
-      // Add content
-      pdf.setTextColor(...colors.text);
+      // Add content com cor rosa escura
+      pdf.setTextColor(136, 19, 55); // rose-900 - rosa muito escuro para legibilidade
       const lines = pdf.splitTextToSize(item, 160);
-      pdf.text(lines, 30, yPosition);
+      pdf.text(lines, 37, yPosition);
       yPosition += Math.max(lines.length * 5, 6);
     });
     
