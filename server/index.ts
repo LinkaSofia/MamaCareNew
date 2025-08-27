@@ -37,6 +37,22 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize analytics tables on server startup
+  console.log("🔧 Initializing analytics tables...");
+  try {
+    const { storage } = await import('./storage.js');
+    await storage.logUserAction({
+      userId: "system-init",
+      sessionId: "system-init", 
+      action: 'server_startup',
+      page: '/system',
+      element: 'init'
+    });
+    console.log("✅ Analytics tables initialized successfully");
+  } catch (error) {
+    console.error("❌ Error initializing analytics tables:", error);
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

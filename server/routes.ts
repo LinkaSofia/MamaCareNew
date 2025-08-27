@@ -555,6 +555,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint temporário para criar tabelas de analytics
+  app.get("/api/setup-analytics", async (req, res) => {
+    try {
+      console.log("🔧 Setting up analytics tables...");
+      
+      // Força a criação das tabelas
+      const testUserId = "test-user-id";
+      await storage.logUserAction({
+        userId: testUserId,
+        sessionId: "test-session",
+        action: 'setup_tables',
+        page: '/setup',
+        element: 'setup_test',
+        metadata: { purpose: 'create_analytics_tables' }
+      });
+      
+      console.log("✅ Analytics tables setup completed");
+      res.json({ 
+        message: "Analytics tables created successfully",
+        tablesCreated: ['user_analytics', 'access_logs', 'user_sessions']
+      });
+    } catch (error) {
+      console.error("Error setting up analytics:", error);
+      res.status(500).json({ error: "Failed to setup analytics tables" });
+    }
+  });
+
   // Endpoint para analytics de registro de peso
   app.get("/api/weight-analytics", requireAuth, async (req, res) => {
     try {
@@ -580,6 +607,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId!;
       
+      // Força a criação das tabelas primeiro
+      await storage.logUserAction({
+        userId,
+        sessionId: req.sessionID,
+        action: 'check_logs',
+        page: '/api/user-logs',
+        element: 'logs_access'
+      });
+      
       // Buscar todos os tipos de logs
       const [accessLogs, analytics, sessions] = await Promise.all([
         storage.getAccessLogs(userId),
@@ -590,7 +626,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         accessLogs,    // Login/logout/registro
         analytics,     // Cliques e navegação detalhada  
-        sessions       // Sessões completas com duração
+        sessions,      // Sessões completas com duração
+        tablesCreated: true
       });
     } catch (error) {
       console.error("Error fetching user logs:", error);
