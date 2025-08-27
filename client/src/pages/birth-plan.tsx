@@ -468,7 +468,7 @@ export default function BirthPlan() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <Link href="/dashboard">
+              <Link href="/">
                 <Button
                   variant="ghost"
                   size="sm"
