@@ -48,12 +48,12 @@ import BottomNavigation from "@/components/layout/bottom-navigation";
 
 interface BirthPlan {
   id: string;
-  pregnancyId: string;
-  location: string;
-  painRelief: string[];
-  companions: string[];
-  specialRequests: string;
-  preferences: any;
+  pregnancyId?: string;
+  location?: string;
+  painRelief?: string[] | any;
+  companions?: string[] | string;
+  specialRequests?: string;
+  preferences?: any;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -213,6 +213,7 @@ export default function BirthPlan() {
 
   // Resetar formulário
   const resetForm = () => {
+    setActiveStep(0); // Resetar para o primeiro passo
     setFormData({
       location: "",
       birthType: "",
@@ -494,6 +495,7 @@ export default function BirthPlan() {
             <Button
               onClick={() => {
                 resetForm();
+                setActiveStep(0); // Começar do primeiro passo
                 setViewMode('create');
               }}
               className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
@@ -556,7 +558,7 @@ export default function BirthPlan() {
                         size="sm"
                         onClick={() => {
                           if (birthPlansData?.birthPlan) {
-                            loadPlanData(birthPlansData.birthPlan);
+                            loadPlanData(birthPlansData.birthPlan as BirthPlan);
                             setViewMode('view');
                           }
                         }}
@@ -569,7 +571,8 @@ export default function BirthPlan() {
                         size="sm"
                         onClick={() => {
                           if (birthPlansData?.birthPlan) {
-                            loadPlanData(birthPlansData.birthPlan);
+                            loadPlanData(birthPlansData.birthPlan as BirthPlan);
+                            setActiveStep(0); // Sempre começar do primeiro passo
                             setViewMode('edit');
                           }
                         }}
@@ -580,7 +583,7 @@ export default function BirthPlan() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => birthPlansData?.birthPlan && handleGeneratePDF(birthPlansData.birthPlan)}
+                        onClick={() => birthPlansData?.birthPlan && handleGeneratePDF(birthPlansData.birthPlan as BirthPlan)}
                         data-testid="button-download-plan"
                       >
                         <Download className="w-4 h-4" />
@@ -631,6 +634,7 @@ export default function BirthPlan() {
                   <Button
                     onClick={() => {
                       resetForm();
+                      setActiveStep(0); // Começar do primeiro passo
                       setViewMode('create');
                     }}
                     className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
