@@ -514,8 +514,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log("⚖️ Processed weight data:", requestData);
-      const weightData = insertWeightEntrySchema.parse(requestData);
-      const entry = await storage.createWeightEntry(weightData);
+      const weightData = insertWeightRecordSchema.parse(requestData);
+      const entry = await storage.createWeightRecord(weightData);
       res.json({ entry });
     } catch (error) {
       console.error("❌ Weight entry validation error:", error);
@@ -532,7 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ entries: [] });
       }
       
-      const entries = await storage.getWeightEntries(pregnancy.id);
+      const entries = await storage.getWeightRecords(pregnancy.id);
       res.json({ entries });
     } catch (error) {
       console.error("Error fetching weight entries:", error);
