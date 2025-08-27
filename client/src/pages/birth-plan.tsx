@@ -123,7 +123,23 @@ export default function BirthPlan() {
   const queryClient = useQueryClient();
 
   // Query para buscar planos de parto existentes
-  const { data: birthPlansData, isLoading: isLoadingPlans } = useQuery({
+  // Define interface para dados da API
+  interface BirthPlanApiResponse {
+    birthPlan?: {
+      id: string;
+      location?: string;
+      painRelief?: {
+        natural?: boolean;
+        epidural?: boolean;
+        other?: string;
+      };
+      companions?: string;
+      specialRequests?: string;
+      preferences?: any;
+    };
+  }
+
+  const { data: birthPlansData, isLoading: isLoadingPlans } = useQuery<BirthPlanApiResponse>({
     queryKey: ["/api/birth-plans", pregnancy?.id],
     enabled: !!pregnancy?.id,
   });
@@ -516,19 +532,19 @@ export default function BirthPlan() {
                     <div className="flex flex-wrap gap-2">
                       {birthPlansData?.birthPlan?.painRelief && typeof birthPlansData.birthPlan.painRelief === 'object' && (
                         <>
-                          {birthPlansData.birthPlan.painRelief.natural && (
+                          {(birthPlansData.birthPlan.painRelief as any).natural && (
                             <Badge variant="outline" className="text-xs">
                               Natural
                             </Badge>
                           )}
-                          {birthPlansData.birthPlan.painRelief.epidural && (
+                          {(birthPlansData.birthPlan.painRelief as any).epidural && (
                             <Badge variant="outline" className="text-xs">
                               Epidural
                             </Badge>
                           )}
-                          {birthPlansData.birthPlan.painRelief.other && (
+                          {(birthPlansData.birthPlan.painRelief as any).other && (
                             <Badge variant="outline" className="text-xs">
-                              {birthPlansData.birthPlan.painRelief.other}
+                              {(birthPlansData.birthPlan.painRelief as any).other}
                             </Badge>
                           )}
                         </>
@@ -706,24 +722,12 @@ export default function BirthPlan() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {selectedPlan.painRelief && typeof selectedPlan.painRelief === 'object' && (
-                    <>
-                      {selectedPlan.painRelief.natural && (
-                        <Badge variant="secondary" className="bg-pink-100 text-pink-700">
-                          Natural
-                        </Badge>
-                      )}
-                      {selectedPlan.painRelief.epidural && (
-                        <Badge variant="secondary" className="bg-pink-100 text-pink-700">
-                          Epidural
-                        </Badge>
-                      )}
-                      {selectedPlan.painRelief.other && (
-                        <Badge variant="secondary" className="bg-pink-100 text-pink-700">
-                          {selectedPlan.painRelief.other}
-                        </Badge>
-                      )}
-                    </>
+                  {selectedPlan.painRelief && Array.isArray(selectedPlan.painRelief) && selectedPlan.painRelief.length > 0 && (
+                    selectedPlan.painRelief.map((relief: string, index: number) => (
+                      <Badge key={index} variant="secondary" className="bg-pink-100 text-pink-700">
+                        {relief}
+                      </Badge>
+                    ))
                   )}
                 </div>
               </CardContent>

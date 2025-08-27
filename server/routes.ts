@@ -681,11 +681,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/birth-plans/:id", requireAuth, async (req, res) => {
     try {
+      console.log("🔄 Updating birth plan with data:", JSON.stringify(req.body, null, 2));
       const birthPlanData = insertBirthPlanSchema.parse(req.body);
+      console.log("✅ Data parsed successfully");
       const birthPlan = await storage.updateBirthPlan(req.params.id, birthPlanData);
+      console.log("✅ Birth plan updated successfully");
       res.json({ birthPlan });
     } catch (error) {
-      res.status(400).json({ error: "Failed to update birth plan" });
+      console.error("❌ Birth plan update error:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error details:", error.message);
+      }
+      res.status(400).json({ error: "Failed to update birth plan", details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
