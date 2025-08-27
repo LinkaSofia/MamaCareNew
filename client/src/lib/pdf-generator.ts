@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import logoImage from '@assets/generated_images/Modern_maternal_care_app_logo_329f5c52.png';
+import logoImage from '@assets/image_1756302873641.png';
 
 export interface BirthPlanData {
   motherName: string;
