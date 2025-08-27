@@ -32,7 +32,7 @@ import Symptoms from "@/pages/symptoms";
 import Medications from "@/pages/medications";
 import Community from "@/pages/community";
 import Analytics from "@/pages/analytics";
-import { MobileMenu } from "@/components/Navigation";
+// import { MobileMenu } from "@/components/Navigation"; // Removido - não usar menu lateral
 import NotFound from "@/pages/not-found";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useUserTracking } from "@/hooks/useUserTracking";
@@ -73,7 +73,7 @@ function Router() {
         <Route path="/community" component={Community} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/profile" component={Profile} />
-        <Route path="/menu" component={MobileMenu} />
+        {/* <Route path="/menu" component={MobileMenu} /> */}
         
         {/* 404 */}
         <Route component={NotFound} />
