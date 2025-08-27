@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePregnancy } from "@/hooks/use-pregnancy";
 import { Button } from "@/components/ui/button";
@@ -418,15 +418,16 @@ export default function BirthPlan() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation("/dashboard")}
-                className="mr-2"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
+              <Link href="/dashboard">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mr-2"
+                  data-testid="button-back"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Planos de Parto</h1>
                 <p className="text-gray-600">Gerencie seus planos de parto</p>
