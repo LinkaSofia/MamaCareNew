@@ -137,7 +137,7 @@ export default function BirthPlan() {
     saveBirthPlanMutation.mutate(formData);
   };
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     if (!user || !pregnancy) {
       toast({
         title: "Erro",
@@ -147,20 +147,28 @@ export default function BirthPlan() {
       return;
     }
 
-    const pdfData = {
-      motherName: user.name || "Futura Mamãe",
-      partnerName: formData.supportTeam.other,
-      dueDate: pregnancy.dueDate || "",
-      ...formData,
-      preferences: formData,
-    };
+    try {
+      const pdfData = {
+        motherName: user.name || "Futura Mamãe",
+        partnerName: formData.supportTeam.other,
+        dueDate: pregnancy.dueDate || "",
+        ...formData,
+        preferences: formData,
+      };
 
-    generateBirthPlanPDF(pdfData);
-    
-    toast({
-      title: "📄 PDF gerado!",
-      description: "Seu plano de parto foi baixado com sucesso.",
-    });
+      await generateBirthPlanPDF(pdfData);
+      
+      toast({
+        title: "📄 PDF gerado!",
+        description: "Seu plano de parto foi baixado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao gerar PDF. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const steps = [
@@ -210,7 +218,7 @@ export default function BirthPlan() {
 
   // Load existing birth plan data
   useEffect(() => {
-    if (birthPlanData?.birthPlan) {
+    if (birthPlanData && 'birthPlan' in birthPlanData) {
       const plan = birthPlanData.birthPlan;
       setFormData(prev => ({
         ...prev,
@@ -230,7 +238,7 @@ export default function BirthPlan() {
     setFormData(prev => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof typeof prev],
+        ...(prev[section as keyof typeof prev] as object),
         [field]: value
       }
     }));
