@@ -281,7 +281,7 @@ export default function BirthPlan() {
           visitors: "",
           privacy: "",
         },
-        companions: plan.companions?.join(", ") || "",
+        companions: Array.isArray(plan.companions) ? plan.companions.join(", ") : (plan.companions || ""),
         supportTeam: plan.preferences.supportTeam || "",
         birthPreferences: plan.preferences.birthPreferences || {
           position: "",
@@ -397,9 +397,14 @@ export default function BirthPlan() {
 
   const handleGeneratePDF = async (plan: BirthPlan) => {
     try {
+      // Buscar dados da usuária
+      const userResponse = await fetch('/api/auth/me');
+      const userData = userResponse.ok ? await userResponse.json() : null;
+      const motherName = userData?.name || "Futura Mamãe";
+      
       // Adaptar os dados do plano para o formato esperado pelo PDF
       const pdfData = {
-        motherName: "Futura Mamãe", // Padrão quando não temos o nome
+        motherName: motherName,
         dueDate: "2026-05-30", // Data padrão da gravidez
         location: plan.location || "Não especificado",
         birthType: plan.preferences?.birthType || "Normal",

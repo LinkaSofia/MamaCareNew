@@ -108,11 +108,9 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   pdf.setFillColor(...colors.secondary);
   pdf.rect(0, 0, 210, 80, 'F');
   
-  // Add a subtle pattern/texture
-  pdf.setFillColor(255, 255, 255, 0.5);
-  for (let i = 0; i < 10; i++) {
-    pdf.circle(30 + i * 15, 70, 2, 'F');
-  }
+  // Add decorative pattern (removed circles that were causing dots)
+  pdf.setFillColor(255, 255, 255, 0.3);
+  pdf.rect(20, 65, 160, 2, 'F');
   
   // Add decorative elements
   pdf.setFillColor(...colors.primary);
@@ -328,16 +326,16 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   // Footer text
   pdf.setFontSize(11);
   pdf.setTextColor(...colors.text);
-  pdf.text('MamãeCare', 40, 275);
+  pdf.text('MamaeCare', 40, 275);
   
   pdf.setFontSize(9);
   pdf.setTextColor(...colors.textLight);
-  pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 40, 283);
+  pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} as ${new Date().toLocaleTimeString('pt-BR')}`, 40, 283);
   
-  // Beautiful message
+  // Beautiful message without special characters
   pdf.setFontSize(10);
   pdf.setTextColor(...colors.primary);
-  pdf.text('💕 Este é o seu momento especial - você consegue! 💕', 40, 290);
+  pdf.text('Este é o seu momento especial - você consegue!', 40, 290);
   
   // Download the PDF
   const fileName = `plano-de-parto-${data.motherName.replace(/\s+/g, '-').toLowerCase()}.pdf`;
