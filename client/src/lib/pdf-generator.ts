@@ -108,6 +108,12 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   pdf.setFillColor(...colors.secondary);
   pdf.rect(0, 0, 210, 80, 'F');
   
+  // Add a subtle pattern/texture
+  pdf.setFillColor(255, 255, 255, 0.5);
+  for (let i = 0; i < 10; i++) {
+    pdf.circle(30 + i * 15, 70, 2, 'F');
+  }
+  
   // Add decorative elements
   pdf.setFillColor(...colors.primary);
   pdf.circle(190, 20, 8, 'F');
@@ -134,26 +140,34 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   if (data.dueDate) {
     pdf.setFontSize(12);
     pdf.setTextColor(...colors.textLight);
-    pdf.text(`📅 Data prevista: ${new Date(data.dueDate).toLocaleDateString('pt-BR')}`, 50, 73);
+    pdf.text(`Data prevista: ${new Date(data.dueDate).toLocaleDateString('pt-BR')}`, 50, 73);
   }
   
   yPosition = 100;
 
   // Helper function for modern sections
-  const addModernSection = (icon: string, title: string, content: string[], color: [number, number, number] = colors.primary) => {
+  const addModernSection = (title: string, content: string[], color: [number, number, number] = colors.primary) => {
     if (yPosition > 250) {
       pdf.addPage();
       yPosition = 30;
     }
     
-    // Section background
-    pdf.setFillColor(248, 250, 252); // gray-50
-    pdf.roundedRect(15, yPosition - 5, 180, 8 + content.length * 7, 3, 3, 'F');
+    // Section background with more vibrant colors
+    pdf.setFillColor(248, 250, 252); // Light gray background
+    pdf.roundedRect(15, yPosition - 5, 180, 15 + content.length * 7, 5, 5, 'F');
     
-    // Section icon and title
+    // Add colored accent bar (wider for more color)
+    pdf.setFillColor(...color);
+    pdf.rect(15, yPosition - 5, 8, 15 + content.length * 7, 'F');
+    
+    // Add subtle shadow effect
+    pdf.setFillColor(0, 0, 0, 0.1);
+    pdf.rect(17, yPosition - 3, 180, 15 + content.length * 7, 'F');
+    
+    // Section title
     pdf.setFontSize(16);
     pdf.setTextColor(...color);
-    pdf.text(`${icon} ${title}`, 20, yPosition + 5);
+    pdf.text(title, 25, yPosition + 5);
     
     yPosition += 15;
     
@@ -168,8 +182,8 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
       }
       
       // Add bullet point
-      pdf.setTextColor(...colors.primary);
-      pdf.text('•', 25, yPosition);
+      pdf.setFillColor(...colors.primary);
+      pdf.circle(27, yPosition - 1, 1, 'F');
       
       // Add content
       pdf.setTextColor(...colors.text);
@@ -189,7 +203,7 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   if (data.doula) basicInfo.push(`Doula: ${data.doula}`);
   
   if (basicInfo.length > 0) {
-    addModernSection('🏥', 'Informações Básicas', basicInfo);
+    addModernSection('Informacoes Basicas', basicInfo);
   }
 
   // 2. Métodos de Alívio da Dor
@@ -202,7 +216,7 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   if (data.painRelief.other) painReliefMethods.push(`Outros métodos: ${data.painRelief.other}`);
   
   if (painReliefMethods.length > 0) {
-    addModernSection('💊', 'Alívio da Dor', painReliefMethods, colors.accent);
+    addModernSection('Alivio da Dor', painReliefMethods, colors.accent);
   }
 
   // 3. Ambiente Desejado
@@ -224,7 +238,7 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   }
   
   if (environmentPrefs.length > 0) {
-    addModernSection('🏡', 'Ambiente', environmentPrefs, colors.success);
+    addModernSection('Ambiente', environmentPrefs, colors.success);
   }
 
   // 4. Equipe de Apoio
@@ -236,7 +250,7 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   if (data.companions) supportTeam.push(`Detalhes especiais: ${data.companions}`);
   
   if (supportTeam.length > 0) {
-    addModernSection('👥', 'Acompanhantes', supportTeam, [168, 85, 247] as [number, number, number]); // purple
+    addModernSection('Acompanhantes', supportTeam, [168, 85, 247] as [number, number, number]); // purple
   }
 
   // 5. Preferências do Nascimento
@@ -267,7 +281,7 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   }
   
   if (birthPrefs.length > 0) {
-    addModernSection('👶', 'Nascimento', birthPrefs, [59, 130, 246] as [number, number, number]); // blue
+    addModernSection('Nascimento', birthPrefs, [59, 130, 246] as [number, number, number]); // blue
   }
 
   // 6. Pós-parto
@@ -278,17 +292,17 @@ export async function generateBirthPlanPDF(data: BirthPlanData): Promise<void> {
   if (data.postBirth.vitaminK) postBirthPrefs.push('Administração de vitamina K no bebê');
   
   if (postBirthPrefs.length > 0) {
-    addModernSection('🛡️', 'Cuidados Pós-parto', postBirthPrefs, [34, 197, 94] as [number, number, number]); // green
+    addModernSection('Cuidados Pos-parto', postBirthPrefs, [34, 197, 94] as [number, number, number]); // green
   }
 
   // 7. Pedidos Especiais
   if (data.specialRequests) {
-    addModernSection('✨', 'Pedidos Especiais', [data.specialRequests], [251, 146, 60] as [number, number, number]); // orange
+    addModernSection('Pedidos Especiais', [data.specialRequests], [251, 146, 60] as [number, number, number]); // orange
   }
 
   // 8. Emergências
   if (data.emergencyPreferences) {
-    addModernSection('🚨', 'Em Caso de Emergência', [data.emergencyPreferences], [239, 68, 68] as [number, number, number]); // red
+    addModernSection('Em Caso de Emergencia', [data.emergencyPreferences], [239, 68, 68] as [number, number, number]); // red
   }
 
   // Modern footer with branding
