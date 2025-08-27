@@ -70,9 +70,8 @@ export default function WeightTracking() {
     }
 
     addWeightMutation.mutate({
-      pregnancyId: pregnancy!.id,
-      weight: parseFloat(weight).toFixed(2), // Converter para string decimal
-      date: new Date(date),
+      weight: weight,
+      date: date, // Enviar como string no formato ISO
       notes: notes.trim() || undefined,
     });
   };

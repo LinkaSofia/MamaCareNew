@@ -395,8 +395,11 @@ export class DatabaseStorage implements IStorage {
     console.log("📊 Creating weight entry:", weightEntry);
     try {
       const entryData = {
-        ...weightEntry,
-        id: randomUUID(),
+        pregnancyId: weightEntry.pregnancyId,
+        weight: weightEntry.weight,
+        date: weightEntry.date,
+        notes: weightEntry.notes,
+        // Não incluir ID - o serial vai gerar automaticamente
       };
       console.log("📊 Entry data to insert:", entryData);
       

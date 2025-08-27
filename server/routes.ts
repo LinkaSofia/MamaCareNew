@@ -509,7 +509,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requestData = {
         ...req.body,
         pregnancyId: pregnancy.id,
-        date: typeof req.body.date === 'string' ? new Date(req.body.date) : req.body.date
+        weight: req.body.weight.toString(),
+        date: req.body.date ? new Date(req.body.date) : new Date()
       };
       
       console.log("⚖️ Processed weight data:", requestData);

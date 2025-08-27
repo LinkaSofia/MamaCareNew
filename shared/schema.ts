@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, decimal, boolean, jsonb, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, decimal, boolean, jsonb, numeric, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -80,7 +80,7 @@ export const weightRecords = pgTable("weight_records", {
 });
 
 export const weightEntries = pgTable("weight_entries", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
   weight: decimal("weight", { precision: 5, scale: 2 }).notNull(),
   date: timestamp("date").notNull(),
@@ -209,10 +209,7 @@ export const insertUserSchema = createInsertSchema(users).omit({ id: true }).ext
 export const insertPregnancySchema = createInsertSchema(pregnancies).omit({ id: true, createdAt: true });
 export const insertKickCountSchema = createInsertSchema(kickCounts).omit({ id: true });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords).omit({ id: true });
-export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true }).extend({
-  date: z.string().optional().transform((val) => val ? new Date(val) : new Date()),
-  weight: z.coerce.number().or(z.string().transform((val) => parseFloat(val)))
-});
+export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true });
 export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true });
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
