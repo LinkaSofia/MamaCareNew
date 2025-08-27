@@ -660,11 +660,25 @@ export default function BirthPlan() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {selectedPlan.painRelief?.map((pain, index) => (
-                    <Badge key={index} variant="secondary" className="bg-pink-100 text-pink-700">
-                      {pain}
-                    </Badge>
-                  ))}
+                  {selectedPlan.painRelief && (
+                    <>
+                      {selectedPlan.painRelief.natural && (
+                        <Badge variant="secondary" className="bg-pink-100 text-pink-700">
+                          Natural
+                        </Badge>
+                      )}
+                      {selectedPlan.painRelief.epidural && (
+                        <Badge variant="secondary" className="bg-pink-100 text-pink-700">
+                          Epidural
+                        </Badge>
+                      )}
+                      {selectedPlan.painRelief.other && (
+                        <Badge variant="secondary" className="bg-pink-100 text-pink-700">
+                          {selectedPlan.painRelief.other}
+                        </Badge>
+                      )}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -678,11 +692,11 @@ export default function BirthPlan() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {selectedPlan.companions?.map((companion, index) => (
-                    <Badge key={index} variant="outline">
-                      {companion}
+                  {selectedPlan.companions && (
+                    <Badge variant="outline">
+                      {selectedPlan.companions}
                     </Badge>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
