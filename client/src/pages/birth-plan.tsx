@@ -388,12 +388,62 @@ export default function BirthPlan() {
 
   const handleGeneratePDF = async (plan: BirthPlan) => {
     try {
-      await generateBirthPlanPDF(plan);
+      // Adaptar os dados do plano para o formato esperado pelo PDF
+      const pdfData = {
+        motherName: "Futura Mamãe", // Padrão quando não temos o nome
+        dueDate: "2026-05-30", // Data padrão da gravidez
+        location: plan.location || "Não especificado",
+        birthType: plan.preferences?.birthType || "Normal",
+        hospital: plan.preferences?.hospital || "Não especificado",
+        doctor: plan.preferences?.doctor || "Não especificado",
+        doula: plan.preferences?.doula || "Não especificado",
+        painRelief: plan.preferences?.painRelief || {
+          natural: true,
+          epidural: false,
+          nitrous: false,
+          massage: false,
+          hydrotherapy: false,
+          other: ""
+        },
+        environment: plan.preferences?.environment || {
+          lighting: "Natural",
+          music: false,
+          aromatherapy: false,
+          personalItems: "",
+          photography: false,
+          videography: false
+        },
+        companions: Array.isArray(plan.companions) ? plan.companions.join(", ") : (plan.companions || "Não especificado"),
+        supportTeam: plan.preferences?.supportTeam || {
+          partner: true,
+          mother: false,
+          doula: false,
+          other: ""
+        },
+        birthPreferences: plan.preferences?.birthPreferences || {
+          position: "Natural",
+          skinToSkin: true,
+          cordClamping: "Após parar de pulsar",
+          placentaDelivery: "Natural"
+        },
+        postBirth: plan.preferences?.postBirth || {
+          breastfeeding: true,
+          rooming: true,
+          eyeOintment: false,
+          vitaminK: true
+        },
+        specialRequests: plan.specialRequests || "",
+        emergencyPreferences: plan.preferences?.emergencyPreferences || "",
+        preferences: plan.preferences || {}
+      };
+      
+      await generateBirthPlanPDF(pdfData);
       toast({
         title: "PDF Gerado!",
         description: "Seu plano de parto foi baixado em PDF.",
       });
     } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
       toast({
         title: "Erro",
         description: "Erro ao gerar PDF do plano de parto.",
