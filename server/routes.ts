@@ -892,10 +892,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/consultations/:id", requireAuth, async (req, res) => {
     try {
-      await storage.updateConsultation(req.params.id, req.body);
+      const userId = req.session.userId!;
+      const sessionId = req.sessionID;
+      const consultationId = req.params.id;
+      
+      console.log("📝 Updating consultation:", consultationId, "with data:", req.body);
+      
+      // Buscar dados antigos para auditoria
+      const oldConsultation = await storage.getConsultationById(consultationId);
+      if (!oldConsultation) {
+        return res.status(404).json({ error: "Consulta não encontrada" });
+      }
+      
+      // Verificar se a consulta pertence ao usuário
+      if (oldConsultation.userId !== userId) {
+        return res.status(403).json({ error: "Não autorizado" });
+      }
+      
+      const updatedConsultation = await storage.updateConsultation(consultationId, req.body);
+      
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        sessionId,
+        'consultations',
+        consultationId,
+        'update',
+        oldConsultation,
+        updatedConsultation,
+        req
+      );
+      
+      console.log("✅ Consultation updated successfully:", updatedConsultation);
+      res.json({ consultation: updatedConsultation });
+    } catch (error) {
+      console.error("❌ Error updating consultation:", error);
+      res.status(500).json({ error: "Failed to update consultation" });
+    }
+  });
+
+  app.delete("/api/consultations/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const sessionId = req.sessionID;
+      const consultationId = req.params.id;
+      
+      console.log("🗑️ Deleting consultation:", consultationId);
+      
+      // Buscar dados para auditoria antes de deletar
+      const consultation = await storage.getConsultationById(consultationId);
+      if (!consultation) {
+        return res.status(404).json({ error: "Consulta não encontrada" });
+      }
+      
+      // Verificar se a consulta pertence ao usuário
+      if (consultation.userId !== userId) {
+        return res.status(403).json({ error: "Não autorizado" });
+      }
+      
+      await storage.deleteConsultation(consultationId);
+      
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        sessionId,
+        'consultations',
+        consultationId,
+        'delete',
+        consultation,
+        null,
+        req
+      );
+      
+      console.log("✅ Consultation deleted successfully");
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ error: "Failed to update consultation" });
+      console.error("❌ Error deleting consultation:", error);
+      res.status(500).json({ error: "Failed to delete consultation" });
     }
   });
 
