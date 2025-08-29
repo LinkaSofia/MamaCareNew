@@ -846,9 +846,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Nenhuma gravidez ativa encontrada" });
       }
       
-      // Adicionar userId e pregnancyId ao corpo da requisição
+      // Adicionar userId e pregnancyId ao corpo da requisição, filtrar campos extras
+      const { type, priority, reminders, preparation, ...validFields } = req.body;
       const consultationData = {
-        ...req.body,
+        ...validFields,
         userId: userId,
         pregnancyId: activePregnancy.id
       };

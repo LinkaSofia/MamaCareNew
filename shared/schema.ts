@@ -229,7 +229,9 @@ export const insertKickCountSchema = createInsertSchema(kickCounts).omit({ id: t
 export const insertWeightRecordSchema = createInsertSchema(weightRecords).omit({ id: true });
 export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true });
 export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
-export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true });
+export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true }).extend({
+  date: z.string().transform((val) => new Date(val)),
+});
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
 export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true });
 export const insertDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id: true });
