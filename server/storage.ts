@@ -1061,6 +1061,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  private async ensureConsultationsTableColumns(): Promise<void> {
+    try {
+      // Adicionar coluna user_id à tabela consultations se não existir
+      await db.execute(sql`ALTER TABLE consultations ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)`);
+      console.log("✅ Consultations table user_id column verified");
+    } catch (error) {
+      console.error("Error ensuring consultations table columns:", error);
+    }
+  }
+
   private async ensureAnalyticsTablesExist(): Promise<void> {
     try {
       // Criar tabela user_analytics
@@ -1132,6 +1142,9 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating analytics tables:", error);
     }
+    
+    // Também garantir que a coluna user_id existe na tabela consultations
+    await this.ensureConsultationsTableColumns();
   }
 
   async logUserAction(actionData: {
