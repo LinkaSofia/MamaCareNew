@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -17,16 +17,13 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-// Criar contexto
 const AuthContext = React.createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Estados locais
   const [userData, setUserData] = React.useState<User | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const queryClient = useQueryClient();
 
-  // Verificar autenticação ao carregar
   React.useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -51,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
-  // Mutation para login
   const loginMutation = useMutation({
     mutationFn: async (params: { email: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/login", params);
@@ -65,7 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  // Mutation para registro
   const registerMutation = useMutation({
     mutationFn: async (params: { email: string; password: string; name: string }) => {
       const response = await apiRequest("POST", "/api/auth/register", params);
@@ -77,7 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  // Mutation para logout
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/auth/logout", {});
@@ -89,7 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  // Funções do contexto
   const login = async (email: string, password: string) => {
     return loginMutation.mutateAsync({ email, password });
   };
@@ -102,7 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return logoutMutation.mutateAsync();
   };
 
-  // Valor do contexto
   const contextValue: AuthContextType = {
     user: userData,
     isLoading,
@@ -111,14 +103,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+  return React.createElement(
+    AuthContext.Provider,
+    { value: contextValue },
+    children
   );
 }
 
-// Hook para usar o contexto
 export function useAuth() {
   const context = React.useContext(AuthContext);
   if (!context) {
