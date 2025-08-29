@@ -16,7 +16,7 @@ import {
   type UserSession, type InsertUserSession, type BabyDevelopment, type InsertBabyDevelopment,
   type AuditLog, type InsertAuditLog, auditLogs
 } from "@shared/schema";
-import { eq, desc, and, sql, count } from "drizzle-orm";
+import { eq, desc, and, sql, count, gt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 
@@ -526,7 +526,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(consultations)
       .where(and(
         eq(consultations.pregnancyId, pregnancyId),
-        sql`${consultations.date} > ${now}`,
+        gt(consultations.date, now),
         eq(consultations.completed, false)
       ))
       .orderBy(consultations.date);
@@ -538,7 +538,7 @@ export class DatabaseStorage implements IStorage {
       const results = await db.select().from(consultations)
         .where(and(
           eq(consultations.userId, userId),
-          sql`${consultations.date} > ${now}`,
+          gt(consultations.date, now),
           eq(consultations.completed, false)
         ))
         .orderBy(consultations.date)
