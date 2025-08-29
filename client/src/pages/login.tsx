@@ -141,10 +141,7 @@ export default function Login() {
           localStorage.removeItem("rememberedEmail");
         }
         await login(formData.email, formData.password);
-        // Redirecionamento manual após login
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 500);
+        // O AuthManager já cuida do redirecionamento
       } else {
         if (!formData.name.trim()) {
           setErrors({ general: "Nome é obrigatório" });

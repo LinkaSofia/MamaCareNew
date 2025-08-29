@@ -17,18 +17,22 @@ class AuthManager {
 
   private async checkAuth() {
     try {
+      console.log("🔍 Checking authentication...");
       const response = await fetch("/api/auth/me", {
         credentials: "include",
+        cache: "no-cache",
       });
       
       if (response.ok) {
         const data = await response.json();
+        console.log("✅ User authenticated:", data);
         this.user = data;
       } else {
+        console.log("❌ User not authenticated");
         this.user = null;
       }
     } catch (error) {
-      console.log("Auth check failed");
+      console.log("❌ Auth check failed:", error);
       this.user = null;
     } finally {
       this.isLoading = false;
@@ -53,8 +57,11 @@ class AuthManager {
     this.user = data.user;
     this.notifyListeners();
     
-    // Não redirecionar automaticamente - deixar o Layout decidir
-    console.log("Login successful, user:", this.user);
+    console.log("✅ Login successful, user:", this.user);
+    // Aguardar um pouco e recarregar a página para garantir estado limpo
+    setTimeout(() => {
+      window.location.reload();
+    }, 200);
   }
 
   async register(email: string, password: string, name: string): Promise<void> {

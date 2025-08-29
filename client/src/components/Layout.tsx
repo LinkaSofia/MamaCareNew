@@ -29,9 +29,8 @@ export function Layout({ children, className }: LayoutProps) {
   
   // Se não está logado e não está em página pública, redirecionar para login
   if (!user && !shouldHideLayout) {
-    setTimeout(() => {
-      window.location.href = '/login';
-    }, 100);
+    console.log("🔄 Redirecting to login - user not authenticated");
+    window.location.href = '/login';
     return null;
   }
 
