@@ -87,15 +87,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
+      <TooltipProvider>
+        <AuthProvider>
           <Toaster />
           <PWAInstallPrompt />
           <div className="App">
             <Router />
           </div>
-        </TooltipProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

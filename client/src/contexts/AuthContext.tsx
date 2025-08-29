@@ -1,6 +1,6 @@
-import React, { createContext, useContext, ReactNode } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface User {
   id: string;
@@ -20,26 +20,33 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [userData, setUserData] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const { data: userData, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/me"],
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
+  // Verificar autenticação ao carregar
+  useEffect(() => {
+    const checkAuth = async () => {
       try {
         const response = await fetch("/api/auth/me", {
           credentials: "include",
         });
-        if (!response.ok) {
-          return null;
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+        } else {
+          setUserData(null);
         }
-        return response.json();
       } catch (error) {
         console.log("Auth check failed, user not authenticated");
-        return null;
+        setUserData(null);
+      } finally {
+        setIsLoading(false);
       }
-    },
-  });
+    };
+
+    checkAuth();
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: async (params: { email: string; password: string; rememberMe?: boolean }) => {
@@ -47,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/me"], data);
+      setUserData(data.user);
       window.location.href = "/"; // Redirecionamento direto
     },
   });
@@ -58,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/me"], data);
+      setUserData(data.user);
       window.location.href = "/pregnancy-setup"; // Redirecionamento direto
     },
   });
@@ -68,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/auth/logout", {});
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/me"], null);
+      setUserData(null);
       queryClient.clear();
       window.location.href = "/login"; // Redirecionamento direto
     },
@@ -87,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const value: AuthContextType = {
-    user: (userData as any)?.user || null,
+    user: userData,
     isLoading,
     login,
     register,
