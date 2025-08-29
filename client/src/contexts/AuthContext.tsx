@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -17,9 +17,11 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
+// Criar contexto
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // Estados locais
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
@@ -31,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await fetch("/api/auth/me", {
           credentials: "include",
         });
+        
         if (response.ok) {
           const data = await response.json();
           setUserData(data);
@@ -48,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
+  // Mutation para login
   const loginMutation = useMutation({
     mutationFn: async (params: { email: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/login", params);
@@ -55,13 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       setUserData(data.user);
-      // Aguardar um pouco para garantir que o estado seja atualizado
       setTimeout(() => {
         window.location.href = "/";
       }, 100);
     },
   });
 
+  // Mutation para registro
   const registerMutation = useMutation({
     mutationFn: async (params: { email: string; password: string; name: string }) => {
       const response = await apiRequest("POST", "/api/auth/register", params);
@@ -69,10 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       setUserData(data.user);
-      window.location.href = "/pregnancy-setup"; // Redirecionamento direto
+      window.location.href = "/pregnancy-setup";
     },
   });
 
+  // Mutation para logout
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/auth/logout", {});
@@ -80,10 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       setUserData(null);
       queryClient.clear();
-      window.location.href = "/login"; // Redirecionamento direto
+      window.location.href = "/login";
     },
   });
 
+  // Funções do contexto
   const login = async (email: string, password: string) => {
     return loginMutation.mutateAsync({ email, password });
   };
@@ -96,7 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return logoutMutation.mutateAsync();
   };
 
-  const value: AuthContextType = {
+  // Valor do contexto
+  const contextValue: AuthContextType = {
     user: userData,
     isLoading,
     login,
@@ -105,12 +112,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 }
 
+// Hook para usar o contexto
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
