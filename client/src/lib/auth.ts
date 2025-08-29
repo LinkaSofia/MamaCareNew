@@ -58,9 +58,9 @@ class AuthManager {
     this.notifyListeners();
     
     console.log("✅ Login successful, user:", this.user);
-    // Aguardar um pouco e recarregar a página para garantir estado limpo
+    // Redirecionar para dashboard diretamente
     setTimeout(() => {
-      window.location.reload();
+      window.location.href = "/";
     }, 200);
   }
 

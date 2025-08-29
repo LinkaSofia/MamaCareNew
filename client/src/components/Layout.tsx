@@ -1,6 +1,7 @@
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { authManager } from '@/lib/auth';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,8 +31,20 @@ export function Layout({ children, className }: LayoutProps) {
   // Se não está logado e não está em página pública, redirecionar para login
   if (!user && !shouldHideLayout) {
     console.log("🔄 Redirecting to login - user not authenticated");
-    window.location.href = '/login';
-    return null;
+    // Usar setTimeout para evitar múltiplos redirecionamentos
+    setTimeout(() => {
+      if (!authManager.getUser()) {
+        window.location.href = '/login';
+      }
+    }, 100);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-blue-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-pink-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecionando...</p>
+        </div>
+      </div>
+    );
   }
 
   if (shouldHideLayout) {
