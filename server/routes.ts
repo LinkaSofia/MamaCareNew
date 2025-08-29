@@ -328,6 +328,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", async (req, res) => {
+    // Headers para evitar cache
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     console.log("🔍 Auth check endpoint - Session:", {
       hasSession: !!req.session,
       userId: req.session?.userId,

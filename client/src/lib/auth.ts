@@ -21,6 +21,11 @@ class AuthManager {
       const response = await fetch("/api/auth/me", {
         credentials: "include",
         cache: "no-cache",
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
       
       if (response.ok) {
@@ -43,7 +48,10 @@ class AuthManager {
   async login(email: string, password: string): Promise<void> {
     const response = await fetch("/api/auth/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      },
       credentials: "include",
       body: JSON.stringify({ email, password }),
     });
@@ -87,11 +95,23 @@ class AuthManager {
     await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
     });
 
     this.user = null;
     this.notifyListeners();
-    window.location.href = "/login";
+    // Limpar cache e forçar reload completo
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => registration.unregister());
+      });
+    }
+    setTimeout(() => {
+      window.location.href = "/login";
+      window.location.reload();
+    }, 100);
   }
 
   getUser(): User | null {

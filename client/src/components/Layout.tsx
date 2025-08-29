@@ -31,12 +31,8 @@ export function Layout({ children, className }: LayoutProps) {
   // Se não está logado e não está em página pública, redirecionar para login
   if (!user && !shouldHideLayout) {
     console.log("🔄 Redirecting to login - user not authenticated");
-    // Usar setTimeout para evitar múltiplos redirecionamentos
-    setTimeout(() => {
-      if (!authManager.getUser()) {
-        window.location.href = '/login';
-      }
-    }, 100);
+    // Forçar redirecionamento imediato sem cache
+    window.location.replace('/login');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-blue-50">
         <div className="text-center">
