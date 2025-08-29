@@ -1,7 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useLocation } from "wouter";
 
 interface User {
   id: string;
@@ -21,7 +20,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [, setLocation] = useLocation();
 
   const { data: userData, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -50,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
-      setLocation("/");
+      window.location.href = "/"; // Redirecionamento direto
     },
   });
 
@@ -61,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
-      setLocation("/pregnancy-setup");
+      window.location.href = "/pregnancy-setup"; // Redirecionamento direto
     },
   });
 
@@ -72,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.setQueryData(["/api/auth/me"], null);
       queryClient.clear();
-      setLocation("/login");
+      window.location.href = "/login"; // Redirecionamento direto
     },
   });
 
