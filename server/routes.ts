@@ -327,11 +327,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/me", requireAuth, async (req, res) => {
+  app.get("/api/auth/me", async (req, res) => {
+    console.log("🔍 Auth check endpoint - Session:", {
+      hasSession: !!req.session,
+      userId: req.session?.userId,
+      sessionId: req.sessionID,
+      cookie: req.session?.cookie
+    });
+    
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
     try {
-      const user = await storage.getUser(req.session.userId!);
+      const user = await storage.getUser(req.session.userId);
       if (!user) {
-        return res.status(404).json({ error: "User not found" });
+        console.log("❌ User not found in database:", req.session.userId);
+        return res.status(401).json({ error: "User not found" });
       }
       console.log("✅ User data found:", { id: user.id, name: user.name, email: user.email });
       res.json({ 
