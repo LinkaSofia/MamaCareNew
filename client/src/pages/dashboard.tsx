@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NextConsultationCard } from "@/components/NextConsultationCard";
 import Baby3D from "@/components/Baby3D";
 import { 
   Bell, 
@@ -306,6 +307,11 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+          
+          {/* Card da próxima consulta */}
+          <div className="mx-4 mt-4">
+            <NextConsultationCard />
+          </div>
         </div>
       </div>
 

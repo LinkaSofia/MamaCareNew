@@ -102,6 +102,7 @@ export const birthPlans = pgTable("birth_plans", {
 
 export const consultations = pgTable("consultations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
   title: text("title").notNull(),
   date: timestamp("date").notNull(),

@@ -825,13 +825,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/consultations/next/user", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const nextConsultation = await storage.getNextConsultation(userId);
+      res.json({ nextConsultation });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get next consultation" });
+    }
+  });
+
   app.post("/api/consultations", requireAuth, async (req, res) => {
     try {
-      const consultationData = insertConsultationSchema.parse(req.body);
-      const consultation = await storage.createConsultation(consultationData);
+      const userId = req.session.userId!;
+      console.log("📅 Creating consultation with data:", req.body);
+      
+      // Buscar gravidez ativa do usuário
+      const activePregnancy = await storage.getActivePregnancy(userId);
+      if (!activePregnancy) {
+        return res.status(400).json({ error: "Nenhuma gravidez ativa encontrada" });
+      }
+      
+      // Adicionar userId e pregnancyId ao corpo da requisição
+      const consultationData = {
+        ...req.body,
+        userId: userId,
+        pregnancyId: activePregnancy.id
+      };
+      
+      const validatedData = insertConsultationSchema.parse(consultationData);
+      console.log("✅ Consultation data validated:", validatedData);
+      
+      const consultation = await storage.createConsultation(validatedData);
+      console.log("✅ Consultation created successfully:", consultation);
+      
       res.json({ consultation });
-    } catch (error) {
-      res.status(400).json({ error: "Invalid consultation data" });
+    } catch (error: any) {
+      console.error("❌ Consultation creation error:", error);
+      if (error.issues) {
+        // Erro de validação Zod
+        const fieldErrors = error.issues.map((issue: any) => ({
+          field: issue.path.join('.'),
+          message: issue.message
+        }));
+        res.status(400).json({ error: "Dados de consulta inválidos", details: fieldErrors });
+      } else {
+        res.status(400).json({ error: "Erro ao criar consulta: " + error.message });
+      }
     }
   });
 

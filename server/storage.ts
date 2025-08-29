@@ -532,6 +532,25 @@ export class DatabaseStorage implements IStorage {
       .orderBy(consultations.date);
   }
 
+  async getNextConsultation(userId: string): Promise<Consultation | null> {
+    try {
+      const now = new Date();
+      const results = await db.select().from(consultations)
+        .where(and(
+          eq(consultations.userId, userId),
+          sql`${consultations.date} > ${now}`,
+          eq(consultations.completed, false)
+        ))
+        .orderBy(consultations.date)
+        .limit(1);
+      
+      return results.length > 0 ? results[0] : null;
+    } catch (error) {
+      console.error("Error getting next consultation:", error);
+      return null;
+    }
+  }
+
   async getShoppingItems(pregnancyId: string): Promise<ShoppingItem[]> {
     return await db.select().from(shoppingItems)
       .where(eq(shoppingItems.pregnancyId, pregnancyId))
