@@ -20,12 +20,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [userData, setUserData] = React.useState<User | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
   // Verificar autenticação ao carregar
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       try {
         const response = await fetch("/api/auth/me", {
