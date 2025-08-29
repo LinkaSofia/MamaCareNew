@@ -817,10 +817,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Consultation routes
   app.get("/api/consultations/:pregnancyId", requireAuth, async (req, res) => {
     try {
+      console.log("📅 Getting consultations for pregnancy ID:", req.params.pregnancyId);
       const consultations = await storage.getConsultations(req.params.pregnancyId);
       const upcoming = await storage.getUpcomingConsultations(req.params.pregnancyId);
+      console.log("📊 Found consultations:", consultations.length, "upcoming:", upcoming.length);
+      console.log("📋 All consultations:", consultations);
+      console.log("⏰ Upcoming consultations:", upcoming);
       res.json({ consultations, upcoming });
     } catch (error) {
+      console.error("❌ Error getting consultations:", error);
       res.status(500).json({ error: "Failed to get consultations" });
     }
   });

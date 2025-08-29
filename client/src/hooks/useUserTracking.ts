@@ -26,7 +26,7 @@ export function useUserTracking(config: TrackingConfig = {}) {
     if (!user?.id || !trackPageViews) return;
     
     try {
-      await apiRequest(`/api/analytics/page-visit`, "POST", {
+      await apiRequest("POST", `/api/analytics/page-visit`, {
         page,
         duration: duration || 0
       });
@@ -40,7 +40,7 @@ export function useUserTracking(config: TrackingConfig = {}) {
     if (!user?.id || !trackClicks) return;
     
     try {
-      await apiRequest(`/api/analytics/action`, "POST", {
+      await apiRequest("POST", `/api/analytics/action`, {
         action,
         page: window.location.pathname,
         element

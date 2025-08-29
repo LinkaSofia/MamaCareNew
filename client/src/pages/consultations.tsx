@@ -128,9 +128,10 @@ export default function Consultations() {
     queryFn: async () => {
       console.log("🔍 Fetching consultations for pregnancy:", pregnancy?.id);
       const response = await apiRequest("GET", `/api/consultations/${pregnancy?.id}`);
-      console.log("📅 Consultations API response:", response);
-      const allConsultations = response.consultations || [];
-      const upcoming = response.upcoming || [];
+      const json = await response.json();
+      console.log("📅 Consultations JSON response:", json);
+      const allConsultations = json.consultations || [];
+      const upcoming = json.upcoming || [];
       
       console.log("📋 All consultations:", allConsultations.length);
       console.log("⏰ Upcoming consultations:", upcoming.length);
