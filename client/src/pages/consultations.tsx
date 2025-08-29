@@ -126,10 +126,14 @@ export default function Consultations() {
     queryKey: ["/api/consultations", pregnancy?.id],
     enabled: !!pregnancy,
     queryFn: async () => {
+      console.log("🔍 Fetching consultations for pregnancy:", pregnancy?.id);
       const response = await apiRequest("GET", `/api/consultations/${pregnancy?.id}`);
+      console.log("📅 Consultations API response:", response);
       const allConsultations = response.consultations || [];
-      const upcomingResponse = await apiRequest("GET", `/api/consultations/upcoming/${pregnancy?.id}`);
-      const upcoming = upcomingResponse.consultations || [];
+      const upcoming = response.upcoming || [];
+      
+      console.log("📋 All consultations:", allConsultations.length);
+      console.log("⏰ Upcoming consultations:", upcoming.length);
       
       return {
         consultations: allConsultations,
@@ -274,6 +278,9 @@ export default function Consultations() {
   const consultations = consultationsData?.consultations || [];
   const upcoming = consultationsData?.upcoming || [];
   const suggestions = getSuggestedConsultations();
+
+  console.log("📊 Rendered consultations count:", consultations.length);
+  console.log("🔮 Rendered upcoming count:", upcoming.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
