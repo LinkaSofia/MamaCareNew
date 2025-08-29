@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -12,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -20,12 +20,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [userData, setUserData] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
   const queryClient = useQueryClient();
 
   // Verificar autenticação ao carregar
-  useEffect(() => {
+  React.useEffect(() => {
     const checkAuth = async () => {
       try {
         const response = await fetch("/api/auth/me", {
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loginMutation = useMutation({
-    mutationFn: async (params: { email: string; password: string; rememberMe?: boolean }) => {
+    mutationFn: async (params: { email: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/login", params);
       return response.json();
     },
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (params: { email: string; password: string; name: string; birthDate?: string }) => {
+    mutationFn: async (params: { email: string; password: string; name: string }) => {
       const response = await apiRequest("POST", "/api/auth/register", params);
       return response.json();
     },
@@ -84,12 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const login = async (email: string, password: string, rememberMe?: boolean) => {
-    return loginMutation.mutateAsync({ email, password, rememberMe });
+  const login = async (email: string, password: string) => {
+    return loginMutation.mutateAsync({ email, password });
   };
 
-  const register = async (email: string, password: string, name: string, birthDate?: string) => {
-    return registerMutation.mutateAsync({ email, password, name, birthDate });
+  const register = async (email: string, password: string, name: string) => {
+    return registerMutation.mutateAsync({ email, password, name });
   };
 
   const logout = async () => {
@@ -104,10 +104,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export function useAuth(): AuthContextType {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
