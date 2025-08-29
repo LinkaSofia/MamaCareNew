@@ -29,7 +29,9 @@ export function Layout({ children, className }: LayoutProps) {
   
   // Se não está logado e não está em página pública, redirecionar para login
   if (!user && !shouldHideLayout) {
-    window.location.href = '/login';
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
     return null;
   }
 

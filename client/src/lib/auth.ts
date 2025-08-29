@@ -53,9 +53,8 @@ class AuthManager {
     this.user = data.user;
     this.notifyListeners();
     
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 100);
+    // Não redirecionar automaticamente - deixar o Layout decidir
+    console.log("Login successful, user:", this.user);
   }
 
   async register(email: string, password: string, name: string): Promise<void> {
