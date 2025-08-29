@@ -26,7 +26,7 @@ import Symptoms from "@/pages/symptoms";
 import Medications from "@/pages/medications";
 import Community from "@/pages/community";
 import Profile from "@/pages/profile";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/hooks/useAuth";
 
 function Router() {
   return (

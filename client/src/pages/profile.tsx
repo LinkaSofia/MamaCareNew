@@ -1,6 +1,6 @@
 import { useState } from "react";
 import * as React from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { usePregnancy } from "@/hooks/use-pregnancy";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

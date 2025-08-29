@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { usePregnancy } from "@/hooks/use-pregnancy";
 import { useBabyDevelopment } from "@/hooks/use-baby-development";
 import { useLocation } from "wouter";

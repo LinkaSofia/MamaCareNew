@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Activity, Clock, MousePointer, Eye } from "lucide-react";
 import { useLocation } from "wouter";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AnalyticsData {
   id: string;
