@@ -825,6 +825,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/consultations/upcoming/:pregnancyId", requireAuth, async (req, res) => {
+    try {
+      const consultations = await storage.getUpcomingConsultations(req.params.pregnancyId);
+      res.json({ consultations });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get upcoming consultations" });
+    }
+  });
+
   app.get("/api/consultations/next/user", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;

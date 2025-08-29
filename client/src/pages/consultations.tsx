@@ -125,59 +125,16 @@ export default function Consultations() {
   const { data: consultationsData, isLoading } = useQuery<ConsultationsData>({
     queryKey: ["/api/consultations", pregnancy?.id],
     enabled: !!pregnancy,
-    queryFn: () => {
-      // Mock data for now - replace with actual API call
-      const now = new Date();
-      const mockData: ConsultationsData = {
-        consultations: [
-          {
-            id: '1',
-            title: 'Consulta Pré-natal - 1º Trimestre',
-            date: addDays(now, 3).toISOString(),
-            location: 'Hospital Materno',
-            doctorName: 'Dra. Maria Silva',
-            notes: 'Levar exames anteriores',
-            completed: false,
-            type: 'prenatal',
-            priority: 'high',
-            reminders: true,
-            preparation: ['Jejum de 8h', 'Levar cartão de vacina', 'Lista de medicamentos']
-          },
-          {
-            id: '2',
-            title: 'Ultrassom Morfológico',
-            date: addDays(now, 7).toISOString(),
-            location: 'Clínica Ultrassom',
-            doctorName: 'Dr. João Santos',
-            notes: 'Beber água antes do exame',
-            completed: false,
-            type: 'ultrasound',
-            priority: 'medium',
-            reminders: true,
-            preparation: ['Beber 1L de água 1h antes', 'Não urinar antes do exame']
-          },
-          {
-            id: '3',
-            title: 'Exames de Sangue',
-            date: addDays(now, -7).toISOString(),
-            location: 'Laboratório Central',
-            doctorName: '',
-            notes: 'Jejum 12h',
-            completed: true,
-            type: 'exam',
-            priority: 'low',
-            reminders: false
-          }
-        ],
-        upcoming: []
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/consultations/${pregnancy?.id}`);
+      const allConsultations = response.consultations || [];
+      const upcomingResponse = await apiRequest("GET", `/api/consultations/upcoming/${pregnancy?.id}`);
+      const upcoming = upcomingResponse.consultations || [];
+      
+      return {
+        consultations: allConsultations,
+        upcoming: upcoming
       };
-      
-      // Filter upcoming consultations
-      mockData.upcoming = mockData.consultations.filter(c => 
-        isFuture(parseISO(c.date)) && !c.completed
-      );
-      
-      return Promise.resolve(mockData);
     },
   });
 
