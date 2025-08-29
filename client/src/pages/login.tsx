@@ -140,13 +140,13 @@ export default function Login() {
           localStorage.removeItem("rememberMe");
           localStorage.removeItem("rememberedEmail");
         }
-        await login(formData.email, formData.password, rememberMe);
+        await login(formData.email, formData.password);
       } else {
         if (!formData.name.trim()) {
           setErrors({ general: "Nome é obrigatório" });
           return;
         }
-        await register(formData.email, formData.password, formData.name, formData.birthDate);
+        await register(formData.email, formData.password, formData.name);
       }
     } catch (error: any) {
       console.log("Login/Register error:", error);

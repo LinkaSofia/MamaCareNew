@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -55,7 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       setUserData(data.user);
-      window.location.href = "/"; // Redirecionamento direto
+      // Aguardar um pouco para garantir que o estado seja atualizado
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
     },
   });
 
