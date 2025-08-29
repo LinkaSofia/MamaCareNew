@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -18,16 +18,16 @@ interface AuthContextType {
 }
 
 // Criar contexto
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = React.createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Estados locais
-  const [userData, setUserData] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
   const queryClient = useQueryClient();
 
   // Verificar autenticação ao carregar
-  useEffect(() => {
+  React.useEffect(() => {
     const checkAuth = async () => {
       try {
         const response = await fetch("/api/auth/me", {
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 // Hook para usar o contexto
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context = React.useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
