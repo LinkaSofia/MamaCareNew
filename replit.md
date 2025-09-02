@@ -20,8 +20,9 @@ Preferred communication style: Simple, everyday language.
   - Sistema permite adicionar imagens para todas as semanas de desenvolvimento
 - **APIs criadas para gerenciamento de imagens**:
   - POST /api/baby-development/add-image-field - Adiciona campo fruit_image_url
-  - POST /api/baby-development/set-week1-image - Insere imagem da semana 1
-  - GET /api/baby-development/week1-check - Verifica dados inseridos
+  - POST /api/baby-development/update-week1-image - Grão de areia (semana 1)
+  - POST /api/baby-development/update-week2-image - Alfinete (semana 2)
+  - POST /api/baby-development/update-week3-image - Sementes de chia (semana 3)
   - Sistema escalável para adicionar imagens de todas as semanas gestacionais
 
 ## Complete User Activity Logging System Implemented (August 27, 2025)
