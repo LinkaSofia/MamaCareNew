@@ -6,6 +6,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add cache control headers to prevent caching issues in development
+app.use((req, res, next) => {
+  if (app.get("env") === "development") {
+    // Disable caching for all requests in development
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
+    
+    // Add etag headers to help with cache invalidation
+    res.set('Etag', `"${Date.now()}"`);
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
