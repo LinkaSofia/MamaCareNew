@@ -14,8 +14,8 @@ Preferred communication style: Simple, everyday language.
   - Campo adicionado automaticamente via ALTER TABLE no banco PostgreSQL
   - Sistema funciona com imagens anexadas via @assets/filename.extension
 - **Implementação da semana 1 (grão de areia)**:
-  - Imagem do grão de areia inserida no banco para semana 1
-  - URL da imagem: @assets/image_1756824586979.png
+  - Imagem do grão de areia atualizada no banco para semana 1
+  - URL da imagem: @assets/image_1756832217955.png
   - Dados completos incluem: tamanho, peso, comparação e descrições
   - Sistema permite adicionar imagens para todas as semanas de desenvolvimento
 - **APIs criadas para gerenciamento de imagens**:

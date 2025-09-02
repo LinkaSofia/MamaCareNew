@@ -39,16 +39,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Inserir imagem do grão de areia para semana 1 - NOVA VERSÃO
-  app.post("/api/baby-development/insert-sand-grain", async (req, res) => {
+  // Atualizar imagem para nova imagem do grão de areia
+  app.post("/api/baby-development/update-week1-image", async (req, res) => {
     try {
-      console.log("🌾 Inserindo grão de areia para semana 1...");
+      console.log("🌾 Atualizando imagem do grão de areia para semana 1...");
       
-      const imageUrl = "@assets/image_1756824586979.png";
+      const imageUrl = "@assets/image_1756832217955.png";
       
       await db.execute(sql`UPDATE baby_development SET fruit_image_url = ${imageUrl} WHERE week = 1`);
       
-      console.log("✅ Grão de areia inserido!");
+      console.log("✅ Nova imagem do grão de areia inserida!");
       res.json({ success: true, imageUrl });
     } catch (error: any) {
       console.error("❌ Erro:", error);
