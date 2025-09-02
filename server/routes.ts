@@ -56,6 +56,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Inserir imagem do alfinete para semana 2
+  app.post("/api/baby-development/update-week2-image", async (req, res) => {
+    try {
+      console.log("📌 Inserindo imagem do alfinete para semana 2...");
+      
+      const imageUrl = "@assets/image_1756835392919.png";
+      
+      await db.execute(sql`UPDATE baby_development SET fruit_image_url = ${imageUrl} WHERE week = 2`);
+      
+      console.log("✅ Imagem do alfinete inserida!");
+      res.json({ success: true, imageUrl });
+    } catch (error: any) {
+      console.error("❌ Erro:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Verificar se imagem foi inserida
   app.get("/api/baby-development/check-week1", async (req, res) => {
     try {
