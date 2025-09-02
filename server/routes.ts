@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import FileStore from "session-file-store";
@@ -54,70 +54,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "melancia": "@assets/image_1756824586979.png" // Reutilizando temporariamente
   };
 
-  // Endpoint para inserir todas as imagens automaticamente
+  // Endpoint para inserir todas as imagens automaticamente usando SQL direto
   app.post("/api/baby-development/auto-insert-images", async (req, res) => {
     try {
-      console.log("🖼️ Inserindo imagens automaticamente baseadas nas comparações...");
+      console.log("🖼️ Inserindo imagens automaticamente usando SQL direto...");
       
-      const comparisons = await db.select({
-        week: babyDevelopment.week,
-        fruitComparison: babyDevelopment.fruit_comparison,
-        fruitImageUrl: babyDevelopment.fruit_image_url
-      }).from(babyDevelopment).orderBy(babyDevelopment.week);
-
+      // Inserir imagens usando SQL direto baseado no mapeamento
+      const imageUpdates = [
+        { comparison: 'grão de areia', week: 1, image: '@assets/image_1756832217955.png' },
+        { comparison: 'alfinete', week: 2, image: '@assets/image_1756835392919.png' },
+        { comparison: 'sementes de chia', week: 3, image: '@assets/image_1756836492028.png' },
+        { comparison: 'semente de papoula', week: 4, image: '@assets/image_1756836335355.png' },
+        { comparison: 'framboesa', week: 8, image: '@assets/image_1756836383444.png' },
+        { comparison: 'lima', week: 12, image: '@assets/image_1756495025464.png' },
+        { comparison: 'banana', week: 20, image: '@assets/image_1756821728303.png' },
+        { comparison: 'milho', week: 24, image: '@assets/image_1756824586979.png' },
+        { comparison: 'berinjela', week: 28, image: '@assets/image_1756831278946.png' }
+      ];
+      
       const results = [];
       
-      for (const item of comparisons) {
-        const comparison = item.fruitComparison?.toLowerCase() || '';
-        let imageUrl = null;
-        
-        // Buscar a imagem correspondente no mapeamento
-        for (const [key, value] of Object.entries(fruitImageMapping)) {
-          if (comparison.includes(key)) {
-            imageUrl = value;
-            break;
-          }
-        }
-        
-        if (imageUrl && !item.fruitImageUrl) {
-          // Inserir a imagem apenas se não existir uma já
+      for (const update of imageUpdates) {
+        try {
           await db.execute(sql`
             UPDATE baby_development 
-            SET fruit_image_url = ${imageUrl} 
-            WHERE week = ${item.week}
+            SET fruit_image_url = ${update.image}
+            WHERE week = ${update.week}
           `);
           
           results.push({
-            week: item.week,
-            comparison: item.fruitComparison,
-            imageUrl,
+            week: update.week,
+            comparison: update.comparison,
+            imageUrl: update.image,
             status: 'inserted'
           });
-          console.log(`✅ Semana ${item.week} (${item.fruitComparison}): ${imageUrl}`);
-        } else if (item.fruitImageUrl) {
+          
+          console.log(`✅ Semana ${update.week} (${update.comparison}): ${update.image}`);
+        } catch (error) {
+          console.error(`❌ Erro na semana ${update.week}:`, error);
           results.push({
-            week: item.week,
-            comparison: item.fruitComparison,
-            imageUrl: item.fruitImageUrl,
-            status: 'already_exists'
-          });
-        } else {
-          results.push({
-            week: item.week,
-            comparison: item.fruitComparison,
+            week: update.week,
+            comparison: update.comparison,
             imageUrl: null,
-            status: 'no_image_found'
+            status: 'error'
           });
         }
       }
       
       res.json({ 
         success: true, 
-        message: "Imagens inseridas automaticamente!",
+        message: "Processo de inserção concluído!",
         results 
       });
     } catch (error: any) {
-      console.error("❌ Erro ao inserir imagens:", error);
+      console.error("❌ Erro geral:", error);
       res.status(500).json({ error: error.message });
     }
   });

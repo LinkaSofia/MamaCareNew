@@ -176,11 +176,37 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                 )}
                 
                 {development?.fruit_comparison && (
-                  <div className="flex items-center bg-pink-50 p-3 rounded-lg">
-                    <Apple className="h-5 w-5 text-pink-500 mr-2" />
-                    <span className="text-gray-700" data-testid="text-baby-comparison">
-                      Tamanho de {development.fruit_comparison}
-                    </span>
+                  <div className="bg-gradient-to-r from-pink-50 via-purple-50 to-pink-50 p-4 rounded-xl border border-pink-100 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center flex-1">
+                        <div className="bg-white p-2 rounded-lg shadow-sm mr-4">
+                          {development.fruit_image_url ? (
+                            <img 
+                              src={development.fruit_image_url.replace('@assets/', '/attached_assets/')} 
+                              alt={`Tamanho de ${development.fruit_comparison}`}
+                              className="h-12 w-12 object-contain"
+                              data-testid="img-fruit-comparison"
+                            />
+                          ) : (
+                            <Apple className="h-12 w-12 text-pink-400" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-600 mb-1">
+                            Comparação de tamanho
+                          </div>
+                          <div className="font-semibold text-gray-800" data-testid="text-baby-comparison">
+                            Tamanho de {development.fruit_comparison}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-gray-500">Semana {weekInfo.week}</div>
+                        <div className="text-sm font-medium text-purple-600">
+                          {development.size}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -223,6 +249,38 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
+                {/* Size Comparison Card at top of Baby tab */}
+                {development?.fruit_comparison && (
+                  <div className="mb-6 bg-gradient-to-r from-pink-50 via-white to-purple-50 p-5 rounded-2xl border border-pink-100 shadow-lg">
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold text-gray-800 mb-3">
+                        Seu bebê está do tamanho de
+                      </h3>
+                      <div className="flex flex-col items-center">
+                        <div className="bg-white p-6 rounded-full shadow-lg mb-4">
+                          {development.fruit_image_url ? (
+                            <img 
+                              src={development.fruit_image_url.replace('@assets/', '/attached_assets/')} 
+                              alt={`Tamanho de ${development.fruit_comparison}`}
+                              className="h-20 w-20 object-contain"
+                              data-testid="img-fruit-comparison-large"
+                            />
+                          ) : (
+                            <Apple className="h-20 w-20 text-pink-400" />
+                          )}
+                        </div>
+                        <div className="text-xl font-bold text-purple-700 mb-2">
+                          {development.fruit_comparison}
+                        </div>
+                        <div className="flex gap-4 text-sm text-gray-600">
+                          <span><strong>Tamanho:</strong> {development.size}</span>
+                          <span><strong>Peso:</strong> {development.weight}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {development?.baby_description && (
                   <div className="mb-4 p-4 bg-pink-50 rounded-lg">
                     <p className="text-gray-700">{development.baby_description}</p>
