@@ -21,6 +21,98 @@ declare module "express-session" {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Rota para adicionar campo fruit_image_url na tabela baby_development
+  app.post("/api/baby-development/add-image-field", async (req, res) => {
+    try {
+      console.log("🖼️ Adicionando campo fruit_image_url na tabela baby_development...");
+      
+      await db.execute(sql`
+        ALTER TABLE baby_development 
+        ADD COLUMN IF NOT EXISTS fruit_image_url TEXT;
+      `);
+      
+      console.log("✅ Campo fruit_image_url adicionado com sucesso!");
+      res.json({ success: true, message: "Campo adicionado!" });
+    } catch (error) {
+      console.error("❌ Erro ao adicionar campo:", error);
+      res.status(500).json({ error: "Erro ao adicionar campo", details: error.message });
+    }
+  });
+
+  // Rota para inserir imagem da semana 1 (grão de areia)
+  app.post("/api/baby-development/set-week1-image", async (req, res) => {
+    try {
+      console.log("🌾 Inserindo imagem do grão de areia para semana 1...");
+      
+      // URL da imagem anexada (grão de areia)
+      const imageUrl = "@assets/image_1756824586979.png";
+      
+      await db.execute(sql`
+        UPDATE baby_development 
+        SET fruit_image_url = ${imageUrl}
+        WHERE week = 1;
+      `);
+      
+      // Se a semana 1 não existir, criar o registro
+      const weekExists = await db.execute(sql`
+        SELECT id FROM baby_development WHERE week = 1 LIMIT 1;
+      `);
+      
+      if (!weekExists.rows.length) {
+        await db.execute(sql`
+          INSERT INTO baby_development (week, size, weight, fruit_comparison, fruit_image_url, development_milestones_baby, development_milestones_mom, baby_description, mom_description, length_cm, weight_grams)
+          VALUES (
+            1, 
+            'Muito pequeno, menor que 1mm', 
+            'Menos de 1 grama', 
+            'Grão de areia',
+            ${imageUrl},
+            'Implantação do óvulo fertilizado no útero',
+            'Possíveis primeiros sintomas de gravidez',
+            'O bebê ainda é uma pequena célula se desenvolvendo',
+            'Você pode começar a sentir os primeiros sinais da gravidez',
+            0.1,
+            0.001
+          );
+        `);
+      }
+      
+      console.log("✅ Imagem da semana 1 inserida com sucesso!");
+      res.json({ success: true, message: "Imagem do grão de areia inserida para semana 1!", imageUrl });
+    } catch (error) {
+      console.error("❌ Erro ao inserir imagem:", error);
+      res.status(500).json({ error: "Erro ao inserir imagem", details: error.message });
+    }
+  });
+
+  // Rota para verificar dados da semana 1 (incluindo imagem)
+  app.get("/api/baby-development/week1-check", async (req, res) => {
+    try {
+      console.log("🔍 Verificando dados da semana 1...");
+      
+      const result = await db.execute(sql`
+        SELECT week, fruit_comparison, fruit_image_url, baby_description
+        FROM baby_development 
+        WHERE week = 1 
+        LIMIT 1;
+      `);
+      
+      if (result.rows.length > 0) {
+        console.log("✅ Dados da semana 1 encontrados:", result.rows[0]);
+        res.json({ 
+          success: true, 
+          data: result.rows[0],
+          message: "Semana 1 com imagem do grão de areia inserida!"
+        });
+      } else {
+        res.json({ success: false, message: "Dados da semana 1 não encontrados" });
+      }
+    } catch (error) {
+      console.error("❌ Erro ao verificar semana 1:", error);
+      res.status(500).json({ error: "Erro ao verificar dados", details: error.message });
+    }
+  });
+
   // Rota de teste simples SEM autenticação
   app.get("/api/test-simple", (req, res) => {
     res.json({ message: "Test endpoint working!" });

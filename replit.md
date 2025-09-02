@@ -8,6 +8,22 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## Sistema de Imagens para Desenvolvimento do Bebê Implementado (Setembro 02, 2025)
+- **Campo fruit_image_url adicionado à tabela baby_development**:
+  - Novo campo para armazenar URLs de imagens das frutas/grãos de comparação
+  - Campo adicionado automaticamente via ALTER TABLE no banco PostgreSQL
+  - Sistema funciona com imagens anexadas via @assets/filename.extension
+- **Implementação da semana 1 (grão de areia)**:
+  - Imagem do grão de areia inserida no banco para semana 1
+  - URL da imagem: @assets/image_1756824586979.png
+  - Dados completos incluem: tamanho, peso, comparação e descrições
+  - Sistema permite adicionar imagens para todas as semanas de desenvolvimento
+- **APIs criadas para gerenciamento de imagens**:
+  - POST /api/baby-development/add-image-field - Adiciona campo fruit_image_url
+  - POST /api/baby-development/set-week1-image - Insere imagem da semana 1
+  - GET /api/baby-development/week1-check - Verifica dados inseridos
+  - Sistema escalável para adicionar imagens de todas as semanas gestacionais
+
 ## Complete User Activity Logging System Implemented (August 27, 2025)
 - **Analytics tables successfully created in Supabase database**:
   - `user_analytics` - Tracks all user actions, clicks, page views, timestamps
