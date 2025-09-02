@@ -13,16 +13,16 @@ Preferred communication style: Simple, everyday language.
   - Novo campo para armazenar URLs de imagens das frutas/grãos de comparação
   - Campo adicionado automaticamente via ALTER TABLE no banco PostgreSQL
   - Sistema funciona com imagens anexadas via @assets/filename.extension
-- **Implementação da semana 1 (grão de areia)**:
-  - Imagem do grão de areia atualizada no banco para semana 1
-  - URL da imagem: @assets/image_1756832217955.png
-  - Dados completos incluem: tamanho, peso, comparação e descrições
-  - Sistema permite adicionar imagens para todas as semanas de desenvolvimento
+- **Sistema automatizado de inserção de imagens realistas**:
+  - Mapeamento completo de frutas/objetos para imagens sem fundo
+  - Endpoint POST /api/baby-development/auto-insert-images para inserção automática
+  - Sistema busca comparações no banco e associa imagens correspondentes
+  - Imagens realistas incluem: grão de areia, alfinete, chia, papoula, framboesa, lima, limão, banana, milho, berinjela
 - **APIs criadas para gerenciamento de imagens**:
   - POST /api/baby-development/add-image-field - Adiciona campo fruit_image_url
-  - POST /api/baby-development/update-week1-image - Grão de areia (semana 1)
-  - POST /api/baby-development/update-week2-image - Alfinete (semana 2)
-  - POST /api/baby-development/update-week3-image - Sementes de chia (semana 3)
+  - POST /api/baby-development/auto-insert-images - Sistema automatizado completo
+  - GET /api/public/baby-development/comparisons - Visualizar comparações (sem autenticação)
+  - Endpoints individuais para semanas específicas (1, 2, 3) mantidos para compatibilidade
   - Sistema escalável para adicionar imagens de todas as semanas gestacionais
 
 ## Complete User Activity Logging System Implemented (August 27, 2025)

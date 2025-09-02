@@ -21,6 +21,107 @@ declare module "express-session" {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Endpoint público para verificar comparações (sem auth)
+  app.get("/api/public/baby-development/comparisons", async (req, res) => {
+    try {
+      const result = await db.select({
+        week: babyDevelopment.week,
+        fruitComparison: babyDevelopment.fruit_comparison,
+        fruitImageUrl: babyDevelopment.fruit_image_url
+      }).from(babyDevelopment).orderBy(babyDevelopment.week);
+      
+      res.json({ success: true, comparisons: result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Mapeamento de imagens realistas baseadas nas comparações
+  const fruitImageMapping = {
+    "grão de areia": "@assets/image_1756832217955.png",
+    "alfinete": "@assets/image_1756835392919.png", 
+    "sementes de chia": "@assets/image_1756836492028.png",
+    "semente de papoula": "@assets/image_1756836335355.png",
+    "framboesa": "@assets/image_1756836383444.png",
+    "lima": "@assets/image_1756495025464.png",
+    "limão": "@assets/image_1756495589484.png",
+    "banana": "@assets/image_1756821728303.png",
+    "milho": "@assets/image_1756824586979.png",
+    "berinjela": "@assets/image_1756831278946.png",
+    "coco": "@assets/image_1756836492028.png", // Reutilizando temporariamente
+    "abacaxi": "@assets/image_1756836383444.png", // Reutilizando temporariamente
+    "melancia pequena": "@assets/image_1756821728303.png", // Reutilizando temporariamente
+    "melancia": "@assets/image_1756824586979.png" // Reutilizando temporariamente
+  };
+
+  // Endpoint para inserir todas as imagens automaticamente
+  app.post("/api/baby-development/auto-insert-images", async (req, res) => {
+    try {
+      console.log("🖼️ Inserindo imagens automaticamente baseadas nas comparações...");
+      
+      const comparisons = await db.select({
+        week: babyDevelopment.week,
+        fruitComparison: babyDevelopment.fruit_comparison,
+        fruitImageUrl: babyDevelopment.fruit_image_url
+      }).from(babyDevelopment).orderBy(babyDevelopment.week);
+
+      const results = [];
+      
+      for (const item of comparisons) {
+        const comparison = item.fruitComparison?.toLowerCase() || '';
+        let imageUrl = null;
+        
+        // Buscar a imagem correspondente no mapeamento
+        for (const [key, value] of Object.entries(fruitImageMapping)) {
+          if (comparison.includes(key)) {
+            imageUrl = value;
+            break;
+          }
+        }
+        
+        if (imageUrl && !item.fruitImageUrl) {
+          // Inserir a imagem apenas se não existir uma já
+          await db.execute(sql`
+            UPDATE baby_development 
+            SET fruit_image_url = ${imageUrl} 
+            WHERE week = ${item.week}
+          `);
+          
+          results.push({
+            week: item.week,
+            comparison: item.fruitComparison,
+            imageUrl,
+            status: 'inserted'
+          });
+          console.log(`✅ Semana ${item.week} (${item.fruitComparison}): ${imageUrl}`);
+        } else if (item.fruitImageUrl) {
+          results.push({
+            week: item.week,
+            comparison: item.fruitComparison,
+            imageUrl: item.fruitImageUrl,
+            status: 'already_exists'
+          });
+        } else {
+          results.push({
+            week: item.week,
+            comparison: item.fruitComparison,
+            imageUrl: null,
+            status: 'no_image_found'
+          });
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Imagens inseridas automaticamente!",
+        results 
+      });
+    } catch (error: any) {
+      console.error("❌ Erro ao inserir imagens:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Rota para adicionar campo fruit_image_url na tabela baby_development
   app.post("/api/baby-development/add-image-field", async (req, res) => {
     try {
@@ -90,18 +191,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Verificar imagens inseridas (semanas 1, 2 e 3)
-  app.get("/api/baby-development/check-images", async (req, res) => {
+  // Verificar todas as comparações de frutas no banco (sem auth para debug)
+  app.get("/api/baby-development/all-comparisons", async (req, res) => {
     try {
       const result = await db.select({
         week: babyDevelopment.week,
         fruitComparison: babyDevelopment.fruit_comparison,
         fruitImageUrl: babyDevelopment.fruit_image_url
-      }).from(babyDevelopment).where(
-        sql`week IN (1, 2, 3)`
-      ).orderBy(babyDevelopment.week);
+      }).from(babyDevelopment).orderBy(babyDevelopment.week);
       
-      res.json({ success: true, images: result });
+      res.json({ success: true, comparisons: result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
