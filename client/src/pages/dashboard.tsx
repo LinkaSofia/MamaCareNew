@@ -41,6 +41,9 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("baby");
   const [, setLocation] = useLocation();
 
+  // Extrair dados do desenvolvimento para usar no dashboard
+  const development = developmentData?.developmentData;
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -101,8 +104,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const development = developmentData?.developmentData;
 
   // Processar informações como texto corrido
   const getBabyText = (text: string | string[]): string => {
