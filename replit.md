@@ -49,6 +49,7 @@ Preferred communication style: Simple, everyday language.
   - Interface now uses only page-based navigation through dashboard
   - All features accessible through grid-based colored buttons on main dashboard page
   - Clean, sidebar-free interface optimized for mobile-first experience
+  - Analytics menu item removed from user interface (September 02, 2025)
 - **Weight tracking system rebuilt**:
   - Fixed weight registration with new weight_entries table
   - Added proper date field to weight registration form
