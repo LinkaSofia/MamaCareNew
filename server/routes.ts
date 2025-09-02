@@ -90,20 +90,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Verificar se imagem foi inserida
-  app.get("/api/baby-development/check-week1", async (req, res) => {
+  // Verificar imagens inseridas (semanas 1, 2 e 3)
+  app.get("/api/baby-development/check-images", async (req, res) => {
     try {
       const result = await db.select({
         week: babyDevelopment.week,
         fruitComparison: babyDevelopment.fruit_comparison,
         fruitImageUrl: babyDevelopment.fruit_image_url
-      }).from(babyDevelopment).where(eq(babyDevelopment.week, 1));
+      }).from(babyDevelopment).where(
+        sql`week IN (1, 2, 3)`
+      ).orderBy(babyDevelopment.week);
       
-      if (result.length > 0) {
-        res.json({ success: true, data: result[0] });
-      } else {
-        res.json({ success: false, message: "Semana 1 não encontrada" });
-      }
+      res.json({ success: true, images: result });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
