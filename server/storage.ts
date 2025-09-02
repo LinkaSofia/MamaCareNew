@@ -1440,6 +1440,10 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getAllMedicalArticles(): Promise<MedicalArticle[]> {
+    return await db.select().from(medicalArticles).where(eq(medicalArticles.isActive, true));
+  }
+
   // Garantir que a tabela de artigos médicos existe
   async ensureMedicalArticlesTableExists() {
     try {

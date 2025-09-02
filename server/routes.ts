@@ -20,6 +20,12 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Rota de teste simples SEM autenticação
+  app.get("/api/test-simple", (req, res) => {
+    res.json({ message: "Test endpoint working!" });
+  });
+
   // File-based session storage para persistir sessões
   const FileStoreSession = FileStore(session);
   
@@ -1351,19 +1357,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rota para popular artigos médicos
-  app.post("/api/medical-articles/seed", requireAuth, async (req, res) => {
+  // Rota para inicializar tabela de artigos médicos
+  app.post("/api/medical-articles/init", async (req, res) => {
     try {
-      // Garantir que a tabela existe primeiro
-      await storage.ensureMedicalArticlesTableExists();
+      console.log("🏥 Inicializando tabela de artigos médicos...");
       
-      const { seedMedicalArticles } = await import("./seed-medical-articles");
-      const success = await seedMedicalArticles();
+      // Criar tabela diretamente
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS medical_articles (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          week INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          summary TEXT NOT NULL,
+          content TEXT NOT NULL,
+          source TEXT NOT NULL,
+          source_url TEXT,
+          category TEXT NOT NULL,
+          importance TEXT NOT NULL DEFAULT 'medium',
+          reading_time INTEGER DEFAULT 5,
+          tags JSONB DEFAULT '[]'::jsonb,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+      
+      console.log("✅ Tabela medical_articles criada com sucesso!");
+      res.json({ success: true, message: "Tabela inicializada!" });
+    } catch (error) {
+      console.error("❌ Erro ao criar tabela:", error);
+      res.status(500).json({ error: "Erro ao inicializar tabela" });
+    }
+  });
+
+  // Rota para popular artigos médicos principais
+  app.post("/api/medical-articles/seed", async (req, res) => {
+    try {
+      // Primeiro inicializar a tabela
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS medical_articles (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          week INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          summary TEXT NOT NULL,
+          content TEXT NOT NULL,
+          source TEXT NOT NULL,
+          source_url TEXT,
+          category TEXT NOT NULL,
+          importance TEXT NOT NULL DEFAULT 'medium',
+          reading_time INTEGER DEFAULT 5,
+          tags JSONB DEFAULT '[]'::jsonb,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+      
+      console.log("📝 Populando artigos principais para tela inicial...");
+      
+      const { populateMainArticles } = await import("./populate-main-articles");
+      const success = await populateMainArticles();
       
       if (success) {
-        res.json({ success: true, message: "Artigos médicos populados com sucesso!" });
+        res.json({ success: true, message: "Artigos principais inseridos na tela principal!" });
       } else {
-        res.status(500).json({ error: "Erro ao popular artigos médicos" });
+        res.status(500).json({ error: "Erro ao popular artigos principais" });
       }
     } catch (error) {
       console.error("❌ Erro ao popular artigos:", error);
@@ -1371,19 +1429,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Medical Articles endpoints
-  app.get("/api/medical-articles/week/:week", requireAuth, async (req: any, res) => {
+  // Medical Articles endpoints (sem autenticação para usar no dashboard)
+  app.get("/api/medical-articles/week/:week", async (req: any, res) => {
     try {
+      console.log("🏥 Buscando artigos médicos para semana:", req.params.week);
       const week = parseInt(req.params.week);
       const articles = await storage.getMedicalArticlesByWeek(week);
+      console.log("📝 Artigos encontrados:", articles?.length || 0);
       res.json({ articles });
     } catch (error) {
       console.error("Error fetching medical articles:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
+  
+  // Endpoint de teste para verificar se os artigos estão no banco
+  app.get("/api/medical-articles/test", async (req: any, res) => {
+    try {
+      console.log("🧪 Testando conexão com artigos médicos...");
+      const allArticles = await storage.getAllMedicalArticles();
+      res.json({ 
+        success: true, 
+        totalArticles: allArticles?.length || 0,
+        articles: allArticles?.slice(0, 3) || [] // Primeiros 3 artigos
+      });
+    } catch (error) {
+      console.error("Error testing medical articles:", error);
+      res.status(500).json({ error: "Test failed", details: error.message });
+    }
+  });
 
-  app.get("/api/medical-articles/:id", requireAuth, async (req: any, res) => {
+  app.get("/api/medical-articles/:id", async (req: any, res) => {
     try {
       const article = await storage.getMedicalArticle(req.params.id);
       if (!article) {
