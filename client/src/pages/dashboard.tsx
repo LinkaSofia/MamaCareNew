@@ -480,6 +480,15 @@ export default function Dashboard() {
               <TrendingUp className="h-6 w-6" />
               <span className="text-sm font-medium">Analytics</span>
             </Button>
+
+            <Button
+              onClick={() => setLocation("/medical-articles")}
+              className="h-20 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-medical-articles"
+            >
+              <Stethoscope className="h-6 w-6" />
+              <span className="text-sm font-medium">Artigos Médicos</span>
+            </Button>
           </div>
         </div>
 

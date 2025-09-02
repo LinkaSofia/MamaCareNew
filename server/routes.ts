@@ -1351,6 +1351,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para popular artigos médicos
+  app.post("/api/medical-articles/seed", requireAuth, async (req, res) => {
+    try {
+      // Garantir que a tabela existe primeiro
+      await storage.ensureMedicalArticlesTableExists();
+      
+      const { seedMedicalArticles } = await import("./seed-medical-articles");
+      const success = await seedMedicalArticles();
+      
+      if (success) {
+        res.json({ success: true, message: "Artigos médicos populados com sucesso!" });
+      } else {
+        res.status(500).json({ error: "Erro ao popular artigos médicos" });
+      }
+    } catch (error) {
+      console.error("❌ Erro ao popular artigos:", error);
+      res.status(500).json({ error: "Failed to seed medical articles" });
+    }
+  });
+
+  // Medical Articles endpoints
+  app.get("/api/medical-articles/week/:week", requireAuth, async (req: any, res) => {
+    try {
+      const week = parseInt(req.params.week);
+      const articles = await storage.getMedicalArticlesByWeek(week);
+      res.json({ articles });
+    } catch (error) {
+      console.error("Error fetching medical articles:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/medical-articles/:id", requireAuth, async (req: any, res) => {
+    try {
+      const article = await storage.getMedicalArticle(req.params.id);
+      if (!article) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+      res.json({ article });
+    } catch (error) {
+      console.error("Error fetching medical article:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

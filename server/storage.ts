@@ -4,7 +4,7 @@ import {
   users, pregnancies, kickCounts, weightRecords, weightEntries, birthPlans, consultations, 
   shoppingItems, photos, diaryEntries, symptoms, medications, communityPosts, 
   communityComments, communityLikes, accessLogs, userAnalytics, userSessions,
-  babyDevelopment,
+  babyDevelopment, medicalArticles, auditLogs,
   type User, type InsertUser, type Pregnancy, type InsertPregnancy,
   type KickCount, type InsertKickCount, type WeightRecord, type InsertWeightRecord,
   type WeightEntry, type InsertWeightEntry, type BirthPlan, type InsertBirthPlan, 
@@ -14,7 +14,7 @@ import {
   type InsertCommunityPost, type CommunityComment, type InsertCommunityComment, 
   type AccessLog, type InsertAccessLog, type UserAnalytics, type InsertUserAnalytics, 
   type UserSession, type InsertUserSession, type BabyDevelopment, type InsertBabyDevelopment,
-  type AuditLog, type InsertAuditLog, auditLogs
+  type AuditLog, type InsertAuditLog, type MedicalArticle, type InsertMedicalArticle
 } from "@shared/schema";
 import { eq, desc, and, sql, count, gt } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -135,6 +135,11 @@ export interface IStorage {
   logUserAction(userId: string, action: string, page?: string, element?: string, metadata?: Record<string, any>): Promise<void>;
   trackPageVisit(userId: string, page: string, duration?: number): Promise<void>;
   getUserSessions(userId: string, limit?: number): Promise<UserSession[]>;
+
+  // Medical Articles
+  getMedicalArticlesByWeek(week: number): Promise<MedicalArticle[]>;
+  getMedicalArticle(id: string): Promise<MedicalArticle | undefined>;
+  createMedicalArticle(article: InsertMedicalArticle): Promise<MedicalArticle>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1408,6 +1413,62 @@ export class DatabaseStorage implements IStorage {
       console.log(`🔍 Audit logged: ${action} on ${tableName} record ${recordId} by user ${userId}`);
     } catch (error) {
       console.error('Error creating audit log:', error);
+    }
+  }
+
+  // Medical Articles methods
+  async getMedicalArticlesByWeek(week: number): Promise<MedicalArticle[]> {
+    return await db.select().from(medicalArticles)
+      .where(and(
+        eq(medicalArticles.week, week),
+        eq(medicalArticles.isActive, true)
+      ))
+      .orderBy(medicalArticles.importance, medicalArticles.createdAt);
+  }
+
+  async getMedicalArticle(id: string): Promise<MedicalArticle | undefined> {
+    const result = await db.select().from(medicalArticles)
+      .where(eq(medicalArticles.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createMedicalArticle(article: InsertMedicalArticle): Promise<MedicalArticle> {
+    const result = await db.insert(medicalArticles)
+      .values(article)
+      .returning();
+    return result[0];
+  }
+
+  // Garantir que a tabela de artigos médicos existe
+  async ensureMedicalArticlesTableExists() {
+    try {
+      console.log("🏥 Creating medical articles table...");
+      
+      await client.sql`
+        CREATE TABLE IF NOT EXISTS medical_articles (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          week INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          summary TEXT NOT NULL,
+          content TEXT NOT NULL,
+          source TEXT NOT NULL,
+          source_url TEXT,
+          category TEXT NOT NULL,
+          importance TEXT NOT NULL DEFAULT 'medium',
+          reading_time INTEGER DEFAULT 5,
+          tags JSONB DEFAULT '[]'::jsonb,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `;
+      
+      console.log("✅ Medical articles table created/verified");
+      return true;
+    } catch (error) {
+      console.log("⚠️ Medical articles table error:", error);
+      return false;
     }
   }
 }

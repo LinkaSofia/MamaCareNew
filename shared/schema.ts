@@ -284,3 +284,25 @@ export type BabyDevelopment = typeof babyDevelopment.$inferSelect;
 export type InsertBabyDevelopment = z.infer<typeof insertBabyDevelopmentSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
+// Tabela para artigos médicos por semana
+export const medicalArticles = pgTable("medical_articles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  week: integer("week").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  content: text("content").notNull(),
+  source: text("source").notNull(), // Nome do hospital/fonte
+  sourceUrl: text("source_url"), // Link opcional para o artigo original
+  category: text("category").notNull(), // 'nutrition', 'exercise', 'health', 'preparation', 'symptoms'
+  importance: text("importance").notNull().default('medium'), // 'low', 'medium', 'high'
+  readingTime: integer("reading_time").default(5), // tempo estimado de leitura em minutos
+  tags: jsonb("tags").$type<string[]>().default([]),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertMedicalArticleSchema = createInsertSchema(medicalArticles);
+export type MedicalArticle = typeof medicalArticles.$inferSelect;
+export type InsertMedicalArticle = z.infer<typeof insertMedicalArticleSchema>;

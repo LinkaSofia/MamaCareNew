@@ -35,6 +35,7 @@ import Symptoms from "@/pages/symptoms";
 import Medications from "@/pages/medications";
 import Community from "@/pages/community";
 import Analytics from "@/pages/analytics";
+import MedicalArticles from "@/pages/medical-articles";
 // import { MobileMenu } from "@/components/Navigation"; // Removido - não usar menu lateral
 import NotFound from "@/pages/not-found";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -76,6 +77,7 @@ function Router() {
         <Route path="/community" component={Community} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/audit-logs" component={AuditLogs} />
+        <Route path="/medical-articles" component={MedicalArticles} />
         <Route path="/profile" component={Profile} />
         {/* <Route path="/menu" component={MobileMenu} /> */}
         
