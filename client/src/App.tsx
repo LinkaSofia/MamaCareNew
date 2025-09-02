@@ -3,6 +3,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Suspense, Component } from "react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Auth provider removido - usando auth manager
 import { Layout } from "@/components/Layout";
 
@@ -88,11 +90,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <PWAInstallPrompt />
-        <div className="App">
-          <Router />
-        </div>
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
+        }>
+          <Toaster />
+          <PWAInstallPrompt />
+          <div className="App">
+            <Router />
+          </div>
+        </Suspense>
       </TooltipProvider>
     </QueryClientProvider>
   );

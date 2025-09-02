@@ -38,6 +38,25 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
+    <!-- Debug script para problemas de cache -->
+    <script>
+      console.log('🔧 HTML carregado - timestamp:', new Date().toISOString());
+      
+      // Force cache bypass
+      if (performance.navigation.type !== performance.navigation.TYPE_RELOAD) {
+        console.log('⚠️ Página não foi recarregada via F5/Ctrl+F5');
+      }
+      
+      // Log any errors
+      window.addEventListener('error', (e) => {
+        console.error('❌ JavaScript Error:', e.error);
+      });
+      
+      window.addEventListener('unhandledrejection', (e) => {
+        console.error('❌ Unhandled Promise Rejection:', e.reason);
+      });
+    </script>
+    
     <!-- PWA Installation Script -->
     <script>
       // Registrar Service Worker
