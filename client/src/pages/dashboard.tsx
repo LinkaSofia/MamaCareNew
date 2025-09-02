@@ -30,7 +30,8 @@ import {
   LogOut,
   ChevronDown,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  Stethoscope
 } from "lucide-react";
 
 export default function Dashboard() {
