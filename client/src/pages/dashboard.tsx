@@ -262,35 +262,35 @@ export default function Dashboard() {
 
         {/* Hero Section com navegação nas bordas */}
         <div className="mb-8 relative">
-          {/* Botão semana anterior - CANTO ESQUERDO DA IMAGEM */}
-          <button
-            onClick={goToPreviousWeek}
-            disabled={currentWeek <= 1}
-            className={`absolute left-8 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 ${
-              currentWeek <= 1 
-                ? 'opacity-30 cursor-not-allowed' 
-                : 'hover:bg-white hover:shadow-xl active:scale-95'
-            }`}
-            data-testid="button-previous-week"
-          >
-            <ChevronLeft className="w-6 h-6 text-gray-700" />
-          </button>
+          <div className="flex items-center justify-center mb-6 px-4 relative">
+            {/* Botão semana anterior - CANTO ESQUERDO NA ALTURA DA IMAGEM */}
+            <button
+              onClick={goToPreviousWeek}
+              disabled={currentWeek <= 1}
+              className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg ${
+                currentWeek <= 1 
+                  ? 'opacity-30 cursor-not-allowed' 
+                  : 'hover:bg-white hover:shadow-xl active:scale-95'
+              }`}
+              data-testid="button-previous-week"
+            >
+              <ChevronLeft className="w-6 h-6 text-gray-700" />
+            </button>
 
-          {/* Botão próxima semana - CANTO DIREITO DA IMAGEM */}
-          <button
-            onClick={goToNextWeek}
-            disabled={currentWeek >= 42}
-            className={`absolute right-8 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 ${
-              currentWeek >= 42 
-                ? 'opacity-30 cursor-not-allowed' 
-                : 'hover:bg-white hover:shadow-xl active:scale-95'
-            }`}
-            data-testid="button-next-week"
-          >
-            <ChevronRight className="w-6 h-6 text-gray-700" />
-          </button>
+            {/* Botão próxima semana - CANTO DIREITO NA ALTURA DA IMAGEM */}
+            <button
+              onClick={goToNextWeek}
+              disabled={currentWeek >= 42}
+              className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg ${
+                currentWeek >= 42 
+                  ? 'opacity-30 cursor-not-allowed' 
+                  : 'hover:bg-white hover:shadow-xl active:scale-95'
+              }`}
+              data-testid="button-next-week"
+            >
+              <ChevronRight className="w-6 h-6 text-gray-700" />
+            </button>
 
-          <div className="flex items-center justify-center mb-6 px-4">
             {/* Baby 3D Component - MUITO MAIOR E PERFEITAMENTE REDONDO */}
             <div className="w-80 h-80 mx-4 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
               <Baby3D week={currentWeek} className="w-full h-full rounded-full" />
@@ -381,40 +381,40 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
           
-          {/* Informações do bebê - horizontal */}
-          {development && (
-            <div className="glass-effect rounded-2xl p-4 mx-4 backdrop-blur-md bg-white/80">
-              <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
-                <div className="text-center">
-                  <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
-                  <p className="text-xs text-gray-500 mb-1">Tamanho</p>
-                  <p className="font-semibold text-gray-800">
-                    {development.length_cm ? `${development.length_cm} cm` : development.size || "Calculando..."}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
-                  <p className="text-xs text-gray-500 mb-1">Peso</p>
-                  <p className="font-semibold text-gray-800">
-                    {development.weight_grams && Number(development.weight_grams) > 0 
-                      ? `${development.weight_grams}g` 
-                      : development.weight || "< 1g"}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl mb-1">{getFruitEmoji(development.fruit_comparison)}</div>
-                  <p className="text-xs text-gray-500 mb-1">Como</p>
-                  <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "Calculando..."}</p>
-                </div>
+        {/* Informações do bebê - horizontal */}
+        {development && (
+          <div className="glass-effect rounded-2xl p-4 mx-4 backdrop-blur-md bg-white/80">
+            <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
+              <div className="text-center">
+                <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
+                <p className="text-xs text-gray-500 mb-1">Tamanho</p>
+                <p className="font-semibold text-gray-800">
+                  {development.length_cm ? `${development.length_cm} cm` : development.size || "Calculando..."}
+                </p>
+              </div>
+              <div className="text-center">
+                <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
+                <p className="text-xs text-gray-500 mb-1">Peso</p>
+                <p className="font-semibold text-gray-800">
+                  {development.weight_grams && Number(development.weight_grams) > 0 
+                    ? `${development.weight_grams}g` 
+                    : development.weight || "< 1g"}
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl mb-1">{getFruitEmoji(development.fruit_comparison)}</div>
+                <p className="text-xs text-gray-500 mb-1">Como</p>
+                <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "Calculando..."}</p>
               </div>
             </div>
-          )}
-          
-          {/* Card da próxima consulta */}
-          <div className="mx-4 mt-4">
-            <NextConsultationCard />
           </div>
+        )}
+        
+        {/* Card da próxima consulta */}
+        <div className="mx-4 mt-4">
+          <NextConsultationCard />
         </div>
       </div>
 
