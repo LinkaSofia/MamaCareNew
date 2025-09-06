@@ -120,7 +120,10 @@ export default function Baby3D({
 
   if (isLoading) {
     return (
-      <div className={`flex items-center justify-center ${getSizeClasses()} ${className}`}>
+      <div 
+        className={`flex items-center justify-center ${getSizeClasses()} ${className}`}
+        data-testid={`baby-3d-loading-week-${week}`}
+      >
         <div className="relative">
           {/* Loading animation com batimento cardíaco */}
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-200 to-blue-200 animate-pulse"></div>
@@ -141,6 +144,7 @@ export default function Baby3D({
       className={`relative ${getSizeClasses()} ${className} group`}
       onMouseEnter={() => interactive && setIsHovered(true)}
       onMouseLeave={() => interactive && setIsHovered(false)}
+      data-testid={`baby-3d-component-week-${week}`}
     >
       <div className={`
         relative overflow-hidden rounded-3xl bg-gradient-to-br 
@@ -207,12 +211,15 @@ export default function Baby3D({
         )}
 
         {/* Indicador de fase da gravidez */}
-        <div className={`absolute top-4 left-4 w-3 h-3 rounded-full ${
-          pregnancyPhase.phase === 'Primeiro Trimestre' ? 'bg-pink-400' :
-          pregnancyPhase.phase === 'Segundo Trimestre' ? 'bg-blue-400' : 
-          'bg-purple-400'
-        } animate-pulse`} title={pregnancyPhase.phase}>
-        </div>
+        <div 
+          className={`absolute top-4 left-4 w-3 h-3 rounded-full ${
+            pregnancyPhase.phase === 'Primeiro Trimestre' ? 'bg-pink-400' :
+            pregnancyPhase.phase === 'Segundo Trimestre' ? 'bg-blue-400' : 
+            'bg-purple-400'
+          } animate-pulse`} 
+          title={pregnancyPhase.phase}
+          data-testid={`pregnancy-phase-indicator-${pregnancyPhase.phase.toLowerCase().replace(/\s+/g, '-')}`}
+        ></div>
 
         {/* Efeito de batimento cardíaco */}
         {animate && week >= 8 && (
@@ -228,8 +235,14 @@ export default function Baby3D({
 
         {/* Overlay interativo */}
         {interactive && isHovered && (
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-200/10 to-blue-200/10 rounded-3xl flex items-center justify-center">
-            <div className="text-white/80 text-sm font-medium bg-black/20 rounded-full px-4 py-2 backdrop-blur-sm">
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-pink-200/10 to-blue-200/10 rounded-3xl flex items-center justify-center"
+            data-testid="interactive-overlay"
+          >
+            <div 
+              className="text-white/80 text-sm font-medium bg-black/20 rounded-full px-4 py-2 backdrop-blur-sm"
+              data-testid="interactive-overlay-text"
+            >
               Clique para mais detalhes
             </div>
           </div>
