@@ -296,7 +296,9 @@ export default function Dashboard() {
                   <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
                   <p className="text-xs text-gray-500 mb-1">Peso</p>
                   <p className="font-semibold text-gray-800">
-                    {development.weight_grams ? `${development.weight_grams}g` : development.weight || "Calculando..."}
+                    {development.weight_grams && development.weight_grams > 0 
+                      ? `${development.weight_grams}g` 
+                      : development.weight || "< 1g"}
                   </p>
                 </div>
                 <div className="text-center">
