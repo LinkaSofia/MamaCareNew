@@ -291,8 +291,8 @@ export default function Dashboard() {
               <ChevronRight className="w-6 h-6 text-gray-700" />
             </button>
 
-            {/* Baby 3D Component - MUITO MAIOR E PERFEITAMENTE REDONDO */}
-            <div className="w-80 h-80 mx-4 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
+            {/* Baby 3D Component - TAMANHO ADEQUADO E PERFEITAMENTE REDONDO */}
+            <div className="w-64 h-64 mx-4 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
               <Baby3D week={currentWeek} className="w-full h-full rounded-full" />
             </div>
             
