@@ -10,7 +10,7 @@ import FileStore from "session-file-store";
 import { sendPasswordResetEmail } from "./nodemailer";
 import { randomUUID } from "crypto";
 import { db } from "./storage";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 
 // Simple session store for user authentication
 declare module "express-session" {
@@ -1697,6 +1697,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching medical article:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Endpoint para inserir imagem do bebê (baby_image_url)
+  app.post("/api/baby-development/insert-baby-image", async (req, res) => {
+    try {
+      const { week, imageUrl } = req.body;
+      
+      if (!week || !imageUrl) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Semana e imageUrl são obrigatórios" 
+        });
+      }
+      
+      const weekNum = parseInt(week);
+      if (isNaN(weekNum) || weekNum < 1 || weekNum > 40) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Semana deve ser um número entre 1 e 40" 
+        });
+      }
+      
+      console.log(`👶 Inserindo imagem do bebê para semana ${weekNum}: ${imageUrl}`);
+      
+      // Atualizar a semana com a nova imagem do bebê
+      await db.execute(sql`
+        UPDATE baby_development 
+        SET baby_image_url = ${imageUrl}
+        WHERE week = ${weekNum}
+      `);
+      
+      // Verificar se a inserção foi bem-sucedida
+      const result = await db.select()
+        .from(babyDevelopment)
+        .where(sql`week = ${weekNum}`)
+        .limit(1);
+      
+      if (result.length > 0) {
+        console.log(`✅ Imagem do bebê da semana ${weekNum} inserida com sucesso!`);
+        res.json({ 
+          success: true, 
+          message: `Imagem do bebê da semana ${weekNum} inserida com sucesso!`,
+          imageUrl,
+          week: weekNum,
+          data: result[0]
+        });
+      } else {
+        console.log(`⚠️ Semana ${weekNum} não encontrada no banco`);
+        res.status(404).json({ 
+          success: false, 
+          message: `Semana ${weekNum} não encontrada no banco de dados` 
+        });
+      }
+    } catch (error: any) {
+      console.error("❌ Erro ao inserir imagem do bebê:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
     }
   });
 

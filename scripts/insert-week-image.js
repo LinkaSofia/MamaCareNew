@@ -4,7 +4,7 @@
 // 2. Execute: node scripts/insert-week-image.js SEMANA NOME_DA_IMAGEM
 // Exemplo: node scripts/insert-week-image.js 5 minha_imagem_semana5.png
 
-const { exec } = require('child_process');
+import { exec } from 'child_process';
 
 // Pegar argumentos da linha de comando
 const week = process.argv[2];
@@ -28,8 +28,8 @@ const imagePath = `@assets/${imageName}`;
 
 console.log(`🖼️ Inserindo imagem da semana ${week}: ${imageName}`);
 
-// Fazer requisição para o endpoint
-const command = `curl -X POST -H "Content-Type: application/json" -d '{"week": ${week}, "imageUrl": "${imagePath}"}' http://localhost:5000/api/baby-development/insert-image`;
+// Fazer requisição para o endpoint correto (baby_image_url)
+const command = `curl -X POST -H "Content-Type: application/json" -d '{"week": ${week}, "imageUrl": "${imagePath}"}' http://localhost:5000/api/baby-development/insert-baby-image`;
 
 exec(command, (error, stdout, stderr) => {
   if (error) {

@@ -61,8 +61,8 @@ export default function Baby3D({
           const developmentData = data.developmentData;
           
           // Se tem imagem no banco, usar ela
-          if (developmentData?.fruit_image_url) {
-            setCurrentImage(developmentData.fruit_image_url);
+          if (developmentData?.baby_image_url) {
+            setCurrentImage(developmentData.baby_image_url);
             const timer = setTimeout(() => setIsLoading(false), 800);
             return;
           }

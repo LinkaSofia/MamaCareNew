@@ -197,6 +197,7 @@ export const babyDevelopment = pgTable("baby_development", {
   weight: text("weight").notNull(),
   fruit_comparison: text("fruit_comparison").notNull(),
   fruit_image_url: text("fruit_image_url"), // Campo para URL da imagem da fruta/grão
+  baby_image_url: text("baby_image_url"), // Campo para URL da imagem do bebê
   development_milestones_baby: text("development_milestones_baby").notNull(),
   development_milestones_mom: text("development_milestones_mom").notNull(),
   baby_description: text("baby_description"),
