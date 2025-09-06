@@ -24,7 +24,7 @@ export function usePregnancy() {
 
   const pregnancy = pregnancyData?.pregnancy;
 
-  const weekInfo = pregnancy ? calculatePregnancyWeek(pregnancy.dueDate) : null;
+  const weekInfo = pregnancy ? calculatePregnancyWeek(pregnancy.dueDate, pregnancy.lastMenstrualPeriod) : null;
   const progress = weekInfo ? calculateProgress(weekInfo.week) : null;
 
   return {

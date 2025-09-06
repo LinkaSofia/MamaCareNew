@@ -1,20 +1,43 @@
-export function calculatePregnancyWeek(dueDate: string) {
-  const due = new Date(dueDate);
+export function calculatePregnancyWeek(dueDate: string, lastMenstrualPeriod?: string) {
   const now = new Date();
   
-  // Calculate weeks from conception (40 weeks total)
-  const totalWeeks = 40;
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-  const weeksUntilDue = Math.round((due.getTime() - now.getTime()) / msPerWeek);
-  const currentWeek = totalWeeks - weeksUntilDue;
+  // Usar UTC ao meio-dia para evitar problemas de fuso horário
+  const todayUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12));
   
-  // Ensure week is between 1 and 40
-  const week = Math.max(1, Math.min(40, currentWeek));
+  let week: number;
+  let weeksUntilDue: number;
+  
+  if (lastMenstrualPeriod) {
+    // Calcular usando DUM (Data da Última Menstruação) - método mais preciso
+    const lmp = new Date(lastMenstrualPeriod);
+    const lmpUTC = new Date(Date.UTC(lmp.getFullYear(), lmp.getMonth(), lmp.getDate(), 12));
+    
+    const daysSinceLMP = Math.floor((todayUTC.getTime() - lmpUTC.getTime()) / (24 * 60 * 60 * 1000));
+    week = Math.floor(daysSinceLMP / 7) + 1;
+    
+    // Calcular semanas restantes (280 dias = 40 semanas)
+    const totalDays = 280;
+    const daysRemaining = totalDays - daysSinceLMP;
+    weeksUntilDue = Math.max(0, Math.ceil(daysRemaining / 7));
+  } else {
+    // Calcular usando DPP (Data Prevista do Parto)
+    const due = new Date(dueDate);
+    const dueUTC = new Date(Date.UTC(due.getFullYear(), due.getMonth(), due.getDate(), 12));
+    
+    const totalWeeks = 40;
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    weeksUntilDue = Math.round((dueUTC.getTime() - todayUTC.getTime()) / msPerWeek);
+    week = totalWeeks - weeksUntilDue;
+  }
+  
+  // Garantir que a semana esteja entre 1 e 40
+  week = Math.max(1, Math.min(40, week));
+  weeksUntilDue = Math.max(0, weeksUntilDue);
   
   return {
     week,
-    weeksRemaining: Math.max(0, weeksUntilDue),
-    daysRemaining: Math.max(0, Math.ceil((due.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))),
+    weeksRemaining: weeksUntilDue,
+    daysRemaining: Math.max(0, Math.ceil((new Date(dueDate).getTime() - todayUTC.getTime()) / (24 * 60 * 60 * 1000))),
   };
 }
 

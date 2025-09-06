@@ -151,7 +151,7 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                       <div>
                         <div className="text-sm text-gray-600">Tamanho</div>
                         <div className="font-semibold text-gray-800" data-testid="text-baby-size">
-                          {development.size}
+                          {development.length_cm ? `${development.length_cm} cm` : development.size}
                         </div>
                       </div>
                     </div>
@@ -161,7 +161,7 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                       <div>
                         <div className="text-sm text-gray-600">Peso</div>
                         <div className="font-semibold text-gray-800" data-testid="text-baby-weight">
-                          {development.weight}
+                          {development.weight_grams ? `${development.weight_grams} g` : development.weight}
                         </div>
                       </div>
                     </div>
@@ -203,7 +203,7 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                       <div className="text-right">
                         <div className="text-xs text-gray-500">Semana {weekInfo.week}</div>
                         <div className="text-sm font-medium text-purple-600">
-                          {development.size}
+                          {development.length_cm ? `${development.length_cm} cm` : development.size}
                         </div>
                       </div>
                     </div>
@@ -273,8 +273,8 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                           {development.fruit_comparison}
                         </div>
                         <div className="flex gap-4 text-sm text-gray-600">
-                          <span><strong>Tamanho:</strong> {development.size}</span>
-                          <span><strong>Peso:</strong> {development.weight}</span>
+                          <span><strong>Tamanho:</strong> {development.length_cm ? `${development.length_cm} cm` : development.size}</span>
+                          <span><strong>Peso:</strong> {development.weight_grams ? `${development.weight_grams} g` : development.weight}</span>
                         </div>
                       </div>
                     </div>
