@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
-import logoImage from '@assets/image_1756302873641.png';
+// import logoImage from '@assets/image_1756302873641.png';
+const logoImage = ''; // Temporariamente desabilitado
 
 export interface BirthPlanData {
   motherName: string;

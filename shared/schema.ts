@@ -308,3 +308,22 @@ export const medicalArticles = pgTable("medical_articles", {
 export const insertMedicalArticleSchema = createInsertSchema(medicalArticles);
 export type MedicalArticle = typeof medicalArticles.$inferSelect;
 export type InsertMedicalArticle = z.infer<typeof insertMedicalArticleSchema>;
+
+// Tabela para artigos e vídeos por semana (conforme solicitado pelo usuário)
+export const articles = pgTable("articles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content"),
+  week: integer("week").notNull(),
+  video_url: text("video_url"), // URL do vídeo para embed
+  image: text("image"), // URL da imagem do artigo
+  type: text("type").notNull().default('article'), // 'article' ou 'video'
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertArticleSchema = createInsertSchema(articles);
+export type Article = typeof articles.$inferSelect;
+export type InsertArticle = z.infer<typeof insertArticleSchema>;

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import FileStore from "session-file-store";
@@ -1757,6 +1757,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         error: error.message 
       });
+    }
+  });
+
+  // ==================== ENDPOINTS PARA ARTIGOS E VÍDEOS ====================
+  
+  // Criar tabela articles se não existir
+  app.post("/api/articles/create-table", async (req, res) => {
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS articles (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          title TEXT NOT NULL,
+          content TEXT,
+          week INTEGER NOT NULL,
+          video_url TEXT,
+          image TEXT,
+          type TEXT NOT NULL DEFAULT 'article',
+          description TEXT,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+      
+      console.log("✅ Tabela articles criada/verificada com sucesso!");
+      res.json({ success: true, message: "Tabela articles criada/verificada com sucesso!" });
+    } catch (error: any) {
+      console.error("❌ Erro ao criar tabela articles:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Buscar artigos por semana
+  app.get("/api/articles/week/:week", async (req, res) => {
+    try {
+      const week = parseInt(req.params.week);
+      
+      if (isNaN(week) || week < 1 || week > 42) {
+        return res.status(400).json({ error: "Semana deve ser um número entre 1 e 42" });
+      }
+
+      const articlesData = await db.select()
+        .from(articles)
+        .where(sql`week = ${week} AND is_active = true`)
+        .orderBy(sql`created_at DESC`)
+        .limit(3); // Máximo 3 artigos por semana
+      
+      res.json({ 
+        success: true, 
+        week: week,
+        articles: articlesData 
+      });
+    } catch (error: any) {
+      console.error(`❌ Erro ao buscar artigos da semana ${req.params.week}:`, error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Criar/inserir artigo
+  app.post("/api/articles", async (req, res) => {
+    try {
+      const validatedData = insertArticleSchema.parse(req.body);
+      
+      const [newArticle] = await db.insert(articles)
+        .values(validatedData)
+        .returning();
+      
+      console.log(`✅ Artigo criado para semana ${validatedData.week}:`, validatedData.title);
+      res.status(201).json({ 
+        success: true, 
+        message: "Artigo criado com sucesso!",
+        article: newArticle 
+      });
+    } catch (error: any) {
+      console.error("❌ Erro ao criar artigo:", error);
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Inserir artigo de exemplo para semana 1
+  app.post("/api/articles/sample", async (req, res) => {
+    try {
+      // Primeiro criar a tabela se não existir
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS articles (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          title TEXT NOT NULL,
+          content TEXT,
+          week INTEGER NOT NULL,
+          video_url TEXT,
+          image TEXT,
+          type TEXT NOT NULL DEFAULT 'article',
+          description TEXT,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+
+      const sampleArticle = {
+        title: "Preparação para a Gravidez",
+        content: "A primeira semana da gravidez marca o início de uma jornada única e emocionante. Neste período, é fundamental iniciar os cuidados pré-natais e adotar hábitos saudáveis que beneficiarão tanto a mãe quanto o bebê em desenvolvimento.",
+        week: 1,
+        video_url: null,
+        image: "@assets/mulher-gravida-na-creche_1757181979218.jpg",
+        type: "article",
+        description: "Guia completo sobre os cuidados essenciais na primeira semana de gravidez"
+      };
+
+      const [newArticle] = await db.insert(articles)
+        .values(sampleArticle)
+        .returning();
+      
+      console.log("✅ Artigo de exemplo inserido para semana 1");
+      res.json({ 
+        success: true, 
+        message: "Artigo de exemplo inserido com sucesso!",
+        article: newArticle 
+      });
+    } catch (error: any) {
+      console.error("❌ Erro ao inserir artigo de exemplo:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 
