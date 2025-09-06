@@ -163,25 +163,25 @@ export default function Baby3D({
         ${interactive ? 'hover:scale-105 cursor-pointer' : ''}
         ${animate && animationPhase % 2 === 0 ? 'scale-[1.02]' : 'scale-100'}
       `}>
-        {/* Imagem principal do bebê - REDONDA */}
-        <div className="w-full h-full rounded-full overflow-hidden">
-          <img
-            src={currentImage}
-            alt={`Bebê 3D - Semana ${week}`}
-            className={`
-              w-full h-full object-cover transition-all duration-700
-              ${animate ? 'animate-pulse-slow' : ''}
-              ${isHovered ? 'scale-110' : 'scale-100'}
-            `}
-            style={{
-              filter: `
-                drop-shadow(0 15px 35px rgba(0,0,0,0.15)) 
-                brightness(${isHovered ? '1.1' : '1'}) 
-                contrast(${isHovered ? '1.1' : '1'})
-              `
-            }}
-          />
-        </div>
+        {/* Imagem principal do bebê - PREENCHENDO TODO O CÍRCULO COM BACKGROUND-IMAGE */}
+        <div 
+          className={`
+            w-full h-full rounded-full transition-all duration-700 bg-cover bg-center
+            ${animate ? 'animate-pulse-slow' : ''}
+            ${isHovered ? 'scale-110' : 'scale-100'}
+          `}
+          style={{
+            backgroundImage: `url("${currentImage}")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: `
+              drop-shadow(0 15px 35px rgba(0,0,0,0.15)) 
+              brightness(${isHovered ? '1.1' : '1'}) 
+              contrast(${isHovered ? '1.1' : '1'})
+            `
+          }}
+        />
         
         {/* Efeito de brilho animado */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shimmer"></div>
