@@ -51,23 +51,35 @@ export default function Baby3D({
   useEffect(() => {
     // Buscar imagem do banco de dados primeiro
     const fetchBabyImage = async () => {
+      console.log(`🔍 Buscando imagem para semana ${week}`);
       try {
         const response = await fetch(`/api/baby-development/${week}`, {
           credentials: "include",
         });
         
+        console.log(`📡 Response status: ${response.status}`);
+        
         if (response.ok) {
           const data = await response.json();
           const developmentData = data.developmentData;
           
+          console.log(`📊 Data recebida:`, developmentData);
+          console.log(`🖼️ baby_image_url:`, developmentData?.baby_image_url);
+          
           // Se tem imagem no banco, usar ela
           if (developmentData?.baby_image_url) {
+            console.log(`✅ Usando imagem personalizada: ${developmentData.baby_image_url}`);
             setCurrentImage(developmentData.baby_image_url);
             const timer = setTimeout(() => setIsLoading(false), 800);
             return;
+          } else {
+            console.log(`⚠️ Nenhuma imagem personalizada encontrada para semana ${week}`);
           }
+        } else {
+          console.log(`❌ Response não OK:`, response.status, response.statusText);
         }
       } catch (error) {
+        console.log("❌ Erro ao buscar imagem:", error);
         console.log("Usando imagem 3D padrão para semana", week);
       }
       
