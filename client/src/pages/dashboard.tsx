@@ -453,7 +453,7 @@ export default function Dashboard() {
             </Button>
 
             <Button
-              onClick={() => setLocation("/photos")}
+              onClick={() => setLocation("/photo-album")}
               className="h-20 bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-500 hover:to-cyan-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
               data-testid="button-photos"
             >
@@ -509,50 +509,6 @@ export default function Dashboard() {
         </div>
       </footer>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200">
-        <div className="flex justify-around py-3">
-          <button className="flex flex-col items-center py-2 px-4 group">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <div className="w-3 h-3 bg-white rounded-full"></div>
-              </div>
-              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-pink-400 rounded-full animate-pulse"></div>
-            </div>
-            <span className="text-xs text-gray-800 font-medium mt-1">Início</span>
-          </button>
-          
-          <button 
-            className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform"
-            onClick={() => setLocation("/kick-counter")}
-          >
-            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-              <Activity className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="text-xs text-gray-600 mt-1">Chutes</span>
-          </button>
-          
-          <button 
-            className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform"
-            onClick={() => setLocation("/diary")}
-          >
-            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-              <Book className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="text-xs text-gray-600 mt-1">Diário</span>
-          </button>
-          
-          <button 
-            className="flex flex-col items-center py-2 px-4 group hover:scale-110 transition-transform"
-            onClick={() => setLocation("/profile")}
-          >
-            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-              <User className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="text-xs text-gray-600 mt-1">Perfil</span>
-          </button>
-        </div>
-      </div>
 
     </div>
   );
