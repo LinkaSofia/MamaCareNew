@@ -8,6 +8,8 @@ import baby16weeks from '@assets/generated_images/16-week_fetus_3D_realistic_9c0
 import baby20weeks from '@assets/generated_images/20-week_fetus_3D_realistic_87f5a187.png';
 import baby28weeks from '@assets/generated_images/28-week_fetus_3D_realistic_1158e5df.png';
 import baby36weeks from '@assets/generated_images/36-week_fetus_3D_realistic_e9a2b0f5.png';
+// Imagem personalizada da semana 3
+import baby3weeks from '@assets/3_1757174102100.png';
 
 interface Baby3DProps {
   week: number;
@@ -20,6 +22,7 @@ interface Baby3DProps {
 
 const BABY_IMAGES = {
   1: baby8weeks,  // Para semanas muito iniciais
+  3: baby3weeks,  // Imagem personalizada da semana 3
   4: baby8weeks,
   8: baby8weeks,
   12: baby12weeks,
@@ -69,7 +72,21 @@ export default function Baby3D({
           // Se tem imagem no banco, usar ela
           if (developmentData?.baby_image_url) {
             console.log(`✅ Usando imagem personalizada: ${developmentData.baby_image_url}`);
-            setCurrentImage(developmentData.baby_image_url);
+            
+            // Se é uma imagem @assets, tentar importar dinamicamente
+            if (developmentData.baby_image_url.startsWith('@assets/')) {
+              try {
+                const imagePath = developmentData.baby_image_url.replace('@assets/', '/src/assets/');
+                console.log(`🔄 Tentando carregar imagem de: ${imagePath}`);
+                setCurrentImage(imagePath);
+              } catch (error) {
+                console.log(`❌ Erro ao carregar imagem de assets:`, error);
+                setCurrentImage(developmentData.baby_image_url);
+              }
+            } else {
+              setCurrentImage(developmentData.baby_image_url);
+            }
+            
             const timer = setTimeout(() => setIsLoading(false), 800);
             return;
           } else {
@@ -86,7 +103,9 @@ export default function Baby3D({
       // Fallback para imagens 3D se não houver no banco
       let selectedImage = baby8weeks;
 
-      if (week >= 36) {
+      if (week === 3) {
+        selectedImage = baby3weeks;  // Imagem personalizada da semana 3
+      } else if (week >= 36) {
         selectedImage = baby36weeks;
       } else if (week >= 28) {
         selectedImage = baby28weeks;
