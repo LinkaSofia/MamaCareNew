@@ -124,3 +124,5 @@ export function NextConsultationCard() {
     </Card>
   );
 }
+
+export default NextConsultationCard;
