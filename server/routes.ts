@@ -164,16 +164,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Inserir imagem da semente de chia para semana 3
+  // Inserir imagem da 3ª semana (bebê microscópico) 
   app.post("/api/baby-development/update-week3-image", async (req, res) => {
     try {
-      console.log("🌱 Inserindo imagem da semente de chia para semana 3...");
+      console.log("🤰 Inserindo imagem da 3ª semana (bebê microscópico)...");
       
-      const imageUrl = "@assets/image_1756836492028.png";
+      const imageUrl = "@assets/image_1757172840239.png";
       
       await db.execute(sql`UPDATE baby_development SET fruit_image_url = ${imageUrl} WHERE week = 3`);
       
-      console.log("✅ Imagem da semente de chia inserida!");
+      console.log("✅ Imagem da 3ª semana inserida!");
       res.json({ success: true, imageUrl });
     } catch (error: any) {
       console.error("❌ Erro:", error);
