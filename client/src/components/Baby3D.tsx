@@ -67,21 +67,28 @@ export default function Baby3D({
           const developmentData = data.developmentData;
           
           
-          // Se tem imagem no banco, usar ela
-          if (developmentData?.baby_image_url && !developmentData.baby_image_url.startsWith('@assets/')) {
-            // Só usar se não for uma imagem @assets (que precisa de import)
-            setCurrentImage(developmentData.baby_image_url);
-            const timer = setTimeout(() => setIsLoading(false), 800);
-            return;
+          // Se tem imagem no banco, verificar se é @assets (usar import) ou URL direta
+          if (developmentData?.baby_image_url) {
+            if (developmentData.baby_image_url.startsWith('@assets/')) {
+              // Para @assets/, usar os imports diretos baseados na semana
+              const fallbackToImports = true; // Vai usar o fallback abaixo
+            } else {
+              // URL direta do banco
+              setCurrentImage(developmentData.baby_image_url);
+              const timer = setTimeout(() => setIsLoading(false), 800);
+              return;
+            }
           }
         }
       } catch (error) {
       }
       
-      // Fallback para imagens 3D se não houver no banco
+      // Usar imagens importadas baseadas na semana
       let selectedImage = baby8weeks;
 
-      if (week === 3) {
+      if (week === 2) {
+        selectedImage = baby2weeks;  // Imagem personalizada da semana 2
+      } else if (week === 3) {
         selectedImage = baby3weeks;  // Imagem personalizada da semana 3
       } else if (week >= 36) {
         selectedImage = baby36weeks;

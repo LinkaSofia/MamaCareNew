@@ -262,32 +262,32 @@ export default function Dashboard() {
 
         {/* Hero Section com navegação nas bordas */}
         <div className="mb-8 relative">
-          {/* Botão semana anterior - CANTO ESQUERDO */}
+          {/* Botão semana anterior - CANTO ESQUERDO DA IMAGEM */}
           <button
             onClick={goToPreviousWeek}
             disabled={currentWeek <= 1}
-            className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
+            className={`absolute left-8 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 ${
               currentWeek <= 1 
                 ? 'opacity-30 cursor-not-allowed' 
-                : 'hover:bg-white/20 active:scale-95 shadow-lg'
+                : 'hover:bg-white hover:shadow-xl active:scale-95'
             }`}
             data-testid="button-previous-week"
           >
-            <ChevronLeft className="w-8 h-8 text-white" />
+            <ChevronLeft className="w-6 h-6 text-gray-700" />
           </button>
 
-          {/* Botão próxima semana - CANTO DIREITO */}
+          {/* Botão próxima semana - CANTO DIREITO DA IMAGEM */}
           <button
             onClick={goToNextWeek}
             disabled={currentWeek >= 42}
-            className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
+            className={`absolute right-8 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 ${
               currentWeek >= 42 
                 ? 'opacity-30 cursor-not-allowed' 
-                : 'hover:bg-white/20 active:scale-95 shadow-lg'
+                : 'hover:bg-white hover:shadow-xl active:scale-95'
             }`}
             data-testid="button-next-week"
           >
-            <ChevronRight className="w-8 h-8 text-white" />
+            <ChevronRight className="w-6 h-6 text-gray-700" />
           </button>
 
           <div className="flex items-center justify-center mb-6 px-4">
@@ -397,7 +397,7 @@ export default function Dashboard() {
                   <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
                   <p className="text-xs text-gray-500 mb-1">Peso</p>
                   <p className="font-semibold text-gray-800">
-                    {development.weight_grams && development.weight_grams > 0 
+                    {development.weight_grams && Number(development.weight_grams) > 0 
                       ? `${development.weight_grams}g` 
                       : development.weight || "< 1g"}
                   </p>
