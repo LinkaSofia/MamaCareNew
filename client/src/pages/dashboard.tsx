@@ -353,15 +353,16 @@ export default function Dashboard() {
                 </p>
                 <p className="text-gray-600 text-sm">
                   {viewingWeek && viewingWeek !== weekInfo.week ? (
-                    <span>
-                      de desenvolvimento • 
+                    <div className="flex flex-col items-center gap-2">
+                      <span>de desenvolvimento</span>
                       <button 
                         onClick={backToCurrentWeek}
-                        className="text-blue-600 hover:text-blue-700 ml-1 underline"
+                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors duration-200 shadow-sm"
+                        data-testid="button-back-to-current-week"
                       >
-                        voltar para atual ({weekInfo.week})
+                        Voltar para semana atual ({weekInfo.week})
                       </button>
-                    </span>
+                    </div>
                   ) : 'da sua gestação'}
                 </p>
               </div>
@@ -411,6 +412,231 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* Seção de Conteúdos de Especialistas */}
+        <div className="glass-effect rounded-2xl p-5 mx-4 mt-6 backdrop-blur-md bg-white/80">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm">👩‍⚕️</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Orientações dos Especialistas - Semana {currentWeek}
+            </h3>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4">
+            {currentWeek === 1 && (
+              <>
+                <div className="p-4 rounded-xl border-l-4 border-green-400 bg-green-50" data-testid="expert-content-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">💊</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Ácido Fólico é Essencial</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Inicie a suplementação com ácido fólico (400-800mcg/dia) para prevenir defeitos do tubo neural. Continue mesmo antes da confirmação da gravidez.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Tome sempre no mesmo horário para criar rotina</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 rounded-xl border-l-4 border-red-400 bg-red-50" data-testid="expert-content-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🚭</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Evite Álcool e Cigarros</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Não existe quantidade segura de álcool durante a gravidez. O tabaco prejudica o desenvolvimento do bebê e aumenta riscos de complicações.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Busque ajuda profissional se precisar parar de fumar</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-orange-400 bg-orange-50" data-testid="expert-content-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🥗</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Alimentação Balanceada</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Consuma alimentos ricos em folato (vegetais verde-escuros, leguminosas, frutas cítricas). Evite carnes cruas, peixes ricos em mercúrio.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Lave bem frutas e verduras antes do consumo</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {currentWeek === 2 && (
+              <>
+                <div className="p-4 rounded-xl border-l-4 border-yellow-400 bg-yellow-50" data-testid="expert-content-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🤢</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Primeiros Sintomas são Normais</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Náuseas, cansaço e sensibilidade nos seios são comuns. Estes sintomas indicam que os hormônios estão funcionando adequadamente.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Coma pequenas refeições frequentes para minimizar náuseas</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50" data-testid="expert-content-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">💧</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Hidratação é Fundamental</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Beba pelo menos 8-10 copos de água por dia. A desidratação pode piorar náuseas e causar constipação.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Mantenha uma garrafa d'água sempre por perto</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-purple-400 bg-purple-50" data-testid="expert-content-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">👩‍⚕️</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Agende sua Primeira Consulta</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Procure um obstetra para confirmar a gravidez e iniciar o pré-natal. Exames de rotina serão solicitados.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Leve uma lista de dúvidas para a consulta</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {currentWeek === 3 && (
+              <>
+                <div className="p-4 rounded-xl border-l-4 border-indigo-400 bg-indigo-50" data-testid="expert-content-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🧠</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Desenvolvimento Neural Crítico</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        O tubo neural está se formando. É crucial manter a suplementação de ácido fólico e evitar medicamentos sem prescrição médica.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Consulte sempre seu médico antes de tomar qualquer medicamento</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-green-400 bg-green-50" data-testid="expert-content-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🚶‍♀️</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Exercícios Leves são Benéficos</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Caminhadas, yoga pré-natal e natação são recomendados. Exercícios ajudam com náuseas, humor e preparam o corpo para mudanças.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Comece devagar, 15-20 minutos por dia</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-pink-400 bg-pink-50" data-testid="expert-content-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">😴</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Descanso Adequado</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Seu corpo está trabalhando duro! Durma 7-9 horas por noite e faça pausas durante o dia se possível.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Crie uma rotina relaxante antes de dormir</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {currentWeek > 3 && (
+              <>
+                <div className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50" data-testid="expert-content-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">📋</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Mantenha o Pré-natal em Dia</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Continue as consultas regulares e exames de rotina conforme orientação médica. O acompanhamento é essencial para sua saúde e do bebê.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-green-400 bg-green-50" data-testid="expert-content-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🍎</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Alimentação Saudável</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Mantenha uma dieta equilibrada rica em frutas, vegetais, proteínas e grãos integrais. Evite alimentos crus ou mal cozidos.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-purple-400 bg-purple-50" data-testid="expert-content-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">💆‍♀️</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Cuide do seu Bem-estar</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Pratique técnicas de relaxamento, durma adequadamente e mantenha-se hidratada. Seu bem-estar reflete na saúde do bebê.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
         
         {/* Card da próxima consulta */}
         <div className="mx-4 mt-4">
