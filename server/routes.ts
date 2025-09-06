@@ -181,6 +181,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🆕 Endpoint genérico para inserir imagem de qualquer semana
+  app.post("/api/baby-development/insert-image", async (req, res) => {
+    try {
+      const { week, imageUrl } = req.body;
+      
+      if (!week || !imageUrl) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Semana e imageUrl são obrigatórios" 
+        });
+      }
+      
+      const weekNum = parseInt(week);
+      if (isNaN(weekNum) || weekNum < 1 || weekNum > 40) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Semana deve ser um número entre 1 e 40" 
+        });
+      }
+      
+      console.log(`🖼️ Inserindo imagem da semana ${weekNum}: ${imageUrl}`);
+      
+      // Atualizar a semana com a nova imagem
+      const result = await db.update(babyDevelopment)
+        .set({ fruit_image_url: imageUrl })
+        .where(eq(babyDevelopment.week, weekNum))
+        .returning();
+      
+      if (result.length > 0) {
+        console.log(`✅ Imagem da semana ${weekNum} inserida com sucesso!`);
+        res.json({ 
+          success: true, 
+          message: `Imagem da semana ${weekNum} inserida com sucesso!`,
+          imageUrl,
+          week: weekNum,
+          data: result[0]
+        });
+      } else {
+        console.log(`⚠️ Semana ${weekNum} não encontrada no banco`);
+        res.status(404).json({ 
+          success: false, 
+          message: `Semana ${weekNum} não encontrada no banco de dados` 
+        });
+      }
+    } catch (error: any) {
+      console.error("❌ Erro ao inserir imagem:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  });
+
   // Verificar todas as comparações de frutas no banco (sem auth para debug)
   app.get("/api/baby-development/all-comparisons", async (req, res) => {
     try {
