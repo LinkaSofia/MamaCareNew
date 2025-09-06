@@ -66,14 +66,9 @@ export default function Baby3D({
           
           
           // Se tem imagem no banco, usar ela
-          if (developmentData?.baby_image_url) {
-            // Se tem imagem no banco, priorizar ela
-            if (developmentData.baby_image_url.startsWith('@assets/')) {
-              // Para imagens @assets, usar o fallback que já tem o import correto
-            } else {
-              setCurrentImage(developmentData.baby_image_url);
-            }
-            
+          if (developmentData?.baby_image_url && !developmentData.baby_image_url.startsWith('@assets/')) {
+            // Só usar se não for uma imagem @assets (que precisa de import)
+            setCurrentImage(developmentData.baby_image_url);
             const timer = setTimeout(() => setIsLoading(false), 800);
             return;
           }

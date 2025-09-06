@@ -211,9 +211,17 @@ export default function Dashboard() {
         {/* Hero Section - % ao lado da imagem */}
         <div className="mb-8">
           <div className="flex items-center justify-center mb-6 px-4">
-            {/* Baby 3D Component com % ao lado - MAIOR E REDONDO */}
-            <div className="w-64 h-64">
-              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow rounded-full" />
+            {/* Baby 3D Component com semana em destaque */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-64 h-64">
+                <Baby3D week={weekInfo.week} className="w-full h-full animate-glow rounded-full" />
+              </div>
+              {/* Semana atual em destaque */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
+                <span className="text-lg font-bold text-gray-800">
+                  Semana {weekInfo.week}
+                </span>
+              </div>
             </div>
             
             {/* Progress Ring ao lado da imagem - MAIOR */}
