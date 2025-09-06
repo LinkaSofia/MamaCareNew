@@ -64,13 +64,7 @@ export default function Dashboard() {
   }
 
   if (!user) {
-    // Usar setTimeout para evitar problemas de re-render
-    setTimeout(() => setLocation("/login"), 0);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return null; // Layout já faz o redirecionamento
   }
 
   if (pregnancyLoading || developmentLoading) {
