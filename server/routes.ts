@@ -164,16 +164,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Inserir imagem da 3ª semana (bebê microscópico) 
+  // Inserir imagem da 3ª semana (embrião) 
   app.post("/api/baby-development/update-week3-image", async (req, res) => {
     try {
-      console.log("🤰 Inserindo imagem da 3ª semana (bebê microscópico)...");
+      console.log("🤰 Inserindo nova imagem da 3ª semana (embrião)...");
       
-      const imageUrl = "@assets/image_1757172840239.png";
+      const imageUrl = "@assets/3_1757173100445.png";
       
       await db.execute(sql`UPDATE baby_development SET fruit_image_url = ${imageUrl} WHERE week = 3`);
       
-      console.log("✅ Imagem da 3ª semana inserida!");
+      console.log("✅ Nova imagem da 3ª semana inserida!");
       res.json({ success: true, imageUrl });
     } catch (error: any) {
       console.error("❌ Erro:", error);
