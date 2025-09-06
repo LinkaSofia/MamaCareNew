@@ -127,10 +127,10 @@ export default function Dashboard() {
               </div>
               
               {/* Progress Ring ao lado da imagem */}
-              {weekInfo && progress && (
+              {weekInfo && (
                 <div className="relative ml-8">
                   <ProgressCircle 
-                    percentage={progress.percentage} 
+                    percentage={Math.round((currentWeek / 40) * 100)} 
                     size={128}
                   />
                 </div>
@@ -156,10 +156,11 @@ export default function Dashboard() {
                           <span>de desenvolvimento</span>
                           <button 
                             onClick={backToCurrentWeek}
-                            className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors duration-200 shadow-sm"
+                            className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                             data-testid="button-back-to-current-week"
                           >
-                            Voltar para semana atual ({weekInfo.week})
+                            <Calendar className="h-4 w-4" />
+                            <span>Voltar para semana {weekInfo.week}</span>
                           </button>
                         </div>
                       ) : 'da sua gestação'}
@@ -173,7 +174,7 @@ export default function Dashboard() {
                       Faltam aproximadamente
                     </p>
                     <p className="text-3xl font-bold text-gray-800 mb-2">
-                      {weekInfo.weeksRemaining} semanas
+                      {40 - currentWeek} semanas
                     </p>
                     <p className="text-gray-600 text-sm">
                       para conhecer seu bebê!
