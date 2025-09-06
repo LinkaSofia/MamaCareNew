@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Ruler, Weight, Calendar, Plus } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { useState } from "react";
+import { ArrowLeft, ArrowRight, Ruler, Weight, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocation } from "wouter";
 import Baby3D from "../components/Baby3D";
 import { useBabyDevelopment } from "../hooks/use-baby-development";
 import { useArticles } from "../hooks/use-articles";
-import type { User } from "@shared/schema";
+import { usePregnancy } from "../hooks/use-pregnancy";
 import { useAuth } from "../hooks/useAuth";
 import NextConsultationCard from "../components/NextConsultationCard";
 import { LoadingSpinner } from "../components/ui/loading-spinner";
+import ProgressCircle from "../components/progress-circle";
 
 interface UserData {
   name: string;
@@ -18,11 +19,10 @@ interface UserData {
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
+  const { pregnancy, weekInfo, progress } = usePregnancy();
   
-  const [currentWeek, setCurrentWeek] = useState(() => {
-    const urlWeek = new URLSearchParams(location.split('?')[1] || '').get('week');
-    return urlWeek ? parseInt(urlWeek, 10) : 1;
-  });
+  const [viewingWeek, setViewingWeek] = useState<number | null>(null);
+  const currentWeek = viewingWeek || weekInfo?.week || 1;
   
   const [activeTab, setActiveTab] = useState<"mom" | "baby">("baby");
   
@@ -31,8 +31,13 @@ export default function Dashboard() {
 
   const navigateToWeek = (direction: 'prev' | 'next') => {
     const newWeek = direction === 'prev' ? Math.max(1, currentWeek - 1) : Math.min(40, currentWeek + 1);
-    setCurrentWeek(newWeek);
-    window.history.pushState({}, '', `/?week=${newWeek}`);
+    setViewingWeek(newWeek);
+    setLocation(`/?week=${newWeek}`);
+  };
+
+  const backToCurrentWeek = () => {
+    setViewingWeek(null);
+    setLocation('/');
   };
 
   const getFruitEmoji = (fruit: string | null) => {
@@ -52,15 +57,11 @@ export default function Dashboard() {
     return fruitMap[fruit.toLowerCase()] || "🍎";
   };
 
-  useEffect(() => {
-    const urlWeek = new URLSearchParams(location.split('?')[1] || '').get('week');
-    if (urlWeek) {
-      const weekNumber = parseInt(urlWeek, 10);
-      if (weekNumber !== currentWeek && weekNumber >= 1 && weekNumber <= 40) {
-        setCurrentWeek(weekNumber);
-      }
-    }
-  }, [location, currentWeek]);
+  // Redirect to setup if no pregnancy
+  if (!pregnancy && !weekInfo) {
+    setLocation("/setup");
+    return null;
+  }
 
   return (
     <div className="bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 min-h-screen pb-20">
@@ -72,8 +73,8 @@ export default function Dashboard() {
             <p className="text-sm text-gray-600">Olá, {user?.name?.split(' ')[0] || 'Mamãe'}!</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Semana {currentWeek}</p>
-            <p className="text-xs text-gray-500">{40 - currentWeek} semanas restantes</p>
+            <p className="text-sm text-gray-600">Semana {weekInfo?.week || 1}</p>
+            <p className="text-xs text-gray-500">{weekInfo?.weeksRemaining || 0} semanas restantes</p>
           </div>
         </div>
       </div>
@@ -89,67 +90,128 @@ export default function Dashboard() {
       {/* Development Info */}
       {!isLoadingDevelopment && development && (
         <div className="p-4">
-          {/* Navigation */}
-          <div className="flex justify-center items-center mb-6 relative">
-            <button
-              onClick={() => navigateToWeek('prev')}
-              disabled={currentWeek <= 1}
-              className={`absolute left-6 p-3 rounded-full transition-all z-10 ${
-                currentWeek <= 1 
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                  : "bg-white shadow-lg text-gray-700 hover:bg-gray-50 hover:shadow-xl"
-              }`}
-              data-testid="prev-week"
-              style={{ top: '50%', transform: 'translateY(-50%)' }}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
+          {/* Hero Section com navegação nas bordas */}
+          <div className="mb-8 relative">
+            <div className="flex items-center justify-center mb-6 px-4 relative">
+              {/* Botão semana anterior */}
+              <button
+                onClick={() => navigateToWeek('prev')}
+                disabled={currentWeek <= 1}
+                className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg ${
+                  currentWeek <= 1 
+                    ? 'opacity-30 cursor-not-allowed' 
+                    : 'hover:bg-white hover:shadow-xl active:scale-95'
+                }`}
+                data-testid="button-previous-week"
+              >
+                <ChevronLeft className="w-6 h-6 text-gray-700" />
+              </button>
 
-            <div className="flex justify-center">
-              <Baby3D week={currentWeek} />
+              {/* Botão próxima semana */}
+              <button
+                onClick={() => navigateToWeek('next')}
+                disabled={currentWeek >= 40}
+                className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg ${
+                  currentWeek >= 40 
+                    ? 'opacity-30 cursor-not-allowed' 
+                    : 'hover:bg-white hover:shadow-xl active:scale-95'
+                }`}
+                data-testid="button-next-week"
+              >
+                <ChevronRight className="w-6 h-6 text-gray-700" />
+              </button>
+
+              {/* Baby 3D Component */}
+              <div className="w-48 h-48 mx-4 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
+                <Baby3D week={currentWeek} className="w-full h-full rounded-full" />
+              </div>
+              
+              {/* Progress Ring ao lado da imagem */}
+              {weekInfo && progress && (
+                <div className="relative ml-8">
+                  <ProgressCircle 
+                    percentage={progress.percentage} 
+                    size={128}
+                  />
+                </div>
+              )}
             </div>
-
-            <button
-              onClick={() => navigateToWeek('next')}
-              disabled={currentWeek >= 40}
-              className={`absolute right-6 p-3 rounded-full transition-all z-10 ${
-                currentWeek >= 40 
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                  : "bg-white shadow-lg text-gray-700 hover:bg-gray-50 hover:shadow-xl"
-              }`}
-              data-testid="next-week"
-              style={{ top: '50%', transform: 'translateY(-50%)' }}
-            >
-              <ArrowRight className="h-5 w-5" />
-            </button>
+            
+            {/* Informações da gestação */}
+            {weekInfo && (
+              <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Semana atual */}
+                  <div className="text-center">
+                    <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando a' : 'Você está na'}
+                    </p>
+                    <p className="text-3xl font-bold text-gray-800 mb-2">
+                      {currentWeek}ª semana
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      {viewingWeek && viewingWeek !== weekInfo.week ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <span>de desenvolvimento</span>
+                          <button 
+                            onClick={backToCurrentWeek}
+                            className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors duration-200 shadow-sm"
+                            data-testid="button-back-to-current-week"
+                          >
+                            Voltar para semana atual ({weekInfo.week})
+                          </button>
+                        </div>
+                      ) : 'da sua gestação'}
+                    </p>
+                  </div>
+                  
+                  {/* Semanas restantes */}
+                  <div className="text-center">
+                    <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Faltam aproximadamente
+                    </p>
+                    <p className="text-3xl font-bold text-gray-800 mb-2">
+                      {weekInfo.weeksRemaining} semanas
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      para conhecer seu bebê!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Baby Development Stats */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 mx-4 mb-6 border border-gray-100">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
-                <p className="text-xs text-gray-500 mb-1">Tamanho</p>
-                <p className="font-semibold text-gray-800">
-                  {development.length_cm ? `${development.length_cm} cm` : development.size || "Calculando..."}
-                </p>
-              </div>
-              <div className="text-center">
-                <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
-                <p className="text-xs text-gray-500 mb-1">Peso</p>
-                <p className="font-semibold text-gray-800">
-                  {development.weight_grams && Number(development.weight_grams) > 0 
-                    ? `${development.weight_grams}g` 
-                    : development.weight || "< 1g"}
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl mb-1">{getFruitEmoji(development.fruit_comparison)}</div>
-                <p className="text-xs text-gray-500 mb-1">Como</p>
-                <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "Calculando..."}</p>
+          {/* Informações do bebê - horizontal */}
+          {development?.developmentData && (
+            <div className="glass-effect rounded-2xl p-4 mx-4 backdrop-blur-md bg-white/80">
+              <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
+                <div className="text-center">
+                  <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
+                  <p className="text-xs text-gray-500 mb-1">Tamanho</p>
+                  <p className="font-semibold text-gray-800">
+                    {development.developmentData?.length_cm ? `${development.developmentData.length_cm} cm` : development.developmentData?.size || "Calculando..."}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
+                  <p className="text-xs text-gray-500 mb-1">Peso</p>
+                  <p className="font-semibold text-gray-800">
+                    {development.developmentData?.weight_grams && Number(development.developmentData.weight_grams) > 0 
+                      ? `${development.developmentData.weight_grams}g` 
+                      : development.developmentData?.weight || "< 1g"}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-1">{getFruitEmoji(development.developmentData?.fruit_comparison)}</div>
+                  <p className="text-xs text-gray-500 mb-1">Como</p>
+                  <p className="font-semibold text-gray-800 text-sm">{development.developmentData?.fruit_comparison || "Calculando..."}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
