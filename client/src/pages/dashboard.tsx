@@ -64,32 +64,40 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 min-h-screen pb-20">
+    <div className="tech-bg min-h-screen pb-20 relative overflow-hidden">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-2 h-2 bg-cyan-400 rounded-full animate-tech-pulse"></div>
+        <div className="absolute top-40 right-20 w-1 h-1 bg-pink-400 rounded-full animate-neon-flicker"></div>
+        <div className="absolute bottom-32 left-1/4 w-1.5 h-1.5 bg-purple-400 rounded-full animate-tech-pulse"></div>
+        <div className="absolute bottom-20 right-1/3 w-1 h-1 bg-green-400 rounded-full animate-neon-flicker"></div>
+      </div>
+      
       {/* Header */}
-      <div className="bg-white/60 backdrop-blur-sm border-b border-pink-100 sticky top-0 z-40">
+      <div className="glass-effect border-b border-purple-500/30 sticky top-0 z-40 relative">
         <div className="flex items-center justify-between p-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Mama Care</h1>
-            <p className="text-sm text-gray-600">Olá, {user?.name?.split(' ')[0] || 'Mamãe'}!</p>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent tech-font animate-gradient-shift">Mama Care</h1>
+            <p className="text-sm text-gray-300 tech-font">Olá, {user?.name?.split(' ')[0] || 'Mamãe'}!</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Semana {weekInfo?.week || 1}</p>
-            <p className="text-xs text-gray-500">{weekInfo?.weeksRemaining || 0} semanas restantes</p>
+            <p className="text-sm text-cyan-400 tech-font neon-text">Semana {weekInfo?.week || 1}</p>
+            <p className="text-xs text-gray-400 tech-font">{weekInfo?.weeksRemaining || 0} semanas restantes</p>
           </div>
         </div>
       </div>
 
       {/* Loading State */}
       {isLoadingDevelopment && (
-        <div className="flex items-center justify-center py-20">
+        <div className="flex items-center justify-center py-20 relative">
           <LoadingSpinner />
-          <span className="ml-3 text-gray-600">Carregando informações...</span>
+          <span className="ml-3 text-gray-300 tech-font">Carregando informações...</span>
         </div>
       )}
 
       {/* Development Info */}
       {!isLoadingDevelopment && development && (
-        <div className="p-4">
+        <div className="p-4 relative">
           {/* Hero Section com navegação nas bordas */}
           <div className="mb-8 relative">
             <div className="flex items-center justify-center mb-6 px-4 relative">
@@ -97,32 +105,32 @@ export default function Dashboard() {
               <button
                 onClick={() => navigateToWeek('prev')}
                 disabled={currentWeek <= 1}
-                className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg ${
+                className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-effect border border-cyan-500/30 neon-glow ${
                   currentWeek <= 1 
                     ? 'opacity-30 cursor-not-allowed' 
-                    : 'hover:bg-white hover:shadow-xl active:scale-95'
+                    : 'hover:border-cyan-400 hover:shadow-2xl active:scale-95 animate-tech-pulse'
                 }`}
                 data-testid="button-previous-week"
               >
-                <ChevronLeft className="w-6 h-6 text-gray-700" />
+                <ChevronLeft className="w-6 h-6 text-cyan-400" />
               </button>
 
               {/* Botão próxima semana */}
               <button
                 onClick={() => navigateToWeek('next')}
                 disabled={currentWeek >= 40}
-                className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg ${
+                className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-effect border border-pink-500/30 neon-glow ${
                   currentWeek >= 40 
                     ? 'opacity-30 cursor-not-allowed' 
-                    : 'hover:bg-white hover:shadow-xl active:scale-95'
+                    : 'hover:border-pink-400 hover:shadow-2xl active:scale-95 animate-tech-pulse'
                 }`}
                 data-testid="button-next-week"
               >
-                <ChevronRight className="w-6 h-6 text-gray-700" />
+                <ChevronRight className="w-6 h-6 text-pink-400" />
               </button>
 
               {/* Baby 3D Component */}
-              <div className="w-48 h-48 mx-4 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
+              <div className="w-48 h-48 mx-4 rounded-full overflow-hidden border-4 border-purple-500/40 shadow-2xl neon-glow animate-hologram">
                 <Baby3D week={currentWeek} className="w-full h-full rounded-full" />
               </div>
               

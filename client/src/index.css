@@ -1,13 +1,64 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom Color Variables */
+:root {
+  /* Neon Tech Colors */
+  --neon-pink: #ff0080;
+  --neon-cyan: #00ffff;
+  --neon-purple: #8000ff;
+  --neon-green: #00ff80;
+  --tech-dark: #0a0a0f;
+  --tech-darker: #050507;
+  --tech-glass: rgba(255, 255, 255, 0.1);
+  --tech-glow: rgba(128, 0, 255, 0.3);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #ff0080, #8000ff);
+  --gradient-secondary: linear-gradient(135deg, #00ffff, #0080ff);
+  --gradient-accent: linear-gradient(135deg, #ff0080, #00ffff, #8000ff);
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+}
 
 /* Safe area utilities */
 @layer utilities {
   .pt-safe {
     padding-top: max(0.5rem, env(safe-area-inset-top));
   }
+  
+  /* Tech Background Classes */
+  .tech-bg {
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a0520 50%, #0f0515 100%);
+  }
+  
+  .glass-effect {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  .neon-glow {
+    box-shadow: 0 0 20px var(--tech-glow);
+  }
+  
+  .neon-text {
+    text-shadow: 0 0 10px currentColor;
+  }
+}
+
+/* Global Body Styling */
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--tech-dark);
+  color: white;
+  overflow-x: hidden;
+}
+
+.tech-font {
+  font-family: 'Orbitron', monospace;
 }
 
 /* PWA specific styles */
@@ -26,6 +77,38 @@
   ::-webkit-scrollbar {
     width: 0;
     background: transparent;
+  }
+}
+
+/* Tech Animation Keyframes */
+@keyframes tech-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes hologram {
+  0% {
+    background-position: 0% 0%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 100%;
+    filter: hue-rotate(180deg);
+  }
+  100% {
+    background-position: 0% 0%;
+    filter: hue-rotate(360deg);
   }
 }
 
@@ -72,6 +155,15 @@
 .animate-float-2 { animation: float-2 4s ease-in-out infinite; }
 .animate-float-3 { animation: float-3 5s ease-in-out infinite; }
 .animate-float-4 { animation: float-4 3.5s ease-in-out infinite; }
+
+/* Tech Animation Classes */
+.animate-tech-pulse { animation: tech-pulse 2s ease-in-out infinite; }
+.animate-neon-flicker { animation: neon-flicker 1.5s ease-in-out infinite; }
+.animate-gradient-shift { 
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.animate-hologram { animation: hologram 4s ease-in-out infinite; }
 
 .animate-bubble-1 { animation: bubble-1 4s ease-in-out infinite; }
 .animate-bubble-2 { animation: bubble-2 5s ease-in-out infinite; }

@@ -630,11 +630,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload endpoint for profile photos
   app.post("/api/uploads/profile-photo", requireAuth, async (req, res) => {
     try {
-      // Generate a unique filename for the profile photo
-      const fileName = `profile-photos/${req.session.userId}-${Date.now()}.jpg`;
-      // Mock upload URL - in reality this would use object storage service
-      const uploadURL = `https://storage.googleapis.com/replit-objstore-91a6418a-7138-4d3e-b5d2-2e3abd9533fc/.private/${fileName}`;
-      res.json({ uploadURL });
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ 
+        method: "PUT",
+        url: uploadURL 
+      });
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ error: "Failed to get upload URL" });
@@ -649,8 +650,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Updating profile for user:", userId, { profilePhotoUrl, birthDate });
       
+      // Se tem URL de upload, normalize o path e configure ACL
+      let normalizedPhotoUrl = profilePhotoUrl;
+      if (profilePhotoUrl && profilePhotoUrl.includes('storage.googleapis.com')) {
+        const objectStorageService = new ObjectStorageService();
+        normalizedPhotoUrl = await objectStorageService.trySetObjectEntityAclPolicy(
+          profilePhotoUrl,
+          {
+            owner: userId,
+            visibility: "public", // Profile photos são públicas
+          }
+        );
+      }
+      
       const updatedUser = await storage.updateUserProfile(userId, {
-        profilePhotoUrl,
+        profilePhotoUrl: normalizedPhotoUrl,
         birthDate: birthDate ? new Date(birthDate) : undefined,
       });
       
@@ -658,6 +672,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Update profile error:", error);
       res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  // Route to serve uploaded objects
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
     }
   });
 
