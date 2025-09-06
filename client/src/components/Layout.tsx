@@ -2,6 +2,7 @@ import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { authManager } from '@/lib/auth';
+import BottomNavigation from '@/components/layout/bottom-navigation';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -52,11 +53,14 @@ export function Layout({ children, className }: LayoutProps) {
       {/* Conteúdo principal - sem sidebar lateral */}
       <div className="min-h-screen">
         <main className={cn(
-          'min-h-screen', 
+          'min-h-screen pb-20', // Adicionar padding-bottom para navegação
           className
         )}>
           {children}
         </main>
+        
+        {/* Navegação inferior */}
+        <BottomNavigation />
       </div>
     </div>
   );
