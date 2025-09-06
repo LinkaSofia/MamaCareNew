@@ -31,18 +31,41 @@ import {
   ChevronDown,
   Sparkles,
   TrendingUp,
-  Stethoscope
+  Stethoscope,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 export default function Dashboard() {
   const { user, isLoading: authLoading, logout } = useAuth();
   const { pregnancy, weekInfo, isLoading: pregnancyLoading } = usePregnancy();
-  const { data: developmentData, isLoading: developmentLoading } = useBabyDevelopment(weekInfo?.week || 0);
+  const [viewingWeek, setViewingWeek] = useState<number | null>(null); // Semana que está sendo visualizada
+  const currentWeek = viewingWeek || weekInfo?.week || 0;
+  const { data: developmentData, isLoading: developmentLoading } = useBabyDevelopment(currentWeek);
   const [activeTab, setActiveTab] = useState("baby");
   const [, setLocation] = useLocation();
 
   // Extrair dados do desenvolvimento para usar no dashboard
   const development = developmentData?.developmentData;
+
+  // Funções de navegação entre semanas
+  const goToPreviousWeek = () => {
+    const targetWeek = currentWeek - 1;
+    if (targetWeek >= 1) {
+      setViewingWeek(targetWeek);
+    }
+  };
+
+  const goToNextWeek = () => {
+    const targetWeek = currentWeek + 1;
+    if (targetWeek <= 42) {
+      setViewingWeek(targetWeek);
+    }
+  };
+
+  const backToCurrentWeek = () => {
+    setViewingWeek(null);
+  };
 
   const handleLogout = async () => {
     try {
@@ -211,10 +234,38 @@ export default function Dashboard() {
         {/* Hero Section - % ao lado da imagem */}
         <div className="mb-8">
           <div className="flex items-center justify-center mb-6 px-4">
+            {/* Botão semana anterior */}
+            <button
+              onClick={goToPreviousWeek}
+              disabled={currentWeek <= 1}
+              className={`p-2 rounded-full transition-all ${
+                currentWeek <= 1 
+                  ? 'opacity-30 cursor-not-allowed' 
+                  : 'hover:bg-white/20 active:scale-95'
+              }`}
+              data-testid="button-previous-week"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+
             {/* Baby 3D Component - mesmo tamanho da bolinha de tras */}
-            <div className="w-32 h-32">
-              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow rounded-full" />
+            <div className="w-32 h-32 mx-4">
+              <Baby3D week={currentWeek} className="w-full h-full animate-glow rounded-full" />
             </div>
+
+            {/* Botão próxima semana */}
+            <button
+              onClick={goToNextWeek}
+              disabled={currentWeek >= 42}
+              className={`p-2 rounded-full transition-all ${
+                currentWeek >= 42 
+                  ? 'opacity-30 cursor-not-allowed' 
+                  : 'hover:bg-white/20 active:scale-95'
+              }`}
+              data-testid="button-next-week"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
             
             {/* Progress Ring ao lado da imagem - MAIOR */}
             <div className="relative ml-8">
@@ -265,13 +316,23 @@ export default function Dashboard() {
             <div className="text-center mb-4 pb-4 border-b border-gray-200">
               <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Você está na
+                {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando a' : 'Você está na'}
               </p>
               <p className="text-3xl font-bold text-gray-800 mb-2">
-                {weekInfo.week}ª semana
+                {currentWeek}ª semana
               </p>
               <p className="text-gray-600 text-sm">
-                da sua gestação
+                {viewingWeek && viewingWeek !== weekInfo.week ? (
+                  <span>
+                    de desenvolvimento • 
+                    <button 
+                      onClick={backToCurrentWeek}
+                      className="text-blue-600 hover:text-blue-700 ml-1 underline"
+                    >
+                      voltar para semana atual ({weekInfo.week})
+                    </button>
+                  </span>
+                ) : 'da sua gestação'}
               </p>
             </div>
             
