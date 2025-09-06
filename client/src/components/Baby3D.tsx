@@ -54,73 +54,34 @@ export default function Baby3D({
   const pregnancyPhase = getPregnancyPhase(week);
 
   useEffect(() => {
-    // Buscar imagem do banco de dados primeiro
-    const fetchBabyImage = async () => {
-      try {
-        const response = await fetch(`/api/baby-development/${week}`, {
-          credentials: "include",
-        });
-        
-        
-        if (response.ok) {
-          const data = await response.json();
-          const developmentData = data.developmentData;
-          
-          console.log(`🖼️ Semana ${week} - Dados do banco:`, developmentData);
-          console.log(`🖼️ baby_image_url:`, developmentData?.baby_image_url);
-          
-          // Se tem imagem no banco, verificar se é @assets (usar import) ou URL direta
-          if (developmentData?.baby_image_url) {
-            console.log(`🖼️ Encontrou baby_image_url:`, developmentData.baby_image_url);
-            if (developmentData.baby_image_url.startsWith('@assets/')) {
-              console.log(`🖼️ É @assets, usando fallback para imports`);
-              // Para @assets/, usar os imports diretos baseados na semana
-            } else {
-              console.log(`🖼️ URL direta, definindo imagem:`, developmentData.baby_image_url);
-              // URL direta do banco
-              setCurrentImage(developmentData.baby_image_url);
-              const timer = setTimeout(() => setIsLoading(false), 800);
-              return;
-            }
-          } else {
-            console.log(`🖼️ Nenhuma baby_image_url encontrada, usando fallback`);
-          }
-        }
-      } catch (error) {
-      }
-      
-      // Usar imagens importadas baseadas na semana
-      console.log(`🖼️ Usando fallback de imports para semana ${week}`);
-      let selectedImage = baby8weeks;
-
-      if (week === 2) {
-        console.log(`🖼️ Selecionando baby2weeks para semana 2`);
-        selectedImage = baby2weeks;  // Imagem personalizada da semana 2
-      } else if (week === 3) {
-        console.log(`🖼️ Selecionando baby3weeks para semana 3`);
-        selectedImage = baby3weeks;  // Imagem personalizada da semana 3
-      } else if (week >= 36) {
-        selectedImage = baby36weeks;
-      } else if (week >= 28) {
-        selectedImage = baby28weeks;
-      } else if (week >= 20) {
-        selectedImage = baby20weeks;
-      } else if (week >= 16) {
-        selectedImage = baby16weeks;
-      } else if (week >= 12) {
-        selectedImage = baby12weeks;
-      } else {
-        selectedImage = baby8weeks;
-      }
-
-      console.log(`🖼️ Definindo imagem final:`, selectedImage);
-      setCurrentImage(selectedImage);
-      
-      // Simular carregamento para efeito suave
-      const timer = setTimeout(() => setIsLoading(false), 800);
-    };
+    console.log(`🖼️ Carregando imagem para semana ${week}`);
     
-    fetchBabyImage();
+    // Usar imagens importadas diretamente baseadas na semana
+    let selectedImage = baby8weeks;
+
+    if (week === 2) {
+      console.log(`🖼️ Usando baby2weeks para semana 2`);
+      selectedImage = baby2weeks;
+    } else if (week === 3) {
+      console.log(`🖼️ Usando baby3weeks para semana 3`);
+      selectedImage = baby3weeks;
+    } else if (week >= 36) {
+      selectedImage = baby36weeks;
+    } else if (week >= 28) {
+      selectedImage = baby28weeks;
+    } else if (week >= 20) {
+      selectedImage = baby20weeks;
+    } else if (week >= 16) {
+      selectedImage = baby16weeks;
+    } else if (week >= 12) {
+      selectedImage = baby12weeks;
+    } else {
+      selectedImage = baby8weeks;
+    }
+
+    console.log(`🖼️ Imagem selecionada:`, selectedImage);
+    setCurrentImage(selectedImage);
+    setIsLoading(false);
   }, [week]);
 
   useEffect(() => {
