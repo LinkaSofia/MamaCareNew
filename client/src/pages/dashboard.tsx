@@ -213,6 +213,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-center mb-6 px-4">
             {/* Baby 3D Component com % ao lado */}
             <div className="w-48 h-48">
+              {console.log(`🗓️ Dashboard: weekInfo.week = ${weekInfo.week}`)}
               <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
             </div>
             
