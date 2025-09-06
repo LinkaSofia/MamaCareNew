@@ -54,50 +54,31 @@ export default function Baby3D({
   useEffect(() => {
     // Buscar imagem do banco de dados primeiro
     const fetchBabyImage = async () => {
-      console.log(`🔍 Buscando imagem para semana ${week}`);
       try {
         const response = await fetch(`/api/baby-development/${week}`, {
           credentials: "include",
         });
         
-        console.log(`📡 Response status: ${response.status}`);
         
         if (response.ok) {
           const data = await response.json();
           const developmentData = data.developmentData;
           
-          console.log(`📊 Data recebida:`, developmentData);
-          console.log(`🖼️ baby_image_url:`, developmentData?.baby_image_url);
           
           // Se tem imagem no banco, usar ela
           if (developmentData?.baby_image_url) {
-            console.log(`✅ Usando imagem personalizada: ${developmentData.baby_image_url}`);
-            
-            // Se é uma imagem @assets, tentar importar dinamicamente
+            // Se tem imagem no banco, priorizar ela
             if (developmentData.baby_image_url.startsWith('@assets/')) {
-              try {
-                const imagePath = developmentData.baby_image_url.replace('@assets/', '/src/assets/');
-                console.log(`🔄 Tentando carregar imagem de: ${imagePath}`);
-                setCurrentImage(imagePath);
-              } catch (error) {
-                console.log(`❌ Erro ao carregar imagem de assets:`, error);
-                setCurrentImage(developmentData.baby_image_url);
-              }
+              // Para imagens @assets, usar o fallback que já tem o import correto
             } else {
               setCurrentImage(developmentData.baby_image_url);
             }
             
             const timer = setTimeout(() => setIsLoading(false), 800);
             return;
-          } else {
-            console.log(`⚠️ Nenhuma imagem personalizada encontrada para semana ${week}`);
           }
-        } else {
-          console.log(`❌ Response não OK:`, response.status, response.statusText);
         }
       } catch (error) {
-        console.log("❌ Erro ao buscar imagem:", error);
-        console.log("Usando imagem 3D padrão para semana", week);
       }
       
       // Fallback para imagens 3D se não houver no banco
@@ -190,7 +171,7 @@ export default function Baby3D({
           src={currentImage}
           alt={`Bebê 3D - Semana ${week}`}
           className={`
-            w-full h-full object-cover rounded-3xl transition-all duration-700
+            w-full h-full object-cover rounded-full transition-all duration-700
             ${animate ? 'animate-pulse-slow' : ''}
             ${isHovered ? 'scale-110' : 'scale-100'}
           `}

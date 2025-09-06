@@ -211,10 +211,9 @@ export default function Dashboard() {
         {/* Hero Section - % ao lado da imagem */}
         <div className="mb-8">
           <div className="flex items-center justify-center mb-6 px-4">
-            {/* Baby 3D Component com % ao lado */}
-            <div className="w-48 h-48">
-              {console.log(`🗓️ Dashboard: weekInfo.week = ${weekInfo.week}`)}
-              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow" />
+            {/* Baby 3D Component com % ao lado - MAIOR E REDONDO */}
+            <div className="w-64 h-64">
+              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow rounded-full" />
             </div>
             
             {/* Progress Ring ao lado da imagem - MAIOR */}
