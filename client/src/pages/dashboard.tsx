@@ -67,6 +67,35 @@ export default function Dashboard() {
     setViewingWeek(null);
   };
 
+  // Função para mapear fruit_comparison para emojis
+  const getFruitEmoji = (fruitComparison: string) => {
+    const fruitMap: Record<string, string> = {
+      'Semente de papoula': '🌺',
+      'Semente': '🌱',
+      'Grão de arroz': '🌾',
+      'Lentilha': '🌿',
+      'Ervilha': '🟢',
+      'Mirtilo': '🫐',
+      'Framboesa': '🫐',
+      'Morango': '🍓',
+      'Lima': '🟢',
+      'Limão': '🍋',
+      'Ameixa': '🟣',
+      'Abacate': '🥑',
+      'Cebola': '🧅',
+      'Banana': '🍌',
+      'Espiga de milho': '🌽',
+      'Cenoura': '🥕',
+      'Berinjela': '🍆',
+      'Abobrinha': '🥒',
+      'Coco': '🥥',
+      'Repolho': '🥬',
+      'Melancia': '🍉',
+      'Abóbora': '🎃'
+    };
+    return fruitMap[fruitComparison] || '🍎';
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -231,41 +260,41 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
 
-        {/* Hero Section - % ao lado da imagem */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center mb-6 px-4">
-            {/* Botão semana anterior */}
-            <button
-              onClick={goToPreviousWeek}
-              disabled={currentWeek <= 1}
-              className={`p-2 rounded-full transition-all ${
-                currentWeek <= 1 
-                  ? 'opacity-30 cursor-not-allowed' 
-                  : 'hover:bg-white/20 active:scale-95'
-              }`}
-              data-testid="button-previous-week"
-            >
-              <ChevronLeft className="w-6 h-6 text-white" />
-            </button>
+        {/* Hero Section com navegação nas bordas */}
+        <div className="mb-8 relative">
+          {/* Botão semana anterior - CANTO ESQUERDO */}
+          <button
+            onClick={goToPreviousWeek}
+            disabled={currentWeek <= 1}
+            className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
+              currentWeek <= 1 
+                ? 'opacity-30 cursor-not-allowed' 
+                : 'hover:bg-white/20 active:scale-95 shadow-lg'
+            }`}
+            data-testid="button-previous-week"
+          >
+            <ChevronLeft className="w-8 h-8 text-white" />
+          </button>
 
-            {/* Baby 3D Component - mesmo tamanho da bolinha de tras */}
-            <div className="w-32 h-32 mx-4">
+          {/* Botão próxima semana - CANTO DIREITO */}
+          <button
+            onClick={goToNextWeek}
+            disabled={currentWeek >= 42}
+            className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
+              currentWeek >= 42 
+                ? 'opacity-30 cursor-not-allowed' 
+                : 'hover:bg-white/20 active:scale-95 shadow-lg'
+            }`}
+            data-testid="button-next-week"
+          >
+            <ChevronRight className="w-8 h-8 text-white" />
+          </button>
+
+          <div className="flex items-center justify-center mb-6 px-4">
+            {/* Baby 3D Component - MAIOR */}
+            <div className="w-48 h-48 mx-4">
               <Baby3D week={currentWeek} className="w-full h-full animate-glow rounded-full" />
             </div>
-
-            {/* Botão próxima semana */}
-            <button
-              onClick={goToNextWeek}
-              disabled={currentWeek >= 42}
-              className={`p-2 rounded-full transition-all ${
-                currentWeek >= 42 
-                  ? 'opacity-30 cursor-not-allowed' 
-                  : 'hover:bg-white/20 active:scale-95'
-              }`}
-              data-testid="button-next-week"
-            >
-              <ChevronRight className="w-6 h-6 text-white" />
-            </button>
             
             {/* Progress Ring ao lado da imagem - MAIOR */}
             <div className="relative ml-8">
@@ -310,44 +339,46 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Informações da gestação - Semana atual + Semanas restantes */}
+          {/* Informações da gestação - LADO A LADO */}
           <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
-            {/* Semana atual em destaque */}
-            <div className="text-center mb-4 pb-4 border-b border-gray-200">
-              <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
-                <Calendar className="h-5 w-5" />
-                {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando a' : 'Você está na'}
-              </p>
-              <p className="text-3xl font-bold text-gray-800 mb-2">
-                {currentWeek}ª semana
-              </p>
-              <p className="text-gray-600 text-sm">
-                {viewingWeek && viewingWeek !== weekInfo.week ? (
-                  <span>
-                    de desenvolvimento • 
-                    <button 
-                      onClick={backToCurrentWeek}
-                      className="text-blue-600 hover:text-blue-700 ml-1 underline"
-                    >
-                      voltar para semana atual ({weekInfo.week})
-                    </button>
-                  </span>
-                ) : 'da sua gestação'}
-              </p>
-            </div>
-            
-            {/* Semanas restantes */}
-            <div className="text-center">
-              <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Faltam aproximadamente
-              </p>
-              <p className="text-3xl font-bold text-gray-800 mb-2">
-                {weekInfo.weeksRemaining} semanas
-              </p>
-              <p className="text-gray-600 text-sm">
-                para conhecer seu bebê!
-              </p>
+            <div className="grid grid-cols-2 gap-6">
+              {/* Semana atual */}
+              <div className="text-center">
+                <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando a' : 'Você está na'}
+                </p>
+                <p className="text-3xl font-bold text-gray-800 mb-2">
+                  {currentWeek}ª semana
+                </p>
+                <p className="text-gray-600 text-sm">
+                  {viewingWeek && viewingWeek !== weekInfo.week ? (
+                    <span>
+                      de desenvolvimento • 
+                      <button 
+                        onClick={backToCurrentWeek}
+                        className="text-blue-600 hover:text-blue-700 ml-1 underline"
+                      >
+                        voltar para atual ({weekInfo.week})
+                      </button>
+                    </span>
+                  ) : 'da sua gestação'}
+                </p>
+              </div>
+              
+              {/* Semanas restantes */}
+              <div className="text-center">
+                <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Faltam aproximadamente
+                </p>
+                <p className="text-3xl font-bold text-gray-800 mb-2">
+                  {40 - (weekInfo?.week || 0)} semanas
+                </p>
+                <p className="text-gray-600 text-sm">
+                  para conhecer seu bebê!
+                </p>
+              </div>
             </div>
           </div>
           
@@ -372,7 +403,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl mb-1">🍎</div>
+                  <div className="text-2xl mb-1">{getFruitEmoji(development.fruit_comparison)}</div>
                   <p className="text-xs text-gray-500 mb-1">Como</p>
                   <p className="font-semibold text-gray-800 text-sm">{development.fruit_comparison || "Calculando..."}</p>
                 </div>

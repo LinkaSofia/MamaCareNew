@@ -196,13 +196,6 @@ export default function Baby3D({
         {/* Informações do bebê */}
         {showInfo && (
           <>
-            {/* Badge com a semana */}
-            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg">
-              <span className="text-xs font-semibold text-gray-700">
-                {week}ª semana
-              </span>
-            </div>
-
               </>
         )}
 
