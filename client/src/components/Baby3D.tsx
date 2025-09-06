@@ -49,28 +49,52 @@ export default function Baby3D({
   const pregnancyPhase = getPregnancyPhase(week);
 
   useEffect(() => {
-    // Determinar qual imagem usar baseada na semana
-    let selectedImage = baby8weeks; // padrão para semanas iniciais
+    // Buscar imagem do banco de dados primeiro
+    const fetchBabyImage = async () => {
+      try {
+        const response = await fetch(`/api/baby-development/${week}`, {
+          credentials: "include",
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const developmentData = data.developmentData;
+          
+          // Se tem imagem no banco, usar ela
+          if (developmentData?.fruit_image_url) {
+            setCurrentImage(developmentData.fruit_image_url);
+            const timer = setTimeout(() => setIsLoading(false), 800);
+            return;
+          }
+        }
+      } catch (error) {
+        console.log("Usando imagem 3D padrão para semana", week);
+      }
+      
+      // Fallback para imagens 3D se não houver no banco
+      let selectedImage = baby8weeks;
 
-    if (week >= 36) {
-      selectedImage = baby36weeks;
-    } else if (week >= 28) {
-      selectedImage = baby28weeks;
-    } else if (week >= 20) {
-      selectedImage = baby20weeks;
-    } else if (week >= 16) {
-      selectedImage = baby16weeks;
-    } else if (week >= 12) {
-      selectedImage = baby12weeks;
-    } else {
-      selectedImage = baby8weeks;
-    }
+      if (week >= 36) {
+        selectedImage = baby36weeks;
+      } else if (week >= 28) {
+        selectedImage = baby28weeks;
+      } else if (week >= 20) {
+        selectedImage = baby20weeks;
+      } else if (week >= 16) {
+        selectedImage = baby16weeks;
+      } else if (week >= 12) {
+        selectedImage = baby12weeks;
+      } else {
+        selectedImage = baby8weeks;
+      }
 
-    setCurrentImage(selectedImage);
+      setCurrentImage(selectedImage);
+      
+      // Simular carregamento para efeito suave
+      const timer = setTimeout(() => setIsLoading(false), 800);
+    };
     
-    // Simular carregamento para efeito suave
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+    fetchBabyImage();
   }, [week]);
 
   useEffect(() => {
