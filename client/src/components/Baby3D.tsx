@@ -8,7 +8,8 @@ import baby16weeks from '@assets/generated_images/16-week_fetus_3D_realistic_9c0
 import baby20weeks from '@assets/generated_images/20-week_fetus_3D_realistic_87f5a187.png';
 import baby28weeks from '@assets/generated_images/28-week_fetus_3D_realistic_1158e5df.png';
 import baby36weeks from '@assets/generated_images/36-week_fetus_3D_realistic_e9a2b0f5.png';
-// Imagem personalizada da semana 3
+// Imagens personalizadas
+import baby2weeks from '@assets/2_1757176256170.jpeg';
 import baby3weeks from '@assets/3_1757174102100.png';
 
 interface Baby3DProps {
@@ -22,6 +23,7 @@ interface Baby3DProps {
 
 const BABY_IMAGES = {
   1: baby8weeks,  // Para semanas muito iniciais
+  2: baby2weeks,  // Imagem personalizada da semana 2
   3: baby3weeks,  // Imagem personalizada da semana 3
   4: baby8weeks,
   8: baby8weeks,
