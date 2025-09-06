@@ -291,9 +291,9 @@ export default function Dashboard() {
           </button>
 
           <div className="flex items-center justify-center mb-6 px-4">
-            {/* Baby 3D Component - MAIOR */}
-            <div className="w-48 h-48 mx-4">
-              <Baby3D week={currentWeek} className="w-full h-full animate-glow rounded-full" />
+            {/* Baby 3D Component - MUITO MAIOR E PERFEITAMENTE REDONDO */}
+            <div className="w-80 h-80 mx-4 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
+              <Baby3D week={currentWeek} className="w-full h-full rounded-full" />
             </div>
             
             {/* Progress Ring ao lado da imagem - MAIOR */}
