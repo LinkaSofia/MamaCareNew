@@ -106,7 +106,7 @@ export default function Dashboard() {
             </button>
 
             <div className="flex justify-center">
-              <Baby3D imageUrl={development.baby_image_url || "/default-baby.png"} />
+              <Baby3D week={currentWeek} />
             </div>
 
             <button
