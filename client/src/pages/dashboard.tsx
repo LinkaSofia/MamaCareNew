@@ -211,17 +211,9 @@ export default function Dashboard() {
         {/* Hero Section - % ao lado da imagem */}
         <div className="mb-8">
           <div className="flex items-center justify-center mb-6 px-4">
-            {/* Baby 3D Component com semana em destaque */}
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-64 h-64">
-                <Baby3D week={weekInfo.week} className="w-full h-full animate-glow rounded-full" />
-              </div>
-              {/* Semana atual em destaque */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
-                <span className="text-lg font-bold text-gray-800">
-                  Semana {weekInfo.week}
-                </span>
-              </div>
+            {/* Baby 3D Component - mesmo tamanho da bolinha de tras */}
+            <div className="w-32 h-32">
+              <Baby3D week={weekInfo.week} className="w-full h-full animate-glow rounded-full" />
             </div>
             
             {/* Progress Ring ao lado da imagem - MAIOR */}
@@ -267,18 +259,35 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Informações da gestação */}
-          <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4 text-center">
-            <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              Faltam aproximadamente
-            </p>
-            <p className="text-3xl font-bold text-gray-800 mb-2">
-              {weekInfo.weeksRemaining} semanas
-            </p>
-            <p className="text-gray-600 text-sm">
-              para conhecer seu bebê!
-            </p>
+          {/* Informações da gestação - Semana atual + Semanas restantes */}
+          <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
+            {/* Semana atual em destaque */}
+            <div className="text-center mb-4 pb-4 border-b border-gray-200">
+              <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Você está na
+              </p>
+              <p className="text-3xl font-bold text-gray-800 mb-2">
+                {weekInfo.week}ª semana
+              </p>
+              <p className="text-gray-600 text-sm">
+                da sua gestação
+              </p>
+            </div>
+            
+            {/* Semanas restantes */}
+            <div className="text-center">
+              <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Faltam aproximadamente
+              </p>
+              <p className="text-3xl font-bold text-gray-800 mb-2">
+                {weekInfo.weeksRemaining} semanas
+              </p>
+              <p className="text-gray-600 text-sm">
+                para conhecer seu bebê!
+              </p>
+            </div>
           </div>
           
           {/* Informações do bebê - horizontal */}
