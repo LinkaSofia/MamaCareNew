@@ -373,7 +373,7 @@ export default function Dashboard() {
                   Faltam aproximadamente
                 </p>
                 <p className="text-3xl font-bold text-gray-800 mb-2">
-                  {40 - (weekInfo?.week || 0)} semanas
+                  {40 - currentWeek} semanas
                 </p>
                 <p className="text-gray-600 text-sm">
                   para conhecer seu bebê!

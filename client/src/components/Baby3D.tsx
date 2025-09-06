@@ -46,6 +46,7 @@ export default function Baby3D({
   animate = true
 }: Baby3DProps) {
   const [currentImage, setCurrentImage] = useState<string>('');
+  const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -54,16 +55,22 @@ export default function Baby3D({
   const pregnancyPhase = getPregnancyPhase(week);
 
   useEffect(() => {
-    console.log(`🖼️ Carregando imagem para semana ${week}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🖼️ Carregando imagem para semana ${week}`);
+    }
     
     // Usar imagens importadas diretamente baseadas na semana
     let selectedImage = baby8weeks;
 
     if (week === 2) {
-      console.log(`🖼️ Usando baby2weeks para semana 2`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🖼️ Usando baby2weeks para semana 2`);
+      }
       selectedImage = baby2weeks;
     } else if (week === 3) {
-      console.log(`🖼️ Usando baby3weeks para semana 3`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🖼️ Usando baby3weeks para semana 3`);
+      }
       selectedImage = baby3weeks;
     } else if (week >= 36) {
       selectedImage = baby36weeks;
@@ -79,8 +86,11 @@ export default function Baby3D({
       selectedImage = baby8weeks;
     }
 
-    console.log(`🖼️ Imagem selecionada:`, selectedImage);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🖼️ Imagem selecionada:`, selectedImage);
+    }
     setCurrentImage(selectedImage);
+    setImageError(false);
     setIsLoading(false);
   }, [week]);
 
@@ -141,25 +151,39 @@ export default function Baby3D({
         ${interactive ? 'hover:scale-105 cursor-pointer' : ''}
         ${animate && animationPhase % 2 === 0 ? 'scale-[1.02]' : 'scale-100'}
       `}>
-        {/* Imagem principal do bebê - PREENCHENDO TODO O CÍRCULO COM BACKGROUND-IMAGE */}
-        <div 
-          className={`
-            w-full h-full rounded-full transition-all duration-700 bg-cover bg-center
-            ${animate ? 'animate-pulse-slow' : ''}
-            ${isHovered ? 'scale-110' : 'scale-100'}
-          `}
-          style={{
-            backgroundImage: `url("${currentImage}")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            filter: `
-              drop-shadow(0 15px 35px rgba(0,0,0,0.15)) 
-              brightness(${isHovered ? '1.1' : '1'}) 
-              contrast(${isHovered ? '1.1' : '1'})
-            `
-          }}
-        />
+        {/* Imagem principal do bebê */}
+        {currentImage && !imageError ? (
+          <img 
+            src={currentImage}
+            alt={`Bebê na semana ${week} de desenvolvimento`}
+            className={`
+              w-full h-full object-cover rounded-full transition-all duration-700
+              ${animate ? 'animate-pulse-slow' : ''}
+              ${isHovered ? 'scale-110' : 'scale-100'}
+            `}
+            style={{
+              filter: `
+                drop-shadow(0 15px 35px rgba(0,0,0,0.15)) 
+                brightness(${isHovered ? '1.1' : '1'}) 
+                contrast(${isHovered ? '1.1' : '1'})
+              `
+            }}
+            onError={() => setImageError(true)}
+            data-testid={`baby-image-week-${week}`}
+          />
+        ) : (
+          <div 
+            className={`
+              w-full h-full rounded-full bg-gradient-to-br from-pink-200 to-blue-200 
+              flex items-center justify-center transition-all duration-700
+              ${animate ? 'animate-pulse-slow' : ''}
+              ${isHovered ? 'scale-110' : 'scale-100'}
+            `}
+            data-testid={`baby-fallback-week-${week}`}
+          >
+            <div className="text-4xl opacity-60">👶</div>
+          </div>
+        )}
         
         {/* Efeito de brilho animado */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shimmer"></div>
@@ -174,9 +198,12 @@ export default function Baby3D({
         )}
         
         {/* Informações do bebê */}
-        {showInfo && (
-          <>
-              </>
+        {showInfo && babyData && (
+          <div className="absolute bottom-2 left-2 right-2 text-center">
+            <div className="text-xs font-medium text-white/90 bg-black/30 rounded-full px-2 py-1 backdrop-blur-sm">
+              {babyData.size} • {babyData.weight}
+            </div>
+          </div>
         )}
 
         {/* Indicador de fase da gravidez */}
