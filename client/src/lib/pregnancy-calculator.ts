@@ -26,7 +26,7 @@ export function calculatePregnancyWeek(dueDate: string, lastMenstrualPeriod?: st
     
     const totalWeeks = 40;
     const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-    weeksUntilDue = Math.round((dueUTC.getTime() - todayUTC.getTime()) / msPerWeek);
+    weeksUntilDue = Math.floor((dueUTC.getTime() - todayUTC.getTime()) / msPerWeek);
     week = totalWeeks - weeksUntilDue;
   }
   
