@@ -166,23 +166,25 @@ export default function Baby3D({
         ${interactive ? 'hover:scale-105 cursor-pointer' : ''}
         ${animate && animationPhase % 2 === 0 ? 'scale-[1.02]' : 'scale-100'}
       `}>
-        {/* Imagem principal do bebê */}
-        <img
-          src={currentImage}
-          alt={`Bebê 3D - Semana ${week}`}
-          className={`
-            w-full h-full object-cover rounded-full transition-all duration-700
-            ${animate ? 'animate-pulse-slow' : ''}
-            ${isHovered ? 'scale-110' : 'scale-100'}
-          `}
-          style={{
-            filter: `
-              drop-shadow(0 15px 35px rgba(0,0,0,0.15)) 
-              brightness(${isHovered ? '1.1' : '1'}) 
-              contrast(${isHovered ? '1.1' : '1'})
-            `
-          }}
-        />
+        {/* Imagem principal do bebê - REDONDA */}
+        <div className="w-full h-full rounded-full overflow-hidden">
+          <img
+            src={currentImage}
+            alt={`Bebê 3D - Semana ${week}`}
+            className={`
+              w-full h-full object-cover transition-all duration-700
+              ${animate ? 'animate-pulse-slow' : ''}
+              ${isHovered ? 'scale-110' : 'scale-100'}
+            `}
+            style={{
+              filter: `
+                drop-shadow(0 15px 35px rgba(0,0,0,0.15)) 
+                brightness(${isHovered ? '1.1' : '1'}) 
+                contrast(${isHovered ? '1.1' : '1'})
+              `
+            }}
+          />
+        </div>
         
         {/* Efeito de brilho animado */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shimmer"></div>
@@ -206,24 +208,7 @@ export default function Baby3D({
               </span>
             </div>
 
-            {/* Informações na parte inferior */}
-            <div className={`
-              absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent 
-              rounded-b-3xl p-4 transition-all duration-300
-              ${isHovered || !interactive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
-            `}>
-              <div className="text-white">
-                <div className="text-sm font-medium mb-1">
-                  {babyData.fruit_comparison}
-                </div>
-                <div className="text-xs opacity-80">
-                  {babyData.length_cm && `${babyData.length_cm}cm`} 
-                  {babyData.weight_grams && babyData.length_cm && ' • '}
-                  {babyData.weight_grams && `${babyData.weight_grams}g`}
-                </div>
-              </div>
-            </div>
-          </>
+              </>
         )}
 
         {/* Indicador de fase da gravidez */}
