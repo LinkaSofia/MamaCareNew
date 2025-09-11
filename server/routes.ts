@@ -697,6 +697,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Logout route
+  app.post("/api/auth/logout", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      console.log("User logout:", userId);
+      
+      // Log the logout activity
+      if (userId) {
+        await storage.logUserAccess({
+          userId,
+          type: 'logout',
+          success: true,
+          timestamp: new Date(),
+        });
+      }
+      
+      // Destroy session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Session destroy error:", err);
+          return res.status(500).json({ error: "Failed to logout" });
+        }
+        
+        // Clear session cookie
+        res.clearCookie('connect.sid');
+        res.json({ success: true, message: "Logged out successfully" });
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ error: "Failed to logout" });
+    }
+  });
+
 
 
   // Pregnancy routes

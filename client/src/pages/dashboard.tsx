@@ -64,25 +64,49 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="tech-bg min-h-screen pb-20 relative overflow-hidden">
-      {/* Animated background particles */}
+    <div className="maternal-bg min-h-screen pb-20 relative">
+      {/* Gentle floating elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-2 h-2 bg-cyan-400 rounded-full animate-tech-pulse"></div>
-        <div className="absolute top-40 right-20 w-1 h-1 bg-pink-400 rounded-full animate-neon-flicker"></div>
-        <div className="absolute bottom-32 left-1/4 w-1.5 h-1.5 bg-purple-400 rounded-full animate-tech-pulse"></div>
-        <div className="absolute bottom-20 right-1/3 w-1 h-1 bg-green-400 rounded-full animate-neon-flicker"></div>
+        <div className="absolute top-20 left-10 w-3 h-3 bg-pink-200 rounded-full animate-float-gentle opacity-60"></div>
+        <div className="absolute top-40 right-20 w-2 h-2 bg-blue-200 rounded-full animate-breathe opacity-50"></div>
+        <div className="absolute bottom-32 left-1/4 w-2.5 h-2.5 bg-purple-200 rounded-full animate-float-gentle opacity-40"></div>
+        <div className="absolute bottom-20 right-1/3 w-2 h-2 bg-green-200 rounded-full animate-breathe opacity-50"></div>
       </div>
       
       {/* Header */}
-      <div className="glass-effect border-b border-purple-500/30 sticky top-0 z-40 relative">
+      <div className="glass-soft border-b border-pink-200/30 sticky top-0 z-40 relative">
         <div className="flex items-center justify-between p-4">
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent tech-font animate-gradient-shift">Mama Care</h1>
-            <p className="text-sm text-gray-300 tech-font">Olá, {user?.name?.split(' ')[0] || 'Mamãe'}!</p>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent maternal-font animate-gentle-gradient">Mama Care</h1>
+            <p className="text-sm text-gray-600 maternal-font">Olá, {user?.name?.split(' ')[0] || 'Mamãe'}!</p>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-cyan-400 tech-font neon-text">Semana {weekInfo?.week || 1}</p>
-            <p className="text-xs text-gray-400 tech-font">{weekInfo?.weeksRemaining || 0} semanas restantes</p>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-sm text-pink-600 maternal-font font-medium">Semana {weekInfo?.week || 1}</p>
+              <p className="text-xs text-gray-500 maternal-font">{weekInfo?.weeksRemaining || 0} semanas restantes</p>
+            </div>
+            {/* Logout Button */}
+            <button
+              onClick={() => {
+                // Clear session and redirect to login
+                fetch('/api/auth/logout', { method: 'POST' })
+                  .then(() => {
+                    setLocation('/login');
+                  })
+                  .catch((error) => {
+                    console.error('Logout error:', error);
+                    // Force redirect even if API fails
+                    setLocation('/login');
+                  });
+              }}
+              className="p-2 rounded-full glass-soft border border-pink-300/50 hover:border-pink-400 transition-all duration-200 warm-glow"
+              title="Sair da conta"
+              data-testid="button-logout"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -91,7 +115,7 @@ export default function Dashboard() {
       {isLoadingDevelopment && (
         <div className="flex items-center justify-center py-20 relative">
           <LoadingSpinner />
-          <span className="ml-3 text-gray-300 tech-font">Carregando informações...</span>
+          <span className="ml-3 text-gray-600 maternal-font">Carregando informações...</span>
         </div>
       )}
 
@@ -105,32 +129,32 @@ export default function Dashboard() {
               <button
                 onClick={() => navigateToWeek('prev')}
                 disabled={currentWeek <= 1}
-                className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-effect border border-cyan-500/30 neon-glow ${
+                className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-soft border border-pink-300/30 warm-glow ${
                   currentWeek <= 1 
                     ? 'opacity-30 cursor-not-allowed' 
-                    : 'hover:border-cyan-400 hover:shadow-2xl active:scale-95 animate-tech-pulse'
+                    : 'hover:border-pink-400 hover:shadow-lg active:scale-95 animate-breathe'
                 }`}
                 data-testid="button-previous-week"
               >
-                <ChevronLeft className="w-6 h-6 text-cyan-400" />
+                <ChevronLeft className="w-6 h-6 text-pink-600" />
               </button>
 
               {/* Botão próxima semana */}
               <button
                 onClick={() => navigateToWeek('next')}
                 disabled={currentWeek >= 40}
-                className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-effect border border-pink-500/30 neon-glow ${
+                className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-soft border border-blue-300/30 warm-glow ${
                   currentWeek >= 40 
                     ? 'opacity-30 cursor-not-allowed' 
-                    : 'hover:border-pink-400 hover:shadow-2xl active:scale-95 animate-tech-pulse'
+                    : 'hover:border-blue-400 hover:shadow-lg active:scale-95 animate-breathe'
                 }`}
                 data-testid="button-next-week"
               >
-                <ChevronRight className="w-6 h-6 text-pink-400" />
+                <ChevronRight className="w-6 h-6 text-blue-600" />
               </button>
 
               {/* Baby 3D Component */}
-              <div className="w-48 h-48 mx-4 rounded-full overflow-hidden border-4 border-purple-500/40 shadow-2xl neon-glow animate-hologram">
+              <div className="w-48 h-48 mx-4 rounded-full overflow-hidden border-4 border-white/60 shadow-xl warm-glow animate-breathe" style={{background: 'var(--gradient-peach-sky)'}}>
                 <Baby3D week={currentWeek} className="w-full h-full rounded-full" />
               </div>
               
