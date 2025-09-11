@@ -57,9 +57,9 @@ export default function Dashboard() {
     return fruitMap[fruit.toLowerCase()] || "🍎";
   };
 
-  // Redirect to setup if no pregnancy
+  // Redirect to pregnancy-setup if no pregnancy (not setup which is for profile photos)
   if (!pregnancy && !weekInfo) {
-    setLocation("/setup");
+    setLocation("/pregnancy-setup");
     return null;
   }
 
