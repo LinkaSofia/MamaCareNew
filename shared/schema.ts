@@ -316,6 +316,7 @@ export const articles = pgTable("articles", {
   week: integer("week").notNull(),
   video_url: text("video_url"), // URL do vídeo para embed
   image: text("image"), // URL da imagem do artigo
+  source: text("source"), // Fonte do conteúdo
   type: text("type").notNull().default('article'), // 'article' ou 'video'
   description: text("description"),
   isActive: boolean("is_active").default(true),
