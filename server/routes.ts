@@ -1921,12 +1921,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: articles.title,
         week: articles.week,
         video_url: articles.video_url,
-        image: articles.image
+        image: articles.image,
+        source: articles.source
       })
         .from(articles)
         .where(sql`week = ${week}`)
-        .orderBy(sql`created_at DESC`)
-        .limit(5); // Máximo 5 artigos por semana
+        .orderBy(sql`id ASC`)
+        .limit(3); // Máximo 3 artigos por semana conforme solicitado
       
       console.log(`📚 Artigos encontrados para semana ${week}:`, articlesData.length);
       

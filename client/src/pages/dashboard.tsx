@@ -272,9 +272,9 @@ export default function Dashboard() {
           </h3>
         </div>
         
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {isArticlesLoading ? (
-            <div className="flex items-center justify-center py-8">
+            <div className="col-span-full flex items-center justify-center py-8">
               <LoadingSpinner />
               <span className="ml-2 text-gray-600">Carregando conteúdos...</span>
             </div>
@@ -282,51 +282,62 @@ export default function Dashboard() {
             articlesData.articles.map((article, index) => (
               <div 
                 key={article.id}
-                className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50"
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
                 data-testid={`article-content-${index + 1}`}
+                onClick={() => {
+                  if (article.video_url) {
+                    // Abrir vídeo em modal ou nova aba
+                    window.open(article.video_url, '_blank');
+                  }
+                }}
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">
-                      {article.video_url ? '🎥' : '📖'}
+                {/* Imagem do artigo */}
+                <div className="relative h-32 bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 overflow-hidden">
+                  {article.image ? (
+                    <img 
+                      src={article.image.replace('@assets/', '/attached_assets/')} 
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-4xl">
+                        {article.video_url ? '🎥' : '📖'}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Badge de tipo de conteúdo */}
+                  <div className="absolute top-2 right-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                      article.video_url ? 'bg-red-500' : 'bg-blue-500'
+                    }`}>
+                      {article.video_url ? 'Vídeo' : 'Artigo'}
                     </span>
                   </div>
+                </div>
+                
+                {/* Conteúdo do card */}
+                <div className="p-4">
+                  <h4 className="font-bold text-gray-800 text-sm mb-2 line-clamp-2">
+                    {article.title}
+                  </h4>
                   
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 text-sm mb-2">
-                      {article.title}
-                    </h4>
-                    
-                    {article.video_url && (
-                      <div className="mb-3">
-                        <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
-                          {article.video_url.includes('youtube.com') || article.video_url.includes('youtu.be') ? (
-                            <iframe
-                              src={article.video_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                              className="w-full h-full"
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              title={article.title}
-                            />
-                          ) : (
-                            <video 
-                              controls 
-                              className="w-full h-full"
-                            >
-                              <source src={article.video_url} type="video/mp4" />
-                              Seu navegador não suporta vídeos.
-                            </video>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {article.description && (
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        {article.description}
-                      </p>
-                    )}
+                  {/* Fonte do conteúdo */}
+                  {article.source && (
+                    <p className="text-xs text-gray-500 mb-3">
+                      📚 {article.source}
+                    </p>
+                  )}
+                  
+                  {/* Botão de ação */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-purple-600 font-medium">
+                      {article.video_url ? 'Assistir' : 'Ler'} →
+                    </span>
+                    <div className="flex items-center text-xs text-gray-400">
+                      <span>Semana {currentWeek}</span>
+                    </div>
                   </div>
                 </div>
               </div>
