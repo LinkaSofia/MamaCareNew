@@ -26,6 +26,7 @@ export default function Dashboard() {
   const currentWeek = viewingWeek || weekInfo?.week || 1;
   
   const [activeTab, setActiveTab] = useState<"mom" | "baby">("baby");
+  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
   
   const { data: development, isLoading: isLoadingDevelopment } = useBabyDevelopment(currentWeek);
   const { data: articlesData, isLoading: isArticlesLoading, error: articlesError } = useArticles(currentWeek);
@@ -286,8 +287,11 @@ export default function Dashboard() {
                 data-testid={`article-content-${index + 1}`}
                 onClick={() => {
                   if (article.video_url) {
-                    // Abrir vídeo em modal ou nova aba
-                    window.open(article.video_url, '_blank');
+                    // Abrir vídeo em modal na própria tela
+                    setSelectedVideo({
+                      url: article.video_url,
+                      title: article.title
+                    });
                   }
                 }}
               >
@@ -578,6 +582,36 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Vídeo */}
+      {selectedVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">
+                {selectedVideo.title}
+              </h3>
+              <button 
+                onClick={() => setSelectedVideo(null)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+                data-testid="close-video-modal"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="aspect-video">
+              <iframe
+                src={selectedVideo.url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                className="w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={selectedVideo.title}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
