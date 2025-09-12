@@ -41,7 +41,3 @@ integrations = ["javascript_object_storage==1.0.0", "javascript_log_in_with_repl
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 45069
-externalPort = 3000
