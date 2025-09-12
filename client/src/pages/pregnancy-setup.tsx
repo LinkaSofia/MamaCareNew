@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import { ObjectUploader } from "@/components/ObjectUploader";
 export default function PregnancySetup() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     lastMenstrualPeriod: "",
     dueDate: "",
@@ -57,6 +59,9 @@ export default function PregnancySetup() {
         isActive: true,
       });
 
+      // Invalidar cache da query de gravidez ativa
+      queryClient.invalidateQueries({ queryKey: ["/api/pregnancies/active"] });
+      
       // Redirecionar para o dashboard após salvar
       setLocation("/");
     } catch (error: any) {

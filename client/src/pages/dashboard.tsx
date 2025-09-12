@@ -19,7 +19,7 @@ interface UserData {
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
-  const { pregnancy, weekInfo, progress } = usePregnancy();
+  const { pregnancy, weekInfo, progress, isLoading } = usePregnancy();
   
   const [viewingWeek, setViewingWeek] = useState<number | null>(null);
   const currentWeek = viewingWeek || weekInfo?.week || 1;
@@ -57,7 +57,19 @@ export default function Dashboard() {
     return fruitMap[fruit.toLowerCase()] || "🍎";
   };
 
-  // Redirect to pregnancy-setup if no pregnancy (not setup which is for profile photos)
+  // Wait for pregnancy data to load before redirecting
+  if (isLoading) {
+    return (
+      <div className="maternal-bg min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner />
+          <p className="mt-4 text-gray-600 maternal-font">Carregando informações da gravidez...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Only redirect after loading is complete and no pregnancy found
   if (!pregnancy && !weekInfo) {
     setLocation("/pregnancy-setup");
     return null;
