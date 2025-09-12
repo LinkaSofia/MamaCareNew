@@ -438,37 +438,25 @@ export default function Dashboard() {
               </h3>
             </div>
             
-            <div className="space-y-3">
+            <div>
               {activeTab === "baby" && development.developmentData.development_milestones_baby ? (
-                development.developmentData.development_milestones_baby.split(/[;,\n]/).map((milestone, index) => {
-                  const cleanMilestone = milestone.trim();
-                  if (!cleanMilestone) return null;
-                  return (
-                    <div 
-                      key={index} 
-                      className="flex items-start space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100"
-                      data-testid={`text-baby-milestone-${index}`}
-                    >
-                      <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-gray-700 text-sm">{cleanMilestone}</span>
-                    </div>
-                  );
-                })
+                <div 
+                  className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100"
+                  data-testid="text-baby-milestones-complete"
+                >
+                  <p className="text-gray-700 leading-relaxed">
+                    {development.developmentData.development_milestones_baby}
+                  </p>
+                </div>
               ) : activeTab === "mom" && development.developmentData.development_milestones_mom ? (
-                development.developmentData.development_milestones_mom.split(/[;,\n]/).map((milestone, index) => {
-                  const cleanMilestone = milestone.trim();
-                  if (!cleanMilestone) return null;
-                  return (
-                    <div 
-                      key={index} 
-                      className="flex items-start space-x-3 p-3 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-100"
-                      data-testid={`text-mom-milestone-${index}`}
-                    >
-                      <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-gray-700 text-sm">{cleanMilestone}</span>
-                    </div>
-                  );
-                })
+                <div 
+                  className="p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-100"
+                  data-testid="text-mom-milestones-complete"
+                >
+                  <p className="text-gray-700 leading-relaxed">
+                    {development.developmentData.development_milestones_mom}
+                  </p>
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-4">
