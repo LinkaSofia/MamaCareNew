@@ -409,7 +409,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab("baby")}
             className={`flex-1 py-3 px-6 rounded-full text-sm font-medium transition-all ${
               activeTab === "baby"
-                ? "bg-white text-blue-600 shadow-lg"
+                ? "bg-gradient-to-r from-purple-400 to-blue-400 text-white shadow-lg"
                 : "text-gray-600"
             }`}
             data-testid="tab-baby"
@@ -418,6 +418,74 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      {/* Development Milestones Content */}
+      {development?.developmentData && (
+        <div className="mx-4 mb-6">
+          <div className="glass-effect rounded-2xl p-5 backdrop-blur-md bg-white/80">
+            <div className="flex items-center gap-2 mb-4">
+              <div className={`w-8 h-8 bg-gradient-to-br ${
+                activeTab === "baby" 
+                  ? "from-purple-500 to-blue-500" 
+                  : "from-pink-500 to-rose-500"
+              } rounded-lg flex items-center justify-center`}>
+                <span className="text-white text-sm">
+                  {activeTab === "baby" ? "👶" : "🤱"}
+                </span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                {activeTab === "baby" ? "Desenvolvimento do Bebê" : "Mudanças na Mamãe"}
+              </h3>
+            </div>
+            
+            <div className="space-y-3">
+              {activeTab === "baby" && development.developmentData.development_milestones_baby ? (
+                development.developmentData.development_milestones_baby.split(/[;,\n]/).map((milestone, index) => {
+                  const cleanMilestone = milestone.trim();
+                  if (!cleanMilestone) return null;
+                  return (
+                    <div 
+                      key={index} 
+                      className="flex items-start space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100"
+                      data-testid={`text-baby-milestone-${index}`}
+                    >
+                      <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full mt-2 flex-shrink-0" />
+                      <span className="text-gray-700 text-sm">{cleanMilestone}</span>
+                    </div>
+                  );
+                })
+              ) : activeTab === "mom" && development.developmentData.development_milestones_mom ? (
+                development.developmentData.development_milestones_mom.split(/[;,\n]/).map((milestone, index) => {
+                  const cleanMilestone = milestone.trim();
+                  if (!cleanMilestone) return null;
+                  return (
+                    <div 
+                      key={index} 
+                      className="flex items-start space-x-3 p-3 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-100"
+                      data-testid={`text-mom-milestone-${index}`}
+                    >
+                      <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full mt-2 flex-shrink-0" />
+                      <span className="text-gray-700 text-sm">{cleanMilestone}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-4">
+                    {activeTab === "baby" ? "👶" : "🤱"}
+                  </div>
+                  <p className="text-gray-500 text-sm">
+                    {activeTab === "baby" 
+                      ? "Marcos de desenvolvimento do bebê não disponíveis para esta semana"
+                      : "Informações sobre mudanças na mamãe não disponíveis para esta semana"
+                    }
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feature Grid */}
       <div className="px-4 pb-6">
