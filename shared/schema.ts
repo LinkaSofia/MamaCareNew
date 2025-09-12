@@ -313,7 +313,6 @@ export type InsertMedicalArticle = z.infer<typeof insertMedicalArticleSchema>;
 export const articles = pgTable("articles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
-  content: text("content"),
   week: integer("week").notNull(),
   video_url: text("video_url"), // URL do vídeo para embed
   image: text("image"), // URL da imagem do artigo

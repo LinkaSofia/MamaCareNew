@@ -9,6 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 import NextConsultationCard from "../components/NextConsultationCard";
 import { LoadingSpinner } from "../components/ui/loading-spinner";
 import ProgressCircle from "../components/progress-circle";
+import { VideoSection } from "../components/VideoSection";
 
 interface UserData {
   name: string;
@@ -382,6 +383,13 @@ export default function Dashboard() {
       <div className="mx-4 mt-4">
         <NextConsultationCard />
       </div>
+
+      {/* Video Section */}
+      <VideoSection 
+        videos={articlesData?.articles || []} 
+        isLoading={isArticlesLoading}
+        currentWeek={currentWeek}
+      />
 
       {/* Mom/Baby Toggle */}
       <div className="px-4 mb-6">

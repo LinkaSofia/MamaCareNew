@@ -1838,7 +1838,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         CREATE TABLE IF NOT EXISTS articles (
           id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
           title TEXT NOT NULL,
-          content TEXT,
           week INTEGER NOT NULL,
           video_url TEXT,
           image TEXT,
@@ -1858,6 +1857,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para popular artigos de exemplo
+  app.post("/api/articles/seed", async (req, res) => {
+    try {
+      const sampleArticles = [
+        {
+          title: "Desenvolvimento do Sistema Nervoso",
+          week: 3,
+          type: "article",
+          description: "Na terceira semana, o sistema nervoso do bebê começa a se formar. O tubo neural se desenvolve, dando origem ao cérebro e medula espinhal.",
+          video_url: "https://www.youtube.com/embed/BHbtF_N5L5Q", // Vídeo sobre desenvolvimento fetal
+          image: "/assets/week3-development.jpg",
+        },
+        {
+          title: "Primeiros Batimentos do Coração",
+          week: 3,
+          type: "video",
+          description: "O coração primitivo começa a se formar e dar os primeiros batimentos. Este é um marco importante no desenvolvimento fetal.",
+          video_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", 
+          image: "/assets/heart-formation.jpg",
+        },
+        {
+          title: "Formação dos Órgãos Principais",
+          week: 3,
+          type: "article",
+          description: "Durante a terceira semana, os principais órgãos começam a se formar através do processo de organogênese.",
+          image: "/assets/organ-formation.jpg",
+        }
+      ];
+
+      const insertedArticles = [];
+      for (const article of sampleArticles) {
+        const [inserted] = await db.insert(articles)
+          .values(article)
+          .returning();
+        insertedArticles.push(inserted);
+      }
+      
+      console.log(`✅ ${insertedArticles.length} artigos de exemplo criados!`);
+      res.json({ 
+        success: true, 
+        message: `${insertedArticles.length} artigos criados com sucesso!`,
+        articles: insertedArticles
+      });
+    } catch (error: any) {
+      console.error("❌ Erro ao criar artigos de exemplo:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Buscar artigos por semana
   app.get("/api/articles/week/:week", async (req, res) => {
     try {
@@ -1867,11 +1915,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Semana deve ser um número entre 1 e 42" });
       }
 
-      const articlesData = await db.select()
+      // Primeiro vamos verificar se a tabela tem dados
+      const articlesData = await db.select({
+        id: articles.id,
+        title: articles.title,
+        week: articles.week,
+        video_url: articles.video_url,
+        image: articles.image,
+        type: articles.type,
+        description: articles.description,
+        isActive: articles.isActive,
+        createdAt: articles.createdAt
+      })
         .from(articles)
         .where(sql`week = ${week} AND is_active = true`)
         .orderBy(sql`created_at DESC`)
         .limit(3); // Máximo 3 artigos por semana
+      
+      console.log(`📚 Artigos encontrados para semana ${week}:`, articlesData.length);
       
       res.json({ 
         success: true, 
