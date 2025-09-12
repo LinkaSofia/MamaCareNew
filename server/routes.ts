@@ -1915,22 +1915,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Semana deve ser um número entre 1 e 42" });
       }
 
-      // Primeiro vamos verificar se a tabela tem dados
+      // Buscar dados da tabela com a estrutura real do Supabase
       const articlesData = await db.select({
         id: articles.id,
         title: articles.title,
         week: articles.week,
         video_url: articles.video_url,
         image: articles.image,
-        type: articles.type,
         description: articles.description,
         isActive: articles.isActive,
         createdAt: articles.createdAt
       })
         .from(articles)
-        .where(sql`week = ${week} AND is_active = true`)
+        .where(sql`week = ${week}`)
         .orderBy(sql`created_at DESC`)
-        .limit(3); // Máximo 3 artigos por semana
+        .limit(5); // Máximo 5 artigos por semana
       
       console.log(`📚 Artigos encontrados para semana ${week}:`, articlesData.length);
       

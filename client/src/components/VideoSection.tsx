@@ -4,16 +4,16 @@ interface VideoSectionProps {
   videos: Array<{
     id: string;
     title: string;
-    description?: string;
-    video_url?: string;
-    type: string;
+    description?: string | null;
+    video_url?: string | null;
+    type?: string;
   }>;
   isLoading?: boolean;
   currentWeek: number;
 }
 
 export function VideoSection({ videos, isLoading, currentWeek }: VideoSectionProps) {
-  const videoContent = videos?.filter(item => item.type === 'video' && item.video_url) || [];
+  const videoContent = videos?.filter(item => item.video_url) || [];
 
   if (isLoading) {
     return (
