@@ -1915,16 +1915,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Semana deve ser um número entre 1 e 42" });
       }
 
-      // Buscar dados da tabela com a estrutura real do Supabase
+      // Buscar dados da tabela com apenas as colunas que existem no Supabase
       const articlesData = await db.select({
         id: articles.id,
         title: articles.title,
         week: articles.week,
         video_url: articles.video_url,
-        image: articles.image,
-        description: articles.description,
-        isActive: articles.isActive,
-        createdAt: articles.createdAt
+        image: articles.image
       })
         .from(articles)
         .where(sql`week = ${week}`)

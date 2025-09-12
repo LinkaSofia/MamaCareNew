@@ -58,7 +58,7 @@ export function VideoSection({ videos, isLoading, currentWeek }: VideoSectionPro
             {/* Video iframe */}
             <div className="aspect-video relative">
               <iframe
-                src={featuredVideo.video_url}
+                src={featuredVideo.video_url || ''}
                 title={featuredVideo.title}
                 frameBorder="0"
                 allowFullScreen
