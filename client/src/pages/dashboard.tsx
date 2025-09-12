@@ -586,14 +586,14 @@ export default function Dashboard() {
       {/* Modal de Vídeo */}
       {selectedVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-3 border-b">
+              <h3 className="text-base font-semibold text-gray-800 line-clamp-1 pr-4">
                 {selectedVideo.title}
               </h3>
               <button 
                 onClick={() => setSelectedVideo(null)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 hover:text-gray-700 text-xl flex-shrink-0"
                 data-testid="close-video-modal"
               >
                 ✕
