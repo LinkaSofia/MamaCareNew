@@ -463,15 +463,27 @@ export default function Dashboard() {
                         </p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-2xl border border-blue-200 shadow-lg">
-                        <div className="text-center">
-                          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            {renderComparisonImage(development.fruit_comparison, development.fruit_image_url)}
+                      <div className="bg-gradient-to-br from-orange-100 via-orange-50 to-yellow-100 p-8 rounded-3xl border-2 border-orange-200 shadow-xl relative overflow-hidden">
+                        {/* Decoração de fundo */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200/20 rounded-full -translate-y-16 translate-x-16"></div>
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-yellow-200/20 rounded-full translate-y-12 -translate-x-12"></div>
+                        
+                        <div className="text-center relative z-10">
+                          <div className="w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl border-4 border-white">
+                            {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
                           </div>
-                          <h3 className="font-bold text-gray-800 text-lg mb-2">Comparação</h3>
-                          <p className="text-xl font-bold text-blue-600">
-                            {development.fruit_comparison ?? "Calculando..."}
-                          </p>
+                          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
+                            <h3 className="font-bold text-gray-800 text-xl mb-2 flex items-center justify-center gap-2">
+                              <span className="text-2xl">🍎</span>
+                              Comparação de Tamanho
+                            </h3>
+                            <p className="text-2xl font-bold text-orange-600 leading-tight">
+                              {development.fruit_comparison ?? "Calculando..."}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-2">
+                              Seu bebê tem o tamanho de
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -545,7 +557,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                    {renderComparisonImage(development.fruit_comparison, development.fruit_image_url)}
+                    {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'small')}
                   </div>
                   <p className="text-sm font-semibold text-gray-600 mb-1">Comparação</p>
                   <p className="font-bold text-gray-800 text-sm leading-tight">{development.fruit_comparison || "Calculando..."}</p>
