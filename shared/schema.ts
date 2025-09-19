@@ -319,6 +319,7 @@ export const articles = pgTable("articles", {
   source: text("source"), // Fonte do conteúdo
   type: text("type").notNull().default('article'), // 'article' ou 'video'
   description: text("description"),
+  categoria: text("categoria"), // Categoria do artigo para organização
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

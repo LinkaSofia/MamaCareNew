@@ -1,190 +1,484 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Ruler, Weight, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { usePregnancy } from "@/hooks/use-pregnancy";
+import { useBabyDevelopment } from "@/hooks/use-baby-development";
+import { useArticles } from "@/hooks/use-articles";
 import { useLocation } from "wouter";
-import Baby3D from "../components/Baby3D";
-import { useBabyDevelopment } from "../hooks/use-baby-development";
-import { useArticles } from "../hooks/use-articles";
-import { usePregnancy } from "../hooks/use-pregnancy";
-import { useAuth } from "../hooks/useAuth";
-import NextConsultationCard from "../components/NextConsultationCard";
-import { LoadingSpinner } from "../components/ui/loading-spinner";
-import ProgressCircle from "../components/progress-circle";
-import { VideoSection } from "../components/VideoSection";
-
-interface UserData {
-  name: string;
-  dueDate?: string;
-  currentWeek?: number;
-}
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { NextConsultationCard } from "@/components/NextConsultationCard";
+import Baby3D from "@/components/Baby3D";
+import { 
+  Bell, 
+  Baby, 
+  Heart, 
+  Ruler, 
+  Weight, 
+  Apple,
+  Activity,
+  User,
+  Calendar,
+  Info,
+  Book,
+  Settings,
+  LogOut,
+  ChevronDown,
+  Sparkles,
+  TrendingUp,
+  Stethoscope,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
 
 export default function Dashboard() {
-  const [location, setLocation] = useLocation();
-  const { user } = useAuth();
-  const { pregnancy, weekInfo, progress, isLoading } = usePregnancy();
-  
-  const [viewingWeek, setViewingWeek] = useState<number | null>(null);
-  const currentWeek = viewingWeek || weekInfo?.week || 1;
-  
-  const [activeTab, setActiveTab] = useState<"mom" | "baby">("baby");
-  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
-  
-  const { data: development, isLoading: isLoadingDevelopment } = useBabyDevelopment(currentWeek);
+  const { user, isLoading: authLoading, logout } = useAuth();
+  const { pregnancy, weekInfo, isLoading: pregnancyLoading } = usePregnancy();
+  const [viewingWeek, setViewingWeek] = useState<number | null>(null); // Semana que está sendo visualizada
+  const currentWeek = viewingWeek || weekInfo?.week || 0;
+  const { data: developmentData, isLoading: developmentLoading } = useBabyDevelopment(currentWeek);
   const { data: articlesData, isLoading: isArticlesLoading, error: articlesError } = useArticles(currentWeek);
+  const [activeTab, setActiveTab] = useState("baby");
+  const [, setLocation] = useLocation();
 
-  const navigateToWeek = (direction: 'prev' | 'next') => {
-    const newWeek = direction === 'prev' ? Math.max(1, currentWeek - 1) : Math.min(40, currentWeek + 1);
-    setViewingWeek(newWeek);
-    setLocation(`/?week=${newWeek}`);
+  // Extrair dados do desenvolvimento para usar no dashboard
+  const development = developmentData?.developmentData;
+
+  // Funções de navegação entre semanas
+  const goToPreviousWeek = () => {
+    const targetWeek = currentWeek - 1;
+    if (targetWeek >= 1) {
+      setViewingWeek(targetWeek);
+    }
+  };
+
+  const goToNextWeek = () => {
+    const targetWeek = currentWeek + 1;
+    if (targetWeek <= 42) {
+      setViewingWeek(targetWeek);
+    }
   };
 
   const backToCurrentWeek = () => {
     setViewingWeek(null);
-    setLocation('/');
   };
 
-  const getFruitEmoji = (fruit: string | null) => {
-    if (!fruit) return "🤔";
+  // Estados para touch/swipe
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Funções de touch/swipe para mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50; // Swipe para esquerda = próxima semana
+    const isRightSwipe = distance < -50; // Swipe para direita = semana anterior
+
+    if (isLeftSwipe && currentWeek < 40) {
+      goToNextWeek();
+    }
+    if (isRightSwipe && currentWeek > 1) {
+      goToPreviousWeek();
+    }
+  };
+
+  // Função para mapear fruit_comparison para emojis (fallback)
+  const getFruitEmoji = (fruitComparison: string) => {
     const fruitMap: Record<string, string> = {
-      "grão de areia": "🟡",
-      "cabeça de alfinete": "📍", 
-      "semente de chia": "⚪",
-      "semente de papoula": "⚫",
-      "framboesa": "🫐",
-      "lima": "🟢",
-      "limão": "🍋",
-      "banana": "🍌",
-      "milho": "🌽",
-      "berinjela": "🍆"
+      'Semente de papoula': '🌺',
+      'Semente': '🌱',
+      'Grão de arroz': '🌾',
+      'Lentilha': '🌿',
+      'Ervilha': '🟢',
+      'Mirtilo': '🫐',
+      'Framboesa': '🫐',
+      'Morango': '🍓',
+      'Lima': '🟢',
+      'Limão': '🍋',
+      'Ameixa': '🟣',
+      'Abacate': '🥑',
+      'Cebola': '🧅',
+      'Banana': '🍌',
+      'Espiga de milho': '🌽',
+      'Cenoura': '🥕',
+      'Berinjela': '🍆',
+      'Abobrinha': '🥒',
+      'Coco': '🥥',
+      'Repolho': '🥬',
+      'Melancia': '🍉',
+      'Abóbora': '🎃'
     };
-    return fruitMap[fruit.toLowerCase()] || "🍎";
+    return fruitMap[fruitComparison] || '🍎';
   };
 
-  // Wait for pregnancy data to load before redirecting
-  if (isLoading) {
-    return (
-      <div className="maternal-bg min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="mt-4 text-gray-600 maternal-font">Carregando informações da gravidez...</p>
-        </div>
+  // Função para converter URL do banco para URL válida do navegador
+  const convertDatabaseUrlToValidUrl = (url: string): string => {
+    if (url && url.startsWith('/client/src/assets/')) {
+      return url.replace('/client/src/assets/', '/src/assets/');
+    }
+    return url;
+  };
+
+  // Função para verificar se é uma URL de imagem válida
+  const isValidImageUrl = (url: string | null | undefined): boolean => {
+    return !!(url && (url.startsWith('/src/assets/') || url.startsWith('/client/src/assets/') || url.startsWith('http')));
+  };
+
+  // Função para renderizar imagem de comparação
+  const renderComparisonImage = (fruitComparison: string, fruitImageUrl?: string | null, size: 'small' | 'large' = 'large') => {
+    if (fruitImageUrl && isValidImageUrl(fruitImageUrl)) {
+      const imageSize = size === 'small' ? 'w-12 h-12' : 'w-20 h-20';
+      return (
+        <img 
+          src={convertDatabaseUrlToValidUrl(fruitImageUrl)} 
+          alt={fruitComparison}
+          className={`${imageSize} object-contain`}
+        />
+      );
+    }
+    const emojiSize = size === 'small' ? 'text-2xl' : 'text-4xl';
+    return <span className={emojiSize}>{getFruitEmoji(fruitComparison)}</span>;
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setLocation("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
+  const isLoading = authLoading || pregnancyLoading || developmentLoading;
+
+  if (authLoading) {
+  return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
-  // Only redirect after loading is complete and no pregnancy found
-  if (!pregnancy && !weekInfo) {
-    setLocation("/pregnancy-setup");
+  if (!user) {
+    return null; // Layout já faz o redirecionamento
+  }
+
+  if (pregnancyLoading || developmentLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
+        <LoadingSpinner size="lg" />
+        </div>
+    );
+  }
+
+  if (!pregnancy) {
+    setLocation("/setup");
     return null;
   }
 
+  if (!weekInfo) {
   return (
-    <div className="maternal-bg min-h-screen pb-20 relative">
-      {/* Gentle floating elements */}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
+        <div className="text-center p-6">
+          <Baby className="mx-auto h-12 w-12 text-pink-400 mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Erro ao calcular semana
+                  </h2>
+          <p className="text-gray-600 mb-4">
+            Verifique os dados da sua gravidez
+          </p>
+          <Button onClick={() => setLocation("/setup")} variant="outline">
+            Configurar
+          </Button>
+                </div>
+                  </div>
+    );
+  }
+
+  // Processar informações como texto corrido
+  const getBabyText = (text: string | string[]): string => {
+    if (Array.isArray(text)) {
+      return text.join(' ');
+    }
+    return typeof text === 'string' ? text : '';
+  };
+
+  const getMomText = (text: string | string[]): string => {
+    if (Array.isArray(text)) {
+      return text.join(' ');
+    }
+    return typeof text === 'string' ? text : '';
+  };
+
+  const babyText = development ? getBabyText(development.development_milestones_baby) : '';
+  const momText = development ? getMomText(development.development_milestones_mom) : '';
+
+  return (
+    <div className="min-h-screen gradient-bg relative overflow-hidden">
+      {/* Background decorative elements - same as login */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-3 h-3 bg-pink-200 rounded-full animate-float-gentle opacity-60"></div>
-        <div className="absolute top-40 right-20 w-2 h-2 bg-blue-200 rounded-full animate-breathe opacity-50"></div>
-        <div className="absolute bottom-32 left-1/4 w-2.5 h-2.5 bg-purple-200 rounded-full animate-float-gentle opacity-40"></div>
-        <div className="absolute bottom-20 right-1/3 w-2 h-2 bg-green-200 rounded-full animate-breathe opacity-50"></div>
-      </div>
+        {/* Corações flutuantes */}
+        {[...Array(8)].map((_, i) => (
+          <Heart
+            key={`heart-${i}`}
+            className={`absolute text-pink-300/30 animate-float-${i % 4 + 1}`}
+            size={20 + (i % 3) * 10}
+            style={{
+              left: `${10 + (i * 12) % 80}%`,
+              top: `${15 + (i * 15) % 70}%`,
+              animationDelay: `${i * 0.7}s`,
+              animationDuration: `${3 + (i % 3)}s`
+            }}
+          />
+        ))}
+        
+        {/* Bolinhas flutuantes */}
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={`bubble-${i}`}
+            className={`absolute rounded-full bg-gradient-to-r from-pink-200/20 to-blue-200/20 animate-bounce`}
+            style={{
+              width: `${8 + (i % 4) * 6}px`,
+              height: `${8 + (i % 4) * 6}px`,
+              left: `${5 + (i * 8) % 90}%`,
+              top: `${10 + (i * 8) % 80}%`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: `${4 + (i % 3)}s`
+            }}
+          />
+        ))}
+        
+        {/* Estrelas piscantes */}
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={`star-${i}`}
+            className={`absolute w-2 h-2 bg-yellow-300/40 animate-pulse`}
+            style={{
+              left: `${20 + (i * 15) % 60}%`,
+              top: `${20 + (i * 12) % 60}%`,
+              animationDelay: `${i * 1.2}s`,
+              clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+            }}
+          />
+                      ))}
+                    </div>
       
-      {/* Header */}
-      <div className="glass-soft border-b border-pink-200/30 sticky top-0 z-40 relative">
-        <div className="flex items-center justify-between p-4">
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent maternal-font animate-gentle-gradient">Mama Care</h1>
-            <p className="text-sm text-gray-600 maternal-font">Olá, {user?.name?.split(' ')[0] || 'Mamãe'}!</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm text-pink-600 maternal-font font-medium">Semana {weekInfo?.week || 1}</p>
-              <p className="text-xs text-gray-500 maternal-font">{weekInfo?.weeksRemaining || 0} semanas restantes</p>
-            </div>
-            {/* Logout Button */}
-            <button
-              onClick={() => {
-                // Clear session and redirect to login
-                fetch('/api/auth/logout', { method: 'POST' })
-                  .then(() => {
-                    setLocation('/login');
-                  })
-                  .catch((error) => {
-                    console.error('Logout error:', error);
-                    // Force redirect even if API fails
-                    setLocation('/login');
-                  });
-              }}
-              className="p-2 rounded-full glass-soft border border-pink-300/50 hover:border-pink-400 transition-all duration-200 warm-glow"
-              title="Sair da conta"
-              data-testid="button-logout"
-            >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      {/* Header Section */}
+      <div className="relative z-10 px-4 pt-safe pb-4">
+        <div className="flex items-center justify-end mb-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center space-x-3 text-right hover:bg-white/10 rounded-lg p-2 transition-colors">
+                <div className="text-right">
+                  <h1 className="text-2xl font-bold text-gray-800" data-testid="text-greeting">
+                    Olá, Linka!
+                  </h1>
+                  <p className="text-gray-600 text-lg" data-testid="text-pregnancy-week">
+                    Semana {weekInfo.week} de gestação
+                  </p>
+                  </div>
+                <div className="w-16 h-16 bg-pink-200/50 rounded-full flex items-center justify-center">
+                  {user.profilePhotoUrl ? (
+                    <img 
+                      src={user.profilePhotoUrl} 
+                      alt={user.name} 
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-8 w-8 text-gray-600" />
+                  )}
+                </div>
+                <ChevronDown className="h-4 w-4 text-gray-600" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setLocation("/profile")} className="cursor-pointer">
+                <Settings className="h-4 w-4 mr-2" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+                </div>
+
+        {/* Hero Section reorganizada com navegação nas extremidades */}
+        <div className="mb-8 relative">
+          {/* Layout Principal: Imagem + Círculo de % lado a lado */}
+          <div className="flex justify-center items-center gap-4 md:gap-8 mb-8 relative px-4 md:px-16">
+            {/* Botão anterior - EXTREMIDADE ESQUERDA */}
+                    <button
+              onClick={goToPreviousWeek}
+                      disabled={currentWeek <= 1}
+              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-20 p-2 md:p-4 rounded-full transition-all duration-300 shadow-lg ${
+                        currentWeek <= 1 
+                          ? 'opacity-30 cursor-not-allowed bg-gray-200' 
+                          : 'bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white hover:scale-110 shadow-xl'
+                      }`}
+                      data-testid="button-previous-week"
+                    >
+              <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
+                    </button>
+
+            {/* Imagem do Bebê */}
+                  <div className="relative group">
+              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl relative">
+                      <Baby3D 
+                        week={currentWeek} 
+                        className="w-full h-full rounded-full" 
+                  babyImageUrl={development?.baby_image_url ?? undefined}
+                      />
+                    </div>
+                    
+                    {/* Indicadores flutuantes */}
+                    <div className="absolute -top-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      {currentWeek}ª Semana
+                    </div>
+                  </div>
+
+            {/* Círculo de Progresso (mesmo tamanho da imagem) */}
+            <div className="relative w-48 h-48 md:w-64 md:h-64">
+              <svg className="w-48 h-48 md:w-64 md:h-64 transform -rotate-90" viewBox="0 0 128 128">
+                <circle cx="64" cy="64" r="56" fill="none" stroke="#E5E7EB" strokeWidth="8"/>
+                <circle 
+                  cx="64" 
+                  cy="64" 
+                  r="56" 
+                  fill="none" 
+                  stroke="url(#gradient)" 
+                  strokeWidth="8" 
+                  strokeDasharray="351.86" 
+                  strokeDashoffset={351.86 - (Math.round((currentWeek / 40) * 100) / 100) * 351.86}
+                  strokeLinecap="round" 
+                  className="progress-ring transition-all duration-500"
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style={{stopColor:"#E91E63"}}/>
+                    <stop offset="100%" style={{stopColor:"#2196F3"}}/>
+                  </linearGradient>
+                </defs>
               </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <span className="text-2xl md:text-3xl font-bold text-gray-800">
+                    {Math.round((currentWeek / 40) * 100)}%
+                  </span>
+                  <div className="text-xs md:text-sm text-gray-600">completo</div>
+                  <div className="text-xs text-gray-500 mt-1 hidden md:block">
+                    {40 - currentWeek} semanas restantes
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Botão próximo - EXTREMIDADE DIREITA */}
+            <button
+              onClick={goToNextWeek}
+              disabled={currentWeek >= 40}
+              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-20 p-2 md:p-4 rounded-full transition-all duration-300 shadow-lg ${
+                currentWeek >= 40 
+                  ? 'opacity-30 cursor-not-allowed bg-gray-200' 
+                  : 'bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white hover:scale-110 shadow-xl'
+              }`}
+              data-testid="button-next-week"
+            >
+              <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Loading State */}
-      {isLoadingDevelopment && (
-        <div className="flex items-center justify-center py-20 relative">
-          <LoadingSpinner />
-          <span className="ml-3 text-gray-600 maternal-font">Carregando informações...</span>
-        </div>
-      )}
+          {/* Área de swipe para mobile - invisível mas funcional */}
+          <div 
+            className="absolute inset-0 touch-pan-y"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'pan-y' }}
+          />
 
-      {/* Development Info */}
-      {!isLoadingDevelopment && development && (
-        <div className="p-4 relative">
-          {/* Hero Section com navegação nas bordas */}
-          <div className="mb-8 relative">
-            <div className="flex items-center justify-center mb-6 px-4 relative">
-              {/* Botão semana anterior */}
-              <button
-                onClick={() => navigateToWeek('prev')}
-                disabled={currentWeek <= 1}
-                className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-soft border border-pink-300/30 warm-glow ${
-                  currentWeek <= 1 
-                    ? 'opacity-30 cursor-not-allowed' 
-                    : 'hover:border-pink-400 hover:shadow-lg active:scale-95 animate-breathe'
-                }`}
-                data-testid="button-previous-week"
-              >
-                <ChevronLeft className="w-6 h-6 text-pink-600" />
-              </button>
+          {/* Indicador de swipe para mobile */}
+          <div className="flex justify-center gap-1 mt-4 md:hidden">
+            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+            <div className="text-xs text-gray-500">Deslize para navegar</div>
+            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+          </div>
 
-              {/* Botão próxima semana */}
-              <button
-                onClick={() => navigateToWeek('next')}
-                disabled={currentWeek >= 40}
-                className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full transition-all glass-soft border border-blue-300/30 warm-glow ${
-                  currentWeek >= 40 
-                    ? 'opacity-30 cursor-not-allowed' 
-                    : 'hover:border-blue-400 hover:shadow-lg active:scale-95 animate-breathe'
-                }`}
-                data-testid="button-next-week"
-              >
-                <ChevronRight className="w-6 h-6 text-blue-600" />
-              </button>
+          {/* Informações do Bebê - Agora embaixo da imagem */}
+          {development && (
+            <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
+              <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                        Seu bebê está crescendo! 🌱
+                      </h3>
+                      <p className="text-gray-600">
+                        {currentWeek <= 12 ? '1º Trimestre - Formação inicial' : 
+                         currentWeek <= 28 ? '2º Trimestre - Desenvolvimento acelerado' : 
+                         '3º Trimestre - Preparação para o nascimento'}
+                      </p>
+                    </div>
 
-              {/* Baby 3D Component */}
-              <div className="w-48 h-48 mx-4 rounded-full overflow-hidden border-4 border-white/60 shadow-xl warm-glow animate-breathe" style={{background: 'var(--gradient-peach-sky)'}}>
-                <Baby3D week={currentWeek} className="w-full h-full rounded-full" />
-              </div>
-              
-              {/* Progress Ring ao lado da imagem */}
-              {weekInfo && (
-                <div className="relative ml-8">
-                  <ProgressCircle 
-                    percentage={Math.round((currentWeek / 40) * 100)} 
-                    size={128}
-                  />
-                </div>
-              )}
-            </div>
-            
-            {/* Informações da gestação */}
-            {weekInfo && (
+                    {/* Cards de Informações */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-pink-100 to-pink-200 p-4 rounded-2xl border border-pink-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm">📏</span>
+                          </div>
+                          <span className="font-semibold text-gray-800">Tamanho</span>
+                        </div>
+                        <p className="text-lg font-bold text-pink-600">
+                    {development.length_cm ? `${development.length_cm} cm` : (development.size ?? "Calculando...")}
+                        </p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-purple-100 to-purple-200 p-4 rounded-2xl border border-purple-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm">⚖️</span>
+                          </div>
+                          <span className="font-semibold text-gray-800">Peso</span>
+                        </div>
+                        <p className="text-lg font-bold text-purple-600">
+                    {development.weight_grams && Number(development.weight_grams) > 0 
+                      ? `${development.weight_grams}g` 
+                      : development.weight || "< 1g"}
+                        </p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-2xl border border-blue-200 shadow-lg">
+                        <div className="text-center">
+                          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            {renderComparisonImage(development.fruit_comparison, development.fruit_image_url)}
+                          </div>
+                          <h3 className="font-bold text-gray-800 text-lg mb-2">Comparação</h3>
+                          <p className="text-xl font-bold text-blue-600">
+                            {development.fruit_comparison ?? "Calculando..."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+          )}
+          
+          {/* Informações da gestação - LADO A LADO */}
               <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
                 <div className="grid grid-cols-2 gap-6">
                   {/* Semana atual */}
@@ -202,11 +496,10 @@ export default function Dashboard() {
                           <span>de desenvolvimento</span>
                           <button 
                             onClick={backToCurrentWeek}
-                            className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors duration-200 shadow-sm"
                             data-testid="button-back-to-current-week"
                           >
-                            <Calendar className="h-4 w-4" />
-                            <span>Voltar para semana {weekInfo.week}</span>
+                        Voltar para semana atual ({weekInfo.week})
                           </button>
                         </div>
                       ) : 'da sua gestação'}
@@ -228,41 +521,40 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            )}
           </div>
 
           {/* Informações do bebê - horizontal */}
-          {development?.developmentData && (
+        {development && (
             <div className="glass-effect rounded-2xl p-4 mx-4 backdrop-blur-md bg-white/80">
               <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
                 <div className="text-center">
                   <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
                   <p className="text-xs text-gray-500 mb-1">Tamanho</p>
                   <p className="font-semibold text-gray-800">
-                    {development.developmentData?.length_cm ? `${development.developmentData.length_cm} cm` : development.developmentData?.size || "Calculando..."}
+                  {development.length_cm ? `${development.length_cm} cm` : development.size || "Calculando..."}
                   </p>
                 </div>
                 <div className="text-center">
                   <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
                   <p className="text-xs text-gray-500 mb-1">Peso</p>
                   <p className="font-semibold text-gray-800">
-                    {development.developmentData?.weight_grams && Number(development.developmentData.weight_grams) > 0 
-                      ? `${development.developmentData.weight_grams}g` 
-                      : development.developmentData?.weight || "< 1g"}
+                  {development.weight_grams && Number(development.weight_grams) > 0 
+                    ? `${development.weight_grams}g` 
+                    : development.weight || "< 1g"}
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl mb-1">{getFruitEmoji(development.developmentData?.fruit_comparison)}</div>
-                  <p className="text-xs text-gray-500 mb-1">Como</p>
-                  <p className="font-semibold text-gray-800 text-sm">{development.developmentData?.fruit_comparison || "Calculando..."}</p>
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    {renderComparisonImage(development.fruit_comparison, development.fruit_image_url)}
+                  </div>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Comparação</p>
+                  <p className="font-bold text-gray-800 text-sm leading-tight">{development.fruit_comparison || "Calculando..."}</p>
                 </div>
               </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Expert Content Section */}
+        {/* Seção de Conteúdos de Especialistas */}
       <div className="glass-effect rounded-2xl p-5 mx-4 mt-6 backdrop-blur-md bg-white/80">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -273,96 +565,287 @@ export default function Dashboard() {
           </h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {isArticlesLoading ? (
-            <div className="col-span-full flex items-center justify-center py-8">
+          {/* Loading state */}
+          {isArticlesLoading && (
+            <div className="flex items-center justify-center py-8">
               <LoadingSpinner />
               <span className="ml-2 text-gray-600">Carregando conteúdos...</span>
             </div>
-          ) : articlesData?.articles && articlesData.articles.length > 0 ? (
-            articlesData.articles.map((article, index) => (
+          )}
+
+          {/* Error state */}
+          {articlesError && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Nenhum conteúdo encontrado para esta semana.</p>
+            </div>
+          )}
+
+          {/* Articles */}
+          {articlesData && articlesData.articles && articlesData.articles.length > 0 && (
+            <div className="grid grid-cols-1 gap-4">
+              {articlesData.articles.map((article, index) => (
               <div 
                 key={article.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                  className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50"
                 data-testid={`article-content-${index + 1}`}
-                onClick={() => {
-                  if (article.video_url) {
-                    // Abrir vídeo em modal na própria tela
-                    setSelectedVideo({
-                      url: article.video_url,
-                      title: article.title
-                    });
-                  }
-                }}
-              >
-                {/* Imagem do artigo */}
-                <div className="relative h-32 bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 overflow-hidden">
-                  {article.image ? (
-                    <img 
-                      src={article.image.replace('@assets/', '/attached_assets/')} 
-                      alt={article.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-4xl">
-                        {article.video_url ? '🎥' : '📖'}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Badge de tipo de conteúdo */}
-                  <div className="absolute top-2 right-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
-                      article.video_url ? 'bg-red-500' : 'bg-blue-500'
-                    }`}>
-                      {article.video_url ? 'Vídeo' : 'Artigo'}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Article Image or Icon */}
+                    <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      {article.image ? (
+                        <img 
+                          src={article.image.startsWith('@assets/') 
+                            ? article.image.replace('@assets/', '/src/assets/') 
+                            : article.image
+                    } 
+                    alt={article.title}
+                          className="w-full h-full object-cover rounded-lg"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                              parent.innerHTML = '<span class="text-2xl">📖</span>';
+                      }
+                    }}
+                  />
+                      ) : (
+                        <span className="text-2xl">
+                          {article.video_url ? '🎥' : '📖'}
                     </span>
-                  </div>
+                      )}
                 </div>
                 
-                {/* Conteúdo do card */}
-                <div className="p-4">
-                  <h4 className="font-bold text-gray-800 text-sm mb-2 line-clamp-2">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">
                     {article.title}
                   </h4>
                   
-                  {/* Fonte do conteúdo */}
-                  {article.source && (
-                    <p className="text-xs text-gray-500 mb-3">
-                      📚 {article.source}
-                    </p>
-                  )}
-                  
-                  {/* Botão de ação */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-purple-600 font-medium">
-                      {article.video_url ? 'Assistir' : 'Ler'} →
-                    </span>
-                    <div className="flex items-center text-xs text-gray-400">
-                      <span>Semana {currentWeek}</span>
+                      {/* Video Player */}
+                      {article.video_url && (
+                        <div className="mb-3">
+                          <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                            {article.video_url.includes('youtube.com') || article.video_url.includes('youtu.be') ? (
+                              <iframe
+                                src={article.video_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                                className="w-full h-full"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                title={article.title}
+                              ></iframe>
+                            ) : (
+                              <video 
+                                controls 
+                                className="w-full h-full"
+                                poster={article.image || undefined}
+                              >
+                                <source src={article.video_url} type="video/mp4" />
+                                Seu navegador não suporta vídeos.
+                              </video>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Description */}
+                      {article.description && (
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          {article.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
+              ))}
               </div>
-            ))
-          ) : currentWeek === 1 ? (
+          )}
+
+          {/* Fallback to static content if no articles found */}
+          {articlesData && (!articlesData.articles || articlesData.articles.length === 0) && !isArticlesLoading && (
+            <div className="grid grid-cols-1 gap-4">
+              {currentWeek === 1 && (
             <>
               <div className="p-4 rounded-xl border-l-4 border-green-400 bg-green-50" data-testid="expert-content-1">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-sm">📖</span>
+                      <span className="text-sm">💊</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 text-sm mb-2">Primeira Consulta Pré-natal</h4>
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Ácido Fólico é Essencial</h4>
                     <p className="text-gray-600 text-sm leading-relaxed">
-                      Agende sua primeira consulta com o obstetra. É importante iniciar o acompanhamento médico o quanto antes para garantir uma gravidez saudável.
-                    </p>
+                        Inicie a suplementação com ácido fólico (400-800mcg/dia) para prevenir defeitos do tubo neural. Continue mesmo antes da confirmação da gravidez.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Tome sempre no mesmo horário para criar rotina</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 rounded-xl border-l-4 border-red-400 bg-red-50" data-testid="expert-content-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🚭</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Evite Álcool e Cigarros</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Não existe quantidade segura de álcool durante a gravidez. O tabaco prejudica o desenvolvimento do bebê e aumenta riscos de complicações.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Busque ajuda profissional se precisar parar de fumar</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-orange-400 bg-orange-50" data-testid="expert-content-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🥗</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Alimentação Balanceada</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Consuma alimentos ricos em folato (vegetais verde-escuros, leguminosas, frutas cítricas). Evite carnes cruas, peixes ricos em mercúrio.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Lave bem frutas e verduras antes do consumo</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {currentWeek === 2 && (
+              <>
+                <div className="p-4 rounded-xl border-l-4 border-yellow-400 bg-yellow-50" data-testid="expert-content-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🤢</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Primeiros Sintomas são Normais</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Náuseas, cansaço e sensibilidade nos seios são comuns. Estes sintomas indicam que os hormônios estão funcionando adequadamente.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Coma pequenas refeições frequentes para minimizar náuseas</p>
+                      </div>
                   </div>
                 </div>
               </div>
 
               <div className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50" data-testid="expert-content-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">💧</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Hidratação é Fundamental</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Beba pelo menos 8-10 copos de água por dia. A desidratação pode piorar náuseas e causar constipação.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Mantenha uma garrafa d'água sempre por perto</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-purple-400 bg-purple-50" data-testid="expert-content-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">👩‍⚕️</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Agende sua Primeira Consulta</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Procure um obstetra para confirmar a gravidez e iniciar o pré-natal. Exames de rotina serão solicitados.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Leve uma lista de dúvidas para a consulta</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {currentWeek === 3 && (
+              <>
+                <div className="p-4 rounded-xl border-l-4 border-indigo-400 bg-indigo-50" data-testid="expert-content-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🧠</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Desenvolvimento Neural Crítico</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        O tubo neural está se formando. É crucial manter a suplementação de ácido fólico e evitar medicamentos sem prescrição médica.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Consulte sempre seu médico antes de tomar qualquer medicamento</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-green-400 bg-green-50" data-testid="expert-content-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">🚶‍♀️</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Exercícios Leves são Benéficos</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Caminhadas, yoga pré-natal e natação são recomendados. Exercícios ajudam com náuseas, humor e preparam o corpo para mudanças.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Comece devagar, 15-20 minutos por dia</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-pink-400 bg-pink-50" data-testid="expert-content-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">😴</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Descanso Adequado</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Seu corpo está trabalhando duro! Durma 7-9 horas por noite e faça pausas durante o dia se possível.
+                      </p>
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-2 border-yellow-300 rounded">
+                        <p className="text-yellow-800 text-xs font-medium">💡 <strong>Dica:</strong> Crie uma rotina relaxante antes de dormir</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {currentWeek > 3 && (
+              <>
+                <div className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50" data-testid="expert-content-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-sm">📋</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Mantenha o Pré-natal em Dia</h4>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        Continue as consultas regulares e exames de rotina conforme orientação médica. O acompanhamento é essencial para sua saúde e do bebê.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-l-4 border-green-400 bg-green-50" data-testid="expert-content-2">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
                     <span className="text-sm">🍎</span>
@@ -390,21 +873,16 @@ export default function Dashboard() {
                 </div>
               </div>
             </>
-          ) : null}
-        </div>
+              )}
+            </div>
+          )}
       </div>
       
-      {/* Next Consultation Card */}
+        {/* Card da próxima consulta */}
       <div className="mx-4 mt-4">
         <NextConsultationCard />
+        </div>
       </div>
-
-      {/* Video Section */}
-      <VideoSection 
-        videos={articlesData?.articles || []} 
-        isLoading={isArticlesLoading}
-        currentWeek={currentWeek}
-      />
 
       {/* Mom/Baby Toggle */}
       <div className="px-4 mb-6">
@@ -424,7 +902,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab("baby")}
             className={`flex-1 py-3 px-6 rounded-full text-sm font-medium transition-all ${
               activeTab === "baby"
-                ? "bg-gradient-to-r from-purple-400 to-blue-400 text-white shadow-lg"
+                ? "bg-white text-blue-600 shadow-lg"
                 : "text-gray-600"
             }`}
             data-testid="tab-baby"
@@ -434,184 +912,175 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Development Milestones Content */}
-      {development?.developmentData && (
-        <div className="mx-4 mb-6">
-          <div className="glass-effect rounded-2xl p-5 backdrop-blur-md bg-white/80">
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-8 h-8 bg-gradient-to-br ${
-                activeTab === "baby" 
-                  ? "from-purple-500 to-blue-500" 
-                  : "from-pink-500 to-rose-500"
-              } rounded-lg flex items-center justify-center`}>
-                <span className="text-white text-sm">
-                  {activeTab === "baby" ? "👶" : "🤱"}
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                {activeTab === "baby" ? "Desenvolvimento do Bebê" : "Mudanças na Mamãe"}
-              </h3>
-            </div>
-            
-            <div>
-              {activeTab === "baby" && development.developmentData.development_milestones_baby ? (
-                <div 
-                  className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100"
-                  data-testid="text-baby-milestones-complete"
-                >
-                  <p className="text-gray-700 leading-relaxed">
-                    {development.developmentData.development_milestones_baby}
+      {/* Content Area */}
+      <div className="relative z-10 px-4">
+
+        {activeTab === "baby" && (
+          <Card className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl mb-6">
+            <CardContent className="p-6">
+              {/* Baby Development Information */}
+              {babyText ? (
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6">
+                  <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+                    <Baby className="h-5 w-5 text-blue-600" />
+                    Desenvolvimento do Bebê
+                  </h3>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    {babyText}
                   </p>
-                </div>
-              ) : activeTab === "mom" && development.developmentData.development_milestones_mom ? (
-                <div 
-                  className="p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-100"
-                  data-testid="text-mom-milestones-complete"
-                >
-                  <p className="text-gray-700 leading-relaxed">
-                    {development.developmentData.development_milestones_mom}
+              </div>
+              ) : (
+                <div className="bg-blue-50 rounded-2xl p-6 text-center">
+                  <Baby className="h-12 w-12 mx-auto mb-4 text-blue-400" />
+                  <h3 className="text-gray-800 font-semibold mb-2">
+                    Desenvolvimento do Bebê
+              </h3>
+                  <p className="text-gray-600 text-sm">
+                    Consultando informações sobre o desenvolvimento do bebê para esta semana...
+                  </p>
+            </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "mom" && (
+          <Card className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl mb-6">
+            <CardContent className="p-6">
+              {/* Mom Development Information */}
+              {momText ? (
+                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6">
+                  <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-rose-600" />
+                    Mudanças na Mamãe
+                  </h3>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    {momText}
                   </p>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">
-                    {activeTab === "baby" ? "👶" : "🤱"}
-                  </div>
-                  <p className="text-gray-500 text-sm">
-                    {activeTab === "baby" 
-                      ? "Marcos de desenvolvimento do bebê não disponíveis para esta semana"
-                      : "Informações sobre mudanças na mamãe não disponíveis para esta semana"
-                    }
+                <div className="bg-pink-50 rounded-2xl p-6 text-center">
+                  <Heart className="h-12 w-12 mx-auto mb-4 text-pink-400" />
+                  <h3 className="text-gray-800 font-semibold mb-2">
+                    Mudanças na Mamãe
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Consultando informações sobre mudanças no corpo da mamãe para esta semana...
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Menu de Opções - direto na página */}
+        <div className="px-4 mt-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">O que você gostaria de fazer?</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+            onClick={() => setLocation("/weight-tracking")}
+              className="h-20 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-weight-tracking"
+            >
+              <Weight className="h-6 w-6" />
+              <span className="text-sm font-medium">Controle de Peso</span>
+            </Button>
+
+            <Button
+            onClick={() => setLocation("/kick-counter")}
+              className="h-20 bg-gradient-to-r from-blue-400 to-indigo-400 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-kick-counter"
+            >
+              <Activity className="h-6 w-6" />
+              <span className="text-sm font-medium">Contar Chutes</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/birth-plan")}
+              className="h-20 bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-birth-plan"
+            >
+              <Heart className="h-6 w-6" />
+              <span className="text-sm font-medium">Plano de Parto</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/consultations")}
+              className="h-20 bg-gradient-to-r from-purple-400 to-violet-400 hover:from-purple-500 hover:to-violet-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-consultations"
+            >
+              <Calendar className="h-6 w-6" />
+              <span className="text-sm font-medium">Consultas</span>
+            </Button>
+
+            <Button
+            onClick={() => setLocation("/shopping-list")}
+              className="h-20 bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-shopping"
+            >
+              <Apple className="h-6 w-6" />
+              <span className="text-sm font-medium">Lista de Compras</span>
+            </Button>
+
+            <Button
+            onClick={() => setLocation("/photo-album")}
+              className="h-20 bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-500 hover:to-cyan-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-photos"
+            >
+              <Info className="h-6 w-6" />
+              <span className="text-sm font-medium">Fotos</span>
+            </Button>
+
+            <Button
+            onClick={() => setLocation("/diary")}
+              className="h-20 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-diary"
+            >
+              <Book className="h-6 w-6" />
+              <span className="text-sm font-medium">Diário</span>
+            </Button>
+
+            <Button
+              onClick={() => setLocation("/analytics")}
+              className="h-20 bg-gradient-to-r from-indigo-400 to-blue-400 hover:from-indigo-500 hover:to-blue-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-analytics"
+            >
+              <TrendingUp className="h-6 w-6" />
+              <span className="text-sm font-medium">Analytics</span>
+            </Button>
+
+            <Button
+            onClick={() => setLocation("/medical-articles")}
+              className="h-20 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
+              data-testid="button-medical-articles"
+            >
+              <Stethoscope className="h-6 w-6" />
+              <span className="text-sm font-medium">Guia da Gestação</span>
+            </Button>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Feature Grid */}
-      <div className="px-4 pb-6">
-        <div className="grid grid-cols-2 gap-3">
-          {/* Weight Tracking */}
-          <div 
-            className="bg-gradient-to-br from-pink-400 to-pink-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/weight-tracking")}
-            data-testid="card-weight-tracking"
-          >
-            <Weight className="h-8 w-8 mb-2" />
-            <h3 className="font-semibold text-sm">Controle de Peso</h3>
-            <p className="text-xs opacity-90 mt-1">Acompanhe sua evolução</p>
-          </div>
-
-          {/* Kick Counter */}
-          <div 
-            className="bg-gradient-to-br from-purple-400 to-purple-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/kick-counter")}
-            data-testid="card-kick-counter"
-          >
-            <div className="text-2xl mb-2">👶</div>
-            <h3 className="font-semibold text-sm">Contador de Chutes</h3>
-            <p className="text-xs opacity-90 mt-1">Monitore os movimentos</p>
-          </div>
-
-          {/* Birth Plan */}
-          <div 
-            className="bg-gradient-to-br from-blue-400 to-blue-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/birth-plan")}
-            data-testid="card-birth-plan"
-          >
-            <div className="text-2xl mb-2">📋</div>
-            <h3 className="font-semibold text-sm">Plano de Parto</h3>
-            <p className="text-xs opacity-90 mt-1">Planeje seu parto</p>
-          </div>
-
-          {/* Consultations */}
-          <div 
-            className="bg-gradient-to-br from-green-400 to-green-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/consultations")}
-            data-testid="card-consultations"
-          >
-            <Calendar className="h-8 w-8 mb-2" />
-            <h3 className="font-semibold text-sm">Consultas</h3>
-            <p className="text-xs opacity-90 mt-1">Agende e gerencie</p>
-          </div>
-
-          {/* Shopping List */}
-          <div 
-            className="bg-gradient-to-br from-orange-400 to-orange-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/shopping-list")}
-            data-testid="card-shopping-list"
-          >
-            <div className="text-2xl mb-2">🛒</div>
-            <h3 className="font-semibold text-sm">Lista de Compras</h3>
-            <p className="text-xs opacity-90 mt-1">Organize suas compras</p>
-          </div>
-
-          {/* Photo Album */}
-          <div 
-            className="bg-gradient-to-br from-indigo-400 to-indigo-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/photo-album")}
-            data-testid="card-photo-album"
-          >
-            <div className="text-2xl mb-2">📸</div>
-            <h3 className="font-semibold text-sm">Álbum de Fotos</h3>
-            <p className="text-xs opacity-90 mt-1">Guarde suas memórias</p>
-          </div>
-
-          {/* Diary */}
-          <div 
-            className="bg-gradient-to-br from-teal-400 to-teal-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/diary")}
-            data-testid="card-diary"
-          >
-            <div className="text-2xl mb-2">📝</div>
-            <h3 className="font-semibold text-sm">Diário</h3>
-            <p className="text-xs opacity-90 mt-1">Registre seus sentimentos</p>
-          </div>
-
-          {/* Medical Articles */}
-          <div 
-            className="bg-gradient-to-br from-red-400 to-red-500 p-4 rounded-2xl text-white cursor-pointer transform hover:scale-105 transition-all duration-200 shadow-lg"
-            onClick={() => setLocation("/medical-articles")}
-            data-testid="card-medical-articles"
-          >
-            <div className="text-2xl mb-2">🏥</div>
-            <h3 className="font-semibold text-sm">Artigos Médicos</h3>
-            <p className="text-xs opacity-90 mt-1">Informações confiáveis</p>
-          </div>
-        </div>
       </div>
 
-      {/* Modal de Vídeo */}
-      {selectedVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full max-h-[70vh] overflow-hidden">
-            <div className="flex items-center justify-between p-2 border-b">
-              <h3 className="text-sm font-medium text-gray-800 line-clamp-1 pr-2">
-                {selectedVideo.title}
-              </h3>
-              <button 
-                onClick={() => setSelectedVideo(null)}
-                className="text-gray-500 hover:text-gray-700 text-lg flex-shrink-0 p-1"
-                data-testid="close-video-modal"
-              >
-                ✕
-              </button>
+      {/* Footer com espaçamento */}
+      <footer className="mt-12 pb-24 px-4">
+        <div className="bg-gradient-to-r from-pink-50/80 to-blue-50/80 rounded-2xl p-6 text-center backdrop-blur-sm border border-white/50">
+          <div className="flex items-center justify-center mb-3">
+            <Heart className="h-5 w-5 text-pink-400 mr-2" />
+            <h3 className="text-gray-700 font-medium">Mama Care</h3>
+            <Heart className="h-5 w-5 text-pink-400 ml-2" />
             </div>
-            <div className="aspect-video">
-              <iframe
-                src={selectedVideo.url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={selectedVideo.title}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+          <p className="text-gray-600 text-sm mb-2">
+            Cuidando de você e seu bebê em cada momento
+          </p>
+          <p className="text-gray-500 text-xs">
+            © 2025 Mama Care - Sua jornada da maternidade
+          </p>
+                      </div>
+      </footer>
+
+
     </div>
   );
 }

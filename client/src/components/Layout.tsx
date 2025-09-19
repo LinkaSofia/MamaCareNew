@@ -20,7 +20,7 @@ export function Layout({ children, className }: LayoutProps) {
   // Se está carregando, mostrar loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-pink-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando...</p>
@@ -35,7 +35,7 @@ export function Layout({ children, className }: LayoutProps) {
     // Forçar redirecionamento imediato sem cache
     window.location.replace('/login');
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-pink-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Redirecionando...</p>
@@ -49,19 +49,8 @@ export function Layout({ children, className }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/50 via-white to-blue-50/50">
-      {/* Conteúdo principal - sem sidebar lateral */}
-      <div className="min-h-screen">
-        <main className={cn(
-          'min-h-screen pb-20', // Adicionar padding-bottom para navegação
-          className
-        )}>
-          {children}
-        </main>
-        
-        {/* Navegação inferior */}
-        <BottomNavigation />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-100">
+      {children}
     </div>
   );
 }

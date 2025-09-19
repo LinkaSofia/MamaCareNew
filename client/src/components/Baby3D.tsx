@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getInterpolatedBabyData, getPregnancyPhase } from '@/lib/baby-data';
+import SizeComparison from './SizeComparison';
 
 // Importar as imagens 3D geradas
 import baby8weeks from '@assets/generated_images/8-week_fetus_3D_realistic_b436f945.png';
@@ -19,6 +20,14 @@ interface Baby3DProps {
   showInfo?: boolean;
   interactive?: boolean;
   animate?: boolean;
+  babyImageUrl?: string; // URL da imagem do banco de dados
+  fruitImageUrl?: string; // URL da imagem de comparação do banco de dados
+  showSizeComparison?: boolean; // Nova prop para mostrar comparação de tamanho
+  developmentData?: {
+    length_cm: number;
+    weight_grams: number;
+    fruit_comparison: string;
+  };
 }
 
 const BABY_IMAGES = {
@@ -43,13 +52,17 @@ export default function Baby3D({
   className = "",
   showInfo = true,
   interactive = false,
-  animate = true
+  animate = true,
+  babyImageUrl,
+  fruitImageUrl,
+  showSizeComparison = false,
+  developmentData
 }: Baby3DProps) {
   const [currentImage, setCurrentImage] = useState<string>('');
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  const [animationPhase, setAnimationPhase] = useState(0);
+  // animationPhase removido para evitar piscar
   
   const babyData = getInterpolatedBabyData(week);
   const pregnancyPhase = getPregnancyPhase(week);
@@ -57,19 +70,65 @@ export default function Baby3D({
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       console.log(`🖼️ Carregando imagem para semana ${week}`);
+      console.log(`🖼️ URL do banco de dados:`, babyImageUrl);
     }
     
-    // Usar imagens importadas diretamente baseadas na semana
+    // Função para verificar se a URL do banco é válida e acessível
+    const isValidDatabaseImage = (url: string) => {
+      // URLs que começam com @assets/ são válidas (vindas do banco de dados)
+      if (url.startsWith('@assets/')) {
+        return true;
+      }
+      // URLs que começam com /client/src/assets/ são válidas (convertidas para /src/assets/)
+      if (url.startsWith('/client/src/assets/')) {
+        return true;
+      }
+      // URLs que começam com /attached_assets/ são válidas
+      if (url.startsWith('/attached_assets/')) {
+        return true;
+      }
+      // URLs completas (http/https) são válidas
+      if (url.startsWith('http')) {
+        return true;
+      }
+      return false;
+    };
+    
+    // Função para converter URL do banco para URL válida do navegador
+    const convertDatabaseUrlToValidUrl = (url: string) => {
+      if (url.startsWith('@assets/')) {
+        return url.replace('@assets/', '/src/assets/');
+      }
+      if (url.startsWith('/client/src/assets/')) {
+        return url.replace('/client/src/assets/', '/src/assets/');
+      }
+      return url;
+    };
+    
+    // Priorizar imagem do banco de dados APENAS se for uma URL válida
+    if (babyImageUrl && isValidDatabaseImage(babyImageUrl)) {
+      const validUrl = convertDatabaseUrlToValidUrl(babyImageUrl);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🖼️ Usando imagem válida do banco de dados:`, babyImageUrl);
+        console.log(`🖼️ URL convertida:`, validUrl);
+      }
+      setCurrentImage(validUrl);
+      setImageError(false);
+      setIsLoading(false);
+      return;
+    }
+    
+    // Fallback para imagens importadas diretamente baseadas na semana
     let selectedImage = baby8weeks;
 
     if (week === 2) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`🖼️ Usando baby2weeks para semana 2`);
+        console.log(`🖼️ Usando baby2weeks para semana 2 (fallback)`);
       }
       selectedImage = baby2weeks;
     } else if (week === 3) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`🖼️ Usando baby3weeks para semana 3`);
+        console.log(`🖼️ Usando baby3weeks para semana 3 (fallback)`);
       }
       selectedImage = baby3weeks;
     } else if (week >= 36) {
@@ -87,23 +146,17 @@ export default function Baby3D({
     }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🖼️ Imagem selecionada:`, selectedImage);
+      console.log(`🖼️ Imagem selecionada (fallback):`, selectedImage);
+      if (babyImageUrl && !isValidDatabaseImage(babyImageUrl)) {
+        console.log(`⚠️ URL do banco inválida ignorada:`, babyImageUrl);
+      }
     }
     setCurrentImage(selectedImage);
     setImageError(false);
     setIsLoading(false);
-  }, [week]);
+  }, [week, babyImageUrl]);
 
-  useEffect(() => {
-    if (!animate) return;
-    
-    // Animação de pulsação sutil para simular batimento cardíaco
-    const heartbeatInterval = setInterval(() => {
-      setAnimationPhase(prev => (prev + 1) % 4);
-    }, 1200);
-
-    return () => clearInterval(heartbeatInterval);
-  }, [animate]);
+  // Animação removida para evitar piscar
 
   const getSizeClasses = () => {
     switch (size) {
@@ -153,7 +206,7 @@ export default function Baby3D({
           'from-purple-100/30 to-violet-100/30'}
         backdrop-blur-sm transition-all duration-500
         ${interactive ? 'hover:scale-105 cursor-pointer' : ''}
-        ${animate && animationPhase % 2 === 0 ? 'scale-[1.02]' : 'scale-100'}
+        scale-100
       `}>
         {/* Imagem principal do bebê */}
         {currentImage && !imageError ? (
@@ -162,7 +215,6 @@ export default function Baby3D({
             alt={`Bebê na semana ${week} de desenvolvimento`}
             className={`
               w-full h-full object-cover rounded-full transition-all duration-700
-              ${animate ? 'animate-pulse-slow' : ''}
               ${isHovered ? 'scale-110' : 'scale-100'}
             `}
             style={{
@@ -180,7 +232,6 @@ export default function Baby3D({
             className={`
               w-full h-full rounded-full bg-gradient-to-br from-pink-200 to-blue-200 
               flex items-center justify-center transition-all duration-700
-              ${animate ? 'animate-pulse-slow' : ''}
               ${isHovered ? 'scale-110' : 'scale-100'}
             `}
             data-testid={`baby-fallback-week-${week}`}
@@ -189,17 +240,9 @@ export default function Baby3D({
           </div>
         )}
         
-        {/* Efeito de brilho animado */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shimmer"></div>
+        {/* Efeito de brilho removido para evitar piscar */}
         
-        {/* Partículas flutuantes */}
-        {animate && (
-          <>
-            <div className="absolute top-4 left-4 w-2 h-2 bg-pink-300/50 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-            <div className="absolute top-8 right-8 w-1 h-1 bg-blue-300/50 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }}></div>
-            <div className="absolute bottom-8 left-8 w-1.5 h-1.5 bg-purple-300/50 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
-          </>
-        )}
+        {/* Partículas flutuantes removidas para evitar distração */}
         
         {/* Informações do bebê */}
         {showInfo && babyData && (
@@ -216,7 +259,7 @@ export default function Baby3D({
             pregnancyPhase.phase === 'Primeiro Trimestre' ? 'bg-pink-400' :
             pregnancyPhase.phase === 'Segundo Trimestre' ? 'bg-blue-400' : 
             'bg-purple-400'
-          } animate-pulse`} 
+          }`} 
           title={pregnancyPhase.phase}
           data-testid={`pregnancy-phase-indicator-${pregnancyPhase.phase.toLowerCase().replace(/\s+/g, '-')}`}
         ></div>
@@ -224,10 +267,7 @@ export default function Baby3D({
         {/* Efeito de batimento cardíaco */}
         {animate && week >= 8 && (
           <div className="absolute top-6 left-6">
-            <div className={`
-              text-red-400 transition-all duration-200 
-              ${animationPhase === 0 ? 'scale-125 opacity-100' : 'scale-100 opacity-60'}
-            `}>
+            <div className="text-red-400 scale-100 opacity-60">
               💓
             </div>
           </div>
@@ -258,6 +298,19 @@ export default function Baby3D({
           <div className="text-gray-600 text-sm">
             {pregnancyPhase.description}
           </div>
+        </div>
+      )}
+
+      {/* Comparação de tamanho com imagens reais */}
+      {showSizeComparison && developmentData && (
+        <div className="mt-4">
+          <SizeComparison
+            week={week}
+            sizeCm={developmentData.length_cm}
+            weightGrams={developmentData.weight_grams}
+            fruitComparison={developmentData.fruit_comparison}
+            fruitImageUrl={fruitImageUrl}
+          />
         </div>
       )}
     </div>

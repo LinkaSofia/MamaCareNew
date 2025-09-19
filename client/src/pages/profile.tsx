@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import BottomNavigation from "@/components/layout/bottom-navigation";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { ObjectUploader } from "@/components/ObjectUploader";
 import { 
   ArrowLeft, 
   Camera, 
@@ -20,7 +22,8 @@ import {
   Save, 
   Calendar,
   Mail,
-  Edit2
+  Edit2,
+  Upload
 } from "lucide-react";
 
 export default function Profile() {
@@ -31,6 +34,7 @@ export default function Profile() {
   const queryClient = useQueryClient();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState(user?.profilePhotoUrl || "");
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -48,6 +52,7 @@ export default function Profile() {
         email: user.email || "",
         birthDate: user.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : ""
       }));
+      setProfilePhoto(user.profilePhotoUrl || "");
     }
   }, [user]);
 
@@ -105,8 +110,11 @@ export default function Profile() {
 
   if (authLoading || pregnancyLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen flex items-center justify-center gradient-bg relative">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }
@@ -133,8 +141,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50 pb-20">
-      <div className="p-4 pt-12">
+    <div className="min-h-screen gradient-bg pb-20 relative">
+      <AnimatedBackground />
+      <div className="p-4 pt-12 relative z-10">
         {/* Header */}
         <div className="flex items-center mb-8">
           <Button
@@ -154,19 +163,54 @@ export default function Profile() {
           <CardContent className="p-6">
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
-                <Avatar className="w-24 h-24 bg-pink-300">
+                <Avatar className="w-24 h-24 bg-gradient-to-br from-pink-300 to-purple-400 ring-4 ring-white shadow-lg">
+                  <AvatarImage 
+                    src={profilePhoto} 
+                    alt={user.name}
+                    className="object-cover"
+                  />
                   <AvatarFallback className="text-white text-2xl font-bold">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-purple-500 hover:bg-purple-600 p-0"
-                  data-testid="button-change-photo"
+                <ObjectUploader
+                  maxNumberOfFiles={1}
+                  maxFileSize={5242880}
+                  onGetUploadParameters={async () => {
+                    const response = await apiRequest("POST", "/api/objects/upload");
+                    return {
+                      method: "PUT" as const,
+                      url: response.uploadURL,
+                    };
+                  }}
+                  onComplete={async (result) => {
+                    if (result.successful?.[0]) {
+                      const uploadURL = result.successful[0].uploadURL;
+                      setProfilePhoto(uploadURL);
+                      
+                      try {
+                        await apiRequest("PATCH", "/api/auth/profile", {
+                          profilePhotoUrl: uploadURL,
+                        });
+                        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+                        toast({
+                          title: "Foto atualizada!",
+                          description: "Sua foto de perfil foi atualizada com sucesso.",
+                        });
+                      } catch (error) {
+                        console.error("Erro ao salvar foto:", error);
+                        toast({
+                          title: "Erro",
+                          description: "Erro ao salvar foto de perfil.",
+                          variant: "destructive"
+                        });
+                      }
+                    }
+                  }}
+                  buttonClassName="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 p-0 shadow-lg border-2 border-white"
                 >
-                  <Camera className="h-4 w-4" />
-                </Button>
+                  <Camera className="h-4 w-4 text-white" />
+                </ObjectUploader>
               </div>
               <div className="text-center">
                 <h2 className="text-xl font-bold text-gray-800" data-testid="text-user-name">

@@ -15,6 +15,19 @@ import WeightChart from "@/components/weight-chart";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { ArrowLeft, Scale, Plus, TrendingUp } from "lucide-react";
 
+// Função utilitária para garantir o formato YYYY-MM-DD
+function formatDateToISO(dateStr: string) {
+  // Se já estiver no formato correto, retorna como está
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  // Se vier em formato DD/MM/YYYY, converte
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+    const [day, month, year] = dateStr.split("/");
+    return `${year}-${month}-${day}`;
+  }
+  // Tenta converter qualquer outro formato usando Date
+  return new Date(dateStr).toISOString().slice(0, 10);
+}
+
 export default function WeightTracking() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [weight, setWeight] = useState("");
@@ -59,7 +72,7 @@ export default function WeightTracking() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!weight || parseFloat(weight) <= 0) {
       toast({
         title: "Erro",
@@ -68,11 +81,14 @@ export default function WeightTracking() {
       });
       return;
     }
+    const formattedDate = formatDateToISO(date);
 
     addWeightMutation.mutate({
-      weight: weight,
-      date: date, // Enviar como string no formato ISO
+      weight: parseFloat(weight),
+      date: formattedDate,
       notes: notes.trim() || undefined,
+      user_id: user?.id,
+      pregnancy_id: pregnancy?.id,
     });
   };
 
@@ -90,20 +106,18 @@ export default function WeightTracking() {
   }
 
   const entries = (weightData as any)?.entries || [];
-  const records = entries; // Para compatibilidade com componentes existentes
+  const records = entries;
   const latestWeight = entries.length > 0 ? entries[0] : null;
-  
-  // Calculate weight gain from first record
   const firstWeight = records.length > 0 ? records[records.length - 1].weight : null;
-  const weightGain = latestWeight && firstWeight ? 
+  const weightGain = latestWeight && firstWeight ?
     parseFloat(latestWeight.weight) - parseFloat(firstWeight.weight) : 0;
 
   return (
     <div className="min-h-screen bg-cream pb-20">
       <div className="p-4 pt-12">
         <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="rounded-full bg-white shadow-lg"
             onClick={() => setLocation("/")}
@@ -114,8 +128,8 @@ export default function WeightTracking() {
           <h2 className="text-xl font-bold text-charcoal" data-testid="text-page-title">
             Controle de Peso
           </h2>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="rounded-full bg-baby-pink-dark shadow-lg"
             onClick={() => setShowAddForm(true)}
@@ -271,8 +285,8 @@ export default function WeightTracking() {
                 </div>
                 
                 <div className="flex space-x-3">
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     variant="outline"
                     onClick={() => setShowAddForm(false)}
                     className="flex-1"
@@ -280,8 +294,8 @@ export default function WeightTracking() {
                   >
                     Cancelar
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="flex-1 bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90"
                     disabled={addWeightMutation.isPending}
                     data-testid="button-save"
@@ -301,6 +315,13 @@ export default function WeightTracking() {
       )}
 
       <BottomNavigation />
+      <a
+  href="https://www.gov.br/ans/pt-br/arquivos/assuntos/gestao-em-saude/parto-adequado/GuiaDaGestante_dez241.pdf"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Abrir PDF
+</a>
     </div>
   );
 }

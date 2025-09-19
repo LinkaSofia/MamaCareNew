@@ -90,21 +90,23 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <LoadingSpinner size="lg" />
-          </div>
-        }>
-          <Toaster />
-          <PWAInstallPrompt />
-          <div className="App">
-            <Router />
-          </div>
-        </Suspense>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-100">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <LoadingSpinner size="lg" />
+            </div>
+          }>
+            <Toaster />
+            <PWAInstallPrompt />
+            <div className="App">
+              <Router />
+            </div>
+          </Suspense>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 

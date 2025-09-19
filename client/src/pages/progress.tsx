@@ -285,6 +285,7 @@ export function Progress() {
                           animate={true}
                           showInfo={true}
                           className="max-w-md"
+                          babyImageUrl={currentBabyData?.baby_image_url ?? undefined}
                         />
                       </div>
                     </CardContent>

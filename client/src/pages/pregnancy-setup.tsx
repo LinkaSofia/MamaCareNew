@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, Info, Baby, Heart, User, Upload } from "lucide-rea
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function PregnancySetup() {
   const [, setLocation] = useLocation();
@@ -72,8 +73,9 @@ export default function PregnancySetup() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 gradient-bg">
-      <Card className="w-full max-w-md glass-effect shadow-2xl">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 gradient-bg relative">
+      <AnimatedBackground />
+      <Card className="w-full max-w-md glass-effect shadow-2xl relative z-10">
         <CardHeader className="text-center">
           <div className="flex items-center justify-between">
             <Button

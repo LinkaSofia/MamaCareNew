@@ -12,58 +12,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import logoImage from "@assets/4_1755308511005.png";
 import { Heart, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
-// Componente de animação de fundo
-function AnimatedBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Corações flutuantes */}
-      {[...Array(8)].map((_, i) => (
-        <Heart
-          key={`heart-${i}`}
-          className={`absolute text-pink-300/30 animate-float-${i % 4 + 1}`}
-          size={20 + (i % 3) * 10}
-          style={{
-            left: `${10 + (i * 12) % 80}%`,
-            top: `${15 + (i * 15) % 70}%`,
-            animationDelay: `${i * 0.7}s`,
-            animationDuration: `${3 + (i % 3)}s`
-          }}
-        />
-      ))}
-      
-      {/* Bolinhas flutuantes */}
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={`bubble-${i}`}
-          className={`absolute rounded-full bg-gradient-to-r from-pink-200/20 to-blue-200/20 animate-bounce`}
-          style={{
-            width: `${8 + (i % 4) * 6}px`,
-            height: `${8 + (i % 4) * 6}px`,
-            left: `${5 + (i * 8) % 90}%`,
-            top: `${10 + (i * 8) % 80}%`,
-            animationDelay: `${i * 0.5}s`,
-            animationDuration: `${4 + (i % 3)}s`
-          }}
-        />
-      ))}
-      
-      {/* Estrelas piscantes */}
-      {[...Array(6)].map((_, i) => (
-        <div
-          key={`star-${i}`}
-          className={`absolute w-2 h-2 bg-yellow-300/40 animate-pulse`}
-          style={{
-            left: `${20 + (i * 15) % 60}%`,
-            top: `${20 + (i * 12) % 60}%`,
-            animationDelay: `${i * 1.2}s`,
-            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 export default function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);

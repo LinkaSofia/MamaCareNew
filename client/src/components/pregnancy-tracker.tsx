@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import ThreeDBaby from "@/components/three-d-baby";
+import Baby3D from "@/components/Baby3D";
 import { 
   ArrowLeft, 
   Baby, 
@@ -20,6 +20,7 @@ import {
   Calendar,
   Info
 } from "lucide-react";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 interface PregnancyTrackerProps {
   onBack: () => void;
@@ -36,8 +37,11 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen flex items-center justify-center gradient-bg relative">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }
@@ -49,8 +53,11 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
 
   if (pregnancyLoading || developmentLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen flex items-center justify-center gradient-bg relative">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }
@@ -62,8 +69,9 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
 
   if (!weekInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
-        <div className="text-center p-6">
+      <div className="min-h-screen flex items-center justify-center gradient-bg relative">
+        <AnimatedBackground />
+        <div className="text-center p-6 relative z-10">
           <Baby className="mx-auto h-12 w-12 text-pink-400 mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Erro ao calcular semana
@@ -103,9 +111,10 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
   const momMilestones = development ? parseMilestones(development.development_milestones_mom) : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50 pb-20">
+    <div className="min-h-screen gradient-bg pb-20 relative">
+      <AnimatedBackground />
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-pink-100 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-pink-100 shadow-sm relative">
         <div className="flex items-center justify-between p-4 pt-12">
           <Button 
             variant="ghost" 
@@ -212,7 +221,20 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
               </div>
               
               <div className="ml-6">
-                <ThreeDBaby week={weekInfo.week} size={100} />
+                <Baby3D 
+                  week={weekInfo.week} 
+                  size="large"
+                  showInfo={true}
+                  animate={true}
+                  showSizeComparison={true}
+                  babyImageUrl={development?.baby_image_url ?? undefined}
+                  fruitImageUrl={development?.fruit_image_url ?? undefined}
+                  developmentData={development ? {
+                    length_cm: development.length_cm || 0,
+                    weight_grams: development.weight_grams || 0,
+                    fruit_comparison: development.fruit_comparison || "semente de romã"
+                  } : undefined}
+                />
               </div>
             </div>
           </CardContent>

@@ -11,6 +11,8 @@ import { sendPasswordResetEmail } from "./nodemailer";
 import { randomUUID } from "crypto";
 import { db } from "./storage";
 import { sql, eq } from "drizzle-orm";
+import fs from "fs";
+import path from "path";
 
 // Simple session store for user authentication
 declare module "express-session" {
@@ -304,7 +306,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Rota de teste simples SEM autenticação
   app.get("/api/test-simple", (req, res) => {
+    console.log("🔍 API /api/test-simple called");
     res.json({ message: "Test endpoint working!" });
+  });
+
+  // Rota de teste para categorias (sem autenticação)
+  app.get("/api/test-categories", (req, res) => {
+    console.log("🔍 API /api/test-categories called");
+    res.json({ 
+      message: "Categories test endpoint working!",
+      categories: [
+        { name: "Saúde e Bem-estar", icon: "🥦" },
+        { name: "Gestação", icon: "👶" }
+      ]
+    });
+  });
+
+  // Buscar todos os artigos organizados por categoria (sem auth)
+  app.get("/api/articles/categories", async (req, res) => {
+    console.log("🔍 API /api/articles/categories called");
+    try {
+      // Buscar todos os artigos ativos
+      const allArticles = await db.select({
+        id: articles.id,
+        title: articles.title,
+        week: articles.week,
+        video_url: articles.video_url,
+        image: articles.image,
+        source: articles.source,
+        type: articles.type,
+        description: articles.description,
+        categoria: articles.categoria,
+        isActive: articles.isActive
+      })
+        .from(articles)
+        .where(sql`is_active IS NULL OR is_active = true`)
+        .orderBy(sql`categoria ASC, week ASC`);
+
+      // Organizar por categoria
+      const categories = {
+        'saude-bem-estar': {
+          icon: '🥦',
+          name: 'Saúde e Bem-estar',
+          subcategories: {
+            'alimentacao': 'Alimentação e nutrição na gestação',
+            'atividade-fisica': 'Atividade física segura',
+            'sono': 'Sono e descanso',
+            'saude-mental': 'Saúde mental e emocional'
+          },
+          articles: []
+        },
+        'gestacao': {
+          icon: '👶',
+          name: 'Gestação',
+          subcategories: {
+            'sintomas': 'Sintomas comuns e como lidar',
+            'exames': 'Exames pré-natais',
+            'desenvolvimento': 'Desenvolvimento do bebê por trimestre',
+            'complicacoes': 'Complicações mais frequentes'
+          },
+          articles: []
+        },
+        'preparacao-parto': {
+          icon: '🧘',
+          name: 'Preparação para o Parto',
+          subcategories: {
+            'tipos-parto': 'Tipos de parto (normal, cesárea, humanizado)',
+            'plano-parto': 'Plano de parto',
+            'tecnicas': 'Técnicas de respiração e relaxamento',
+            'sinais': 'Sinais de trabalho de parto'
+          },
+          articles: []
+        },
+        'pos-parto': {
+          icon: '🤱',
+          name: 'Pós-parto e Recuperação',
+          subcategories: {
+            'recuperacao': 'Recuperação física (cesárea e parto normal)',
+            'saude-emocional': 'Saúde emocional no puerpério',
+            'amamentacao': 'Amamentação e cuidados com o seio',
+            'planejamento': 'Planejamento familiar e anticoncepção pós-parto'
+          },
+          articles: []
+        },
+        'cuidados-bebe': {
+          icon: '🍼',
+          name: 'Cuidados com o Bebê',
+          subcategories: {
+            'primeiros-cuidados': 'Primeiros cuidados (banho, sono, fraldas)',
+            'aleitamento': 'Aleitamento materno e introdução alimentar',
+            'vacinacao': 'Vacinação',
+            'desenvolvimento': 'Desenvolvimento nos primeiros meses'
+          },
+          articles: []
+        },
+        'rede-apoio': {
+          icon: '💕',
+          name: 'Rede de Apoio',
+          subcategories: {
+            'parceiro': 'Participação do parceiro(a)',
+            'familia': 'Apoio familiar',
+            'direitos': 'Direitos da gestante e da lactante (trabalho, licença)'
+          },
+          articles: []
+        }
+      };
+
+      // Categorizar artigos baseado na coluna categoria
+      allArticles.forEach(article => {
+        const categoria = (article.categoria || '').toLowerCase().trim();
+        console.log(`📝 Processing article: "${article.title}" with category: "${categoria}"`);
+        
+        // Mapear categorias do banco para as categorias do sistema usando valores mais flexíveis
+        let categoryKey = 'gestacao'; // Default
+        
+        // Saúde e Bem-estar
+        if (categoria.includes('saúde') || categoria.includes('saude') || categoria.includes('bem-estar') || 
+            categoria.includes('alimentação') || categoria.includes('alimentacao') || 
+            categoria.includes('exercício') || categoria.includes('exercicio') ||
+            categoria.includes('nutrição') || categoria.includes('nutricao')) {
+          categoryKey = 'saude-bem-estar';
+        }
+        // Preparação para o Parto
+        else if (categoria.includes('parto') || categoria.includes('preparação') || categoria.includes('preparacao') ||
+                 categoria.includes('trabalho de parto') || categoria.includes('cesárea') || categoria.includes('cesarea')) {
+          categoryKey = 'preparacao-parto';
+        }
+        // Pós-parto e Recuperação
+        else if (categoria.includes('pós-parto') || categoria.includes('pos-parto') || categoria.includes('puerpério') || 
+                 categoria.includes('puerperio') || categoria.includes('recuperação') || categoria.includes('recuperacao')) {
+          categoryKey = 'pos-parto';
+        }
+        // Cuidados com o Bebê
+        else if (categoria.includes('bebê') || categoria.includes('bebe') || categoria.includes('cuidados') ||
+                 categoria.includes('aleitamento') || categoria.includes('amamentação') || categoria.includes('amamentacao')) {
+          categoryKey = 'cuidados-bebe';
+        }
+        // Rede de Apoio
+        else if (categoria.includes('apoio') || categoria.includes('família') || categoria.includes('familia') ||
+                 categoria.includes('direitos') || categoria.includes('parceiro')) {
+          categoryKey = 'rede-apoio';
+        }
+        // Gestação (default e explícito)
+        else if (categoria.includes('gestação') || categoria.includes('gestacao') || categoria.includes('gravidez')) {
+          categoryKey = 'gestacao';
+        }
+
+        console.log(`🎯 Article "${article.title}" mapped to category: "${categoryKey}"`);
+        
+        if (categories[categoryKey]) {
+          categories[categoryKey].articles.push(article);
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        categories: Object.values(categories) // Mostrar todas as categorias, mesmo vazias
+      });
+    } catch (error: any) {
+      console.error("Error fetching articles by categories:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
 
   // File-based session storage para persistir sessões
@@ -1959,6 +2121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
   // Buscar artigos por semana
   app.get("/api/articles/week/:week", async (req, res) => {
     try {
@@ -1975,10 +2138,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         week: articles.week,
         video_url: articles.video_url,
         image: articles.image,
-        source: articles.source
+        source: articles.source,
+        type: articles.type,
+        description: articles.description,
+        categoria: articles.categoria,
+        isActive: articles.isActive
       })
         .from(articles)
-        .where(sql`week = ${week}`)
+        .where(sql`week = ${week} AND (is_active IS NULL OR is_active = true)`)
         .orderBy(sql`id ASC`)
         .limit(3); // Máximo 3 artigos por semana conforme solicitado
       
@@ -2061,6 +2228,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("❌ Erro ao inserir artigo de exemplo:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Endpoint para inserir imagens da pasta comparacao
+  app.post("/api/baby-development/insert-comparacao-images", async (req, res) => {
+    try {
+      console.log("🖼️ Iniciando inserção de imagens da pasta comparacao...");
+      
+      // Caminho da pasta de imagens
+      const assetsPath = path.join(process.cwd(), 'client/src/assets/comparacao');
+      
+      // Verificar se a pasta existe
+      if (!fs.existsSync(assetsPath)) {
+        console.error('❌ Pasta comparacao não encontrada:', assetsPath);
+        return res.status(404).json({ error: 'Pasta comparacao não encontrada' });
+      }
+      
+      // Listar arquivos na pasta
+      const files = fs.readdirSync(assetsPath);
+      console.log('📁 Arquivos encontrados:', files);
+      
+      // Filtrar apenas arquivos de imagem
+      const imageFiles = files.filter(file => 
+        file.match(/\.(png|jpg|jpeg|gif|webp)$/i)
+      );
+      
+      console.log('🖼️ Imagens encontradas:', imageFiles);
+      
+      const results = [];
+      
+      for (const file of imageFiles) {
+        // Extrair número da semana do nome do arquivo
+        const weekMatch = file.match(/^(\d+)\./);
+        if (!weekMatch) {
+          console.log(`⚠️ Arquivo ${file} não segue o padrão de nome (número.png)`);
+          continue;
+        }
+        
+        const week = parseInt(weekMatch[1]);
+        const imageUrl = `@assets/comparacao/${file}`;
+        
+        console.log(`📝 Inserindo imagem para semana ${week}: ${imageUrl}`);
+        
+        try {
+          // Verificar se a semana existe no banco
+          const existingWeek = await db.select()
+            .from(babyDevelopment)
+            .where(sql`${babyDevelopment.week} = ${week}`)
+            .limit(1);
+          
+          if (existingWeek.length === 0) {
+            console.log(`⚠️ Semana ${week} não encontrada no banco de dados`);
+            results.push({
+              week,
+              file,
+              status: 'error',
+              message: 'Semana não encontrada no banco'
+            });
+            continue;
+          }
+          
+          // Atualizar a imagem
+          await db.update(babyDevelopment)
+            .set({ fruit_image_url: imageUrl })
+            .where(sql`${babyDevelopment.week} = ${week}`);
+          
+          console.log(`✅ Semana ${week} atualizada com sucesso!`);
+          results.push({
+            week,
+            file,
+            imageUrl,
+            status: 'success'
+          });
+          
+        } catch (error) {
+          console.error(`❌ Erro ao atualizar semana ${week}:`, error.message);
+          results.push({
+            week,
+            file,
+            status: 'error',
+            message: error.message
+          });
+        }
+      }
+      
+      // Mostrar resumo
+      console.log('\n📊 Resumo da inserção:');
+      results.forEach(result => {
+        if (result.status === 'success') {
+          console.log(`✅ Semana ${result.week}: ${result.file} → ${result.imageUrl}`);
+        } else {
+          console.log(`❌ Semana ${result.week}: ${result.file} - ${result.message}`);
+        }
+      });
+      
+      const successCount = results.filter(r => r.status === 'success').length;
+      const errorCount = results.filter(r => r.status === 'error').length;
+      
+      console.log(`\n🎯 Total: ${successCount} sucessos, ${errorCount} erros`);
+      
+      // Verificar semanas que já têm imagens
+      console.log('\n🔍 Verificando semanas com imagens no banco:');
+      const weeksWithImages = await db.select({
+        week: babyDevelopment.week,
+        fruit_image_url: babyDevelopment.fruit_image_url
+      })
+      .from(babyDevelopment)
+      .where(sql`${babyDevelopment.fruit_image_url} IS NOT NULL`)
+      .orderBy(babyDevelopment.week);
+      
+      weeksWithImages.forEach(row => {
+        console.log(`📸 Semana ${row.week}: ${row.fruit_image_url}`);
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Processo de inserção de imagens concluído!",
+        results,
+        summary: {
+          total: results.length,
+          success: successCount,
+          errors: errorCount
+        },
+        weeksWithImages: weeksWithImages
+      });
+      
+    } catch (error: any) {
+      console.error('❌ Erro geral:', error);
       res.status(500).json({ error: error.message });
     }
   });

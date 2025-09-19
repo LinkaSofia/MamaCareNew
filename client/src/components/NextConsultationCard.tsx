@@ -13,7 +13,7 @@ export function NextConsultationCard() {
 
   if (isLoading) {
     return (
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 mb-6">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-blue-800">
             <Calendar className="w-5 h-5" />
@@ -34,7 +34,7 @@ export function NextConsultationCard() {
 
   if (!consultation) {
     return (
-      <Card className="bg-gradient-to-r from-gray-50 to-blue-50 border-gray-200">
+      <Card className="bg-gradient-to-r from-gray-50 to-blue-50 border-gray-200 mb-6">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-gray-700">
             <Calendar className="w-5 h-5" />
@@ -72,7 +72,7 @@ export function NextConsultationCard() {
   const badgeVariant = isToday ? "destructive" : isTomorrow ? "default" : "secondary";
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 hover:shadow-md transition-shadow">
+    <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 hover:shadow-md transition-shadow mb-6">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-blue-800">

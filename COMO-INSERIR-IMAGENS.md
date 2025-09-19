@@ -97,3 +97,9 @@ Ou acesse no navegador: `http://localhost:5000/api/baby-development/all-comparis
 
 ## 💡 Dica
 Você pode inserir quantas imagens quiser, quando quiser! O sistema atualiza automaticamente e as imagens aparecerão no app imediatamente.
+
+UPDATE baby_development
+SET baby_image_url = '/assets/4.png'
+WHERE week = 4; -- ou o critério desejado
+
+<img src={babyDevelopment.baby_image_url} alt="Bebê" />
