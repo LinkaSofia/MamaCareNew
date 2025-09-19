@@ -143,7 +143,7 @@ export default function Dashboard() {
   // Função para renderizar imagem de comparação
   const renderComparisonImage = (fruitComparison: string, fruitImageUrl?: string | null, size: 'small' | 'large' = 'large') => {
     if (fruitImageUrl && isValidImageUrl(fruitImageUrl)) {
-      const imageSize = size === 'small' ? 'w-12 h-12' : 'w-20 h-20';
+      const imageSize = size === 'small' ? 'w-12 h-12' : 'w-56 h-56';
       return (
         <img 
           src={convertDatabaseUrlToValidUrl(fruitImageUrl)} 
@@ -152,7 +152,7 @@ export default function Dashboard() {
         />
       );
     }
-    const emojiSize = size === 'small' ? 'text-2xl' : 'text-4xl';
+    const emojiSize = size === 'small' ? 'text-2xl' : 'text-8xl';
     return <span className={emojiSize}>{getFruitEmoji(fruitComparison)}</span>;
   };
 
@@ -435,59 +435,66 @@ export default function Dashboard() {
                       </p>
                     </div>
 
-                    {/* Cards de Informações */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-gradient-to-br from-pink-100 to-pink-200 p-4 rounded-2xl border border-pink-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-sm">📏</span>
+                    {/* Cards de Medidas - Apenas 2 colunas */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      <div className="bg-gradient-to-br from-pink-100 to-pink-200 p-6 rounded-2xl border border-pink-200 shadow-lg">
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-xl">📏</span>
                           </div>
-                          <span className="font-semibold text-gray-800">Tamanho</span>
+                          <span className="font-bold text-gray-800 text-lg">Tamanho</span>
                         </div>
-                        <p className="text-lg font-bold text-pink-600">
-                    {development.length_cm ? `${development.length_cm} cm` : (development.size ?? "Calculando...")}
+                        <p className="text-2xl font-bold text-pink-600">
+                          {development.length_cm ? `${development.length_cm} cm` : (development.size ?? "Calculando...")}
                         </p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-purple-100 to-purple-200 p-4 rounded-2xl border border-purple-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-sm">⚖️</span>
+                      <div className="bg-gradient-to-br from-purple-100 to-purple-200 p-6 rounded-2xl border border-purple-200 shadow-lg">
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-xl">⚖️</span>
                           </div>
-                          <span className="font-semibold text-gray-800">Peso</span>
+                          <span className="font-bold text-gray-800 text-lg">Peso</span>
                         </div>
-                        <p className="text-lg font-bold text-purple-600">
-                    {development.weight_grams && Number(development.weight_grams) > 0 
-                      ? `${development.weight_grams}g` 
-                      : development.weight || "< 1g"}
+                        <p className="text-2xl font-bold text-purple-600">
+                          {development.weight_grams && Number(development.weight_grams) > 0 
+                            ? `${development.weight_grams}g` 
+                            : development.weight || "< 1g"}
                         </p>
-                      </div>
-
-                      <div className="bg-gradient-to-br from-orange-100 via-orange-50 to-yellow-100 p-8 rounded-3xl border-2 border-orange-200 shadow-xl relative overflow-hidden">
-                        {/* Decoração de fundo */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200/20 rounded-full -translate-y-16 translate-x-16"></div>
-                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-yellow-200/20 rounded-full translate-y-12 -translate-x-12"></div>
-                        
-                        <div className="text-center relative z-10">
-                          <div className="w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl border-4 border-white">
-                            {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
-                          </div>
-                          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-                            <h3 className="font-bold text-gray-800 text-xl mb-2 flex items-center justify-center gap-2">
-                              <span className="text-2xl">🍎</span>
-                              Comparação de Tamanho
-                            </h3>
-                            <p className="text-2xl font-bold text-orange-600 leading-tight">
-                              {development.fruit_comparison ?? "Calculando..."}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-2">
-                              Seu bebê tem o tamanho de
-                            </p>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
+          )}
+
+          {/* Card de Comparação Separado - Destaque */}
+          {development && (
+            <div className="mx-4 mb-6">
+              <div className="bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100 rounded-3xl p-8 border-2 border-orange-200 shadow-2xl relative overflow-hidden">
+                {/* Decoração de fundo */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-orange-200/20 rounded-full -translate-y-20 translate-x-20"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-200/20 rounded-full translate-y-16 -translate-x-16"></div>
+                
+                <div className="text-center relative z-10">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+                    <span className="text-4xl">🍎</span>
+                    Comparação de Tamanho
+                  </h2>
+                  <p className="text-gray-600 mb-8">Seu bebê tem o tamanho de</p>
+                  
+                  <div className="flex justify-center mb-8">
+                    <div className="w-64 h-64 flex items-center justify-center">
+                      {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg max-w-md mx-auto">
+                    <p className="text-3xl font-bold text-orange-600 leading-tight">
+                      {development.fruit_comparison ?? "Calculando..."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           
           {/* Informações da gestação - LADO A LADO */}

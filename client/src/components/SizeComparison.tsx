@@ -224,16 +224,16 @@ export default function SizeComparison({
 
           {/* Comparação */}
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg border-2 border-orange-200 dark:border-orange-700">
+            <div className="w-32 h-32 flex items-center justify-center mx-auto mb-3">
               {isValidImageUrl(comparisonImage) ? (
                 <img 
                   src={convertDatabaseUrlToValidUrl(comparisonImage)} 
                   alt={fruitComparison}
-                  className="w-16 h-16 object-contain"
+                  className="w-28 h-28 object-contain"
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <span className="text-4xl">{comparisonImage}</span>
+                <span className="text-6xl">{comparisonImage}</span>
               )}
             </div>
             <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Comparação</p>
