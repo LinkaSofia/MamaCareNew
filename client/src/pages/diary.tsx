@@ -16,6 +16,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import BottomNavigation from "@/components/layout/bottom-navigation";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { 
   ArrowLeft, 
   Plus, 
@@ -162,68 +163,19 @@ export default function Diary() {
   const { data: entriesData, isLoading } = useQuery<DiaryData>({
     queryKey: ["/api/diary-entries", pregnancy?.id],
     enabled: !!pregnancy,
-    queryFn: () => {
-      // Mock data for demonstration
-      const today = new Date();
-      const mockData: DiaryData = {
-        entries: [
-          {
-            id: '1',
-            pregnancyId: pregnancy?.id || '',
-            title: 'Descobrindo a gravidez',
-            content: 'Que mistura de emoções! Estou tão feliz, mas também um pouco nervosa. Mal posso acreditar que vou ser mãe. É um sonho se realizando.',
-            mood: 8,
-            emotions: ['amor', 'ansiedade', 'empolgacao'],
-            milestone: 'Primeiro teste positivo',
-            week: 6,
-            date: new Date(2024, 0, 10).toISOString(),
-            prompts: ['Como você se sente sabendo que está grávida?']
-          },
-          {
-            id: '2',
-            pregnancyId: pregnancy?.id || '',
-            title: 'Primeira consulta',
-            content: 'Ouvi o coraçãozinho batendo hoje! Foi o momento mais emocionante da minha vida. O médico disse que está tudo bem e isso me deu muito alívio.',
-            mood: 9,
-            emotions: ['gratidao', 'amor', 'paz'],
-            milestone: 'Primeiro ultrassom',
-            week: 8,
-            date: new Date(2024, 0, 25).toISOString()
-          },
-          {
-            id: '3',
-            pregnancyId: pregnancy?.id || '',
-            title: 'Enjoos matinais',
-            content: 'Que fase difícil... Os enjoos estão terríveis, mas sei que é sinal de que meu bebê está crescendo. Tentando manter o foco no positivo.',
-            mood: 4,
-            emotions: ['cansaco', 'esperanca'],
-            week: 10,
-            date: new Date(2024, 1, 5).toISOString()
-          },
-          {
-            id: '4',
-            pregnancyId: pregnancy?.id || '',
-            title: 'Comprando as primeiras roupinhas',
-            content: 'Que alegria escolher as primeiras roupinhas! Cada pecinha pequenina me emociona. Mal posso esperar para vestir meu bebê.',
-            mood: 9,
-            emotions: ['amor', 'empolgacao', 'gratidao'],
-            week: 16,
-            date: new Date(2024, 2, 12).toISOString()
-          },
-          {
-            id: '5',
-            pregnancyId: pregnancy?.id || '',
-            title: 'Primeiros movimentos',
-            content: 'Senti o primeiro chutinho hoje! Foi uma sensação indescritível. Agora sei que meu bebê está ali, se movimentando. Estou completamente apaixonada.',
-            mood: 10,
-            emotions: ['amor', 'empolgacao', 'gratidao'],
-            milestone: 'Primeiros movimentos',
-            week: 20,
-            date: new Date(2024, 3, 8).toISOString()
-          }
-        ]
-      };
-      return Promise.resolve(mockData);
+    queryFn: async () => {
+      // Chamada real para a API
+      const response = await apiRequest("GET", `/api/diary-entries/${pregnancy?.id}`);
+      const data = await response.json();
+      
+      // Parse emotions e prompts de volta para arrays
+      const entries = data.entries.map((entry: any) => ({
+        ...entry,
+        emotions: typeof entry.emotions === 'string' ? JSON.parse(entry.emotions) : entry.emotions || [],
+        prompts: typeof entry.prompts === 'string' ? JSON.parse(entry.prompts) : entry.prompts || []
+      }));
+      
+      return { entries };
     },
   });
 
@@ -314,7 +266,14 @@ export default function Diary() {
   // Mutations
   const addEntryMutation = useMutation({
     mutationFn: async (entry: any) => {
+      console.log("📝 Sending diary entry:", entry);
       const response = await apiRequest("POST", "/api/diary-entries", entry);
+      console.log("📝 Response status:", response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("📝 API Error:", errorData);
+        throw new Error(errorData.error || "Failed to save diary entry");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -325,10 +284,11 @@ export default function Diary() {
         description: "Sua entrada do diário foi salva com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("❌ Error saving diary entry:", error);
       toast({
         title: "❌ Erro",
-        description: "Erro ao salvar entrada. Tente novamente.",
+        description: `Erro ao salvar entrada: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -393,6 +353,31 @@ export default function Diary() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log("📝 HandleSubmit called:", { 
+      hasPregnancy: !!pregnancy, 
+      pregnancyId: pregnancy?.id,
+      formData 
+    });
+    
+    if (!pregnancy?.id) {
+      console.error("❌ No pregnancy ID found");
+      toast({
+        title: "Erro",
+        description: "Nenhuma gravidez ativa encontrada. Faça login novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!pregnancy) {
+      toast({
+        title: "Erro",
+        description: "Nenhuma gravidez ativa encontrada. Faça login novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!formData.content.trim()) {
       toast({
         title: "Erro",
@@ -411,13 +396,97 @@ export default function Diary() {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim() || null,
       content: formData.content.trim(),
-      mood: formData.mood,
-      emotions: formData.emotions,
+      mood: formData.mood.toString(),
+      emotions: JSON.stringify(formData.emotions),
       milestone: milestone || null,
-      week,
-      date: new Date().toISOString(),
-      prompts: selectedPrompt ? [selectedPrompt] : []
+      week: week || null,
+      date: new Date(),
+      prompts: JSON.stringify(selectedPrompt ? [selectedPrompt] : [])
     };
+    
+    console.log("📝 Entry data to send:", JSON.stringify(entryData, null, 2));
+    console.log("📝 Pregnancy ID type:", typeof entryData.pregnancyId);
+    console.log("📝 Week type:", typeof entryData.week);
+    console.log("📝 Date type:", typeof entryData.date);
+    console.log("📝 All field types:", {
+      pregnancyId: typeof entryData.pregnancyId,
+      title: typeof entryData.title,
+      content: typeof entryData.content,
+      mood: typeof entryData.mood,
+      emotions: typeof entryData.emotions,
+      milestone: typeof entryData.milestone,
+      week: typeof entryData.week,
+      date: typeof entryData.date,
+      prompts: typeof entryData.prompts
+    });
+    
+    // Verificar se todos os campos obrigatórios estão presentes
+    if (!entryData.pregnancyId) {
+      console.error("❌ Missing pregnancyId");
+      toast({
+        title: "Erro",
+        description: "ID da gravidez não encontrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!entryData.content) {
+      console.error("❌ Missing content");
+      toast({
+        title: "Erro",
+        description: "Conteúdo é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Verificar se o pregnancyId é válido (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(entryData.pregnancyId)) {
+      console.error("❌ Invalid pregnancyId format:", entryData.pregnancyId);
+      toast({
+        title: "Erro",
+        description: "ID da gravidez inválido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Verificar se a data é válida
+    if (!entryData.date || isNaN(new Date(entryData.date).getTime())) {
+      console.error("❌ Invalid date format:", entryData.date);
+      toast({
+        title: "Erro",
+        description: "Data inválida.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Verificar se o week é válido (número ou null)
+    if (entryData.week !== null && (isNaN(entryData.week) || entryData.week < 1 || entryData.week > 42)) {
+      console.error("❌ Invalid week value:", entryData.week);
+      toast({
+        title: "Erro",
+        description: "Semana inválida (deve ser entre 1 e 42).",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Verificar se o mood é válido (string)
+    if (entryData.mood && typeof entryData.mood !== 'string') {
+      console.error("❌ Invalid mood type:", typeof entryData.mood);
+      toast({
+        title: "Erro",
+        description: "Humor deve ser uma string.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("✅ All validations passed, sending to API...");
 
     if (editingEntry) {
       updateEntryMutation.mutate({ id: editingEntry.id, entry: entryData });
@@ -461,24 +530,37 @@ export default function Diary() {
   const currentPrompts = getWritingPrompts(weekInfo?.week);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
-      <div className="p-4 pt-8">
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50/80 via-purple-50/80 to-indigo-50/80 backdrop-blur-sm">
+      <div className="p-4 pt-8 relative">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="ghost" 
+        <div className="flex items-center justify-between mb-8 pt-12">
+          <Button
+            variant="ghost"
             size="icon"
-            className="rounded-full bg-white shadow-lg"
+            className="fixed top-4 left-4 z-50 bg-white/90 backdrop-blur-md shadow-xl rounded-full hover:bg-pink-100 border border-pink-200/50"
             onClick={() => setLocation("/")}
             data-testid="button-back"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+            <ArrowLeft className="h-5 w-5 text-pink-600" />
           </Button>
-          <h1 className="text-2xl font-bold text-gray-800">Diário da Gestação</h1>
+          
+          <div className="flex-1 text-center">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-pink-200/50">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Diário da Gestação
+              </h1>
+              <p className="text-sm text-gray-600 mt-1 flex items-center justify-center">
+                <Heart className="h-4 w-4 mr-1 text-pink-500" />
+                {weekInfo ? `Semana ${weekInfo.week} de gestação` : "Registre seus momentos"}
+              </p>
+            </div>
+          </div>
+          
           <Button 
             variant="ghost" 
             size="icon"
-            className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg"
+            className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
             onClick={() => setShowAddForm(true)}
             data-testid="button-add-entry"
           >
@@ -667,13 +749,13 @@ export default function Diary() {
                 {filteredEntries
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((entry) => (
-                    <Card key={entry.id} className="shadow-lg hover:shadow-xl transition-shadow">
-                      <CardHeader className="pb-3">
+                    <Card key={entry.id} className="bg-white/80 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300 border border-pink-200/50 hover:border-pink-300/70 rounded-2xl overflow-hidden">
+                      <CardHeader className="pb-3 bg-gradient-to-r from-pink-50/50 to-purple-50/50">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <span className="text-2xl">{getMoodEmoji(entry.mood)}</span>
-                              <CardTitle className="text-lg text-gray-800">
+                              <CardTitle className="text-lg font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                                 {entry.title || "Entrada do diário"}
                               </CardTitle>
                             </div>
@@ -683,19 +765,19 @@ export default function Diary() {
                                 {format(new Date(entry.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                               </div>
                               {entry.week && (
-                                <Badge className="bg-blue-100 text-blue-700 text-xs">
-                                  {entry.week}ª semana
-                                </Badge>
+                              <Badge className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 text-xs border border-blue-200/50 shadow-sm">
+                                {entry.week}ª semana
+                              </Badge>
                               )}
                               <div 
-                                className="px-2 py-1 rounded text-xs text-white font-medium"
+                                className="px-3 py-1 rounded-full text-xs text-white font-medium shadow-sm"
                                 style={{ backgroundColor: getMoodColor(entry.mood) }}
                               >
                                 {moods.find(m => m.value === entry.mood)?.label}
                               </div>
                             </div>
                             {entry.milestone && (
-                              <Badge className="bg-purple-100 text-purple-700 text-xs mb-2">
+                              <Badge className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs mb-2 border border-purple-200/50 shadow-sm">
                                 <Sparkles className="w-3 h-3 mr-1" />
                                 {entry.milestone}
                               </Badge>
@@ -1510,6 +1592,7 @@ export default function Diary() {
       )}
 
       <BottomNavigation />
-    </div>
+      </div>
+    </AnimatedBackground>
   );
 }
