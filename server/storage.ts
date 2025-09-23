@@ -395,10 +395,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWeightRecord(weightRecord: InsertWeightRecord): Promise<WeightRecord> {
-    const [newRecord] = await db.insert(weightRecords).values({
+    console.log("⚖️ Creating weight record with data:", JSON.stringify(weightRecord, null, 2));
+    
+    const recordData = {
       ...weightRecord,
       id: randomUUID(),
-    }).returning();
+    };
+    
+    console.log("⚖️ Final record data for INSERT:", JSON.stringify(recordData, null, 2));
+    console.log("⚖️ SQL INSERT would be:");
+    console.log(`INSERT INTO weight_records (id, pregnancy_id, weight, date, notes)`);
+    console.log(`VALUES ('${recordData.id}', '${recordData.pregnancyId}', '${recordData.weight}', '${recordData.date}', ${recordData.notes ? `'${recordData.notes}'` : 'NULL'});`);
+    console.log("⚖️ Note: created_at will be automatically set by DEFAULT NOW()");
+    
+    const [newRecord] = await db.insert(weightRecords).values(recordData).returning();
+    console.log("⚖️ Weight record created successfully:", newRecord);
     return newRecord;
   }
 
@@ -647,10 +658,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDiaryEntry(entry: InsertDiaryEntry): Promise<DiaryEntry> {
-    const [newEntry] = await db.insert(diaryEntries).values({
+    console.log("📝 Creating diary entry with data:", JSON.stringify(entry, null, 2));
+    
+    const entryData = {
       ...entry,
       id: randomUUID(),
-    }).returning();
+    };
+    
+    console.log("📝 Final entry data for INSERT:", JSON.stringify(entryData, null, 2));
+    console.log("📝 SQL INSERT would be:");
+    console.log(`INSERT INTO diary_entries (id, pregnancy_id, title, content, mood, emotions, milestone, prompts, week, date)`);
+    console.log(`VALUES ('${entryData.id}', '${entryData.pregnancyId}', ${entryData.title ? `'${entryData.title}'` : 'NULL'}, '${entryData.content}', '${entryData.mood}', '${entryData.emotions}', ${entryData.milestone ? `'${entryData.milestone}'` : 'NULL'}, '${entryData.prompts}', ${entryData.week || 'NULL'}, '${entryData.date}');`);
+    
+    const [newEntry] = await db.insert(diaryEntries).values(entryData).returning();
+    console.log("📝 Entry created successfully:", newEntry);
     return newEntry;
   }
 

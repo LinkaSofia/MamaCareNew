@@ -12,6 +12,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import BottomNavigation from "@/components/layout/bottom-navigation";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { 
   ArrowLeft, 
   Calendar, 
@@ -207,21 +208,22 @@ export default function Consultations() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 pt-6 pb-20">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation("/")}
-              className="p-2"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+        <div className="container mx-auto px-4 pt-6 pb-20">
+          {/* Botão de Voltar */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLocation("/")}
+            className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6 pt-12">
             <h1 className="text-2xl font-bold text-gray-800">Consultas</h1>
-          </div>
           <Button
             onClick={() => setShowAddForm(true)}
             className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
@@ -433,6 +435,7 @@ export default function Consultations() {
       )}
 
       <BottomNavigation />
-    </div>
+        </div>
+    </AnimatedBackground>
   );
 }

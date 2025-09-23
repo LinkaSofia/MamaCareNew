@@ -34,11 +34,13 @@ import { Progress } from "@/pages/progress";
 import Symptoms from "@/pages/symptoms";
 import Medications from "@/pages/medications";
 import Community from "@/pages/community";
-import Analytics from "@/pages/analytics";
 import MedicalArticles from "@/pages/medical-articles";
 // import { MobileMenu } from "@/components/Navigation"; // Removido - não usar menu lateral
 import NotFound from "@/pages/not-found";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { ServiceWorkerManager } from "@/components/ServiceWorkerManager";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { DebugCacheButton } from "@/components/DebugCacheButton";
 import { useUserTracking } from "@/hooks/useUserTracking";
 
 function Router() {
@@ -75,7 +77,6 @@ function Router() {
         <Route path="/symptoms" component={Symptoms} />
         <Route path="/medications" component={Medications} />
         <Route path="/community" component={Community} />
-        <Route path="/analytics" component={Analytics} />
         <Route path="/audit-logs" component={AuditLogs} />
         <Route path="/medical-articles" component={MedicalArticles} />
         <Route path="/profile" component={Profile} />
@@ -90,7 +91,7 @@ function Router() {
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-100">
+    <AnimatedBackground>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Suspense fallback={
@@ -100,13 +101,18 @@ function App() {
           }>
             <Toaster />
             <PWAInstallPrompt />
+            <ServiceWorkerManager 
+              onUpdateAvailable={() => console.log('🔄 Atualização disponível')}
+              onUpdateInstalled={() => console.log('✅ Atualização instalada')}
+            />
+            {/* <DebugCacheButton /> */}
             <div className="App">
               <Router />
             </div>
           </Suspense>
         </TooltipProvider>
       </QueryClientProvider>
-    </div>
+    </AnimatedBackground>
   );
 }
 

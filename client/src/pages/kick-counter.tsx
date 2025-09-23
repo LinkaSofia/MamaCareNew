@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { 
   ArrowLeft, 
   HandMetal, 
@@ -202,21 +203,23 @@ export default function KickCounter() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
       <div className="p-4 pt-8">
+        {/* Botão de Voltar */}
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+          onClick={() => setLocation("/")}
+          data-testid="button-back"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="rounded-full bg-white shadow-lg"
-            onClick={() => setLocation("/")}
-            data-testid="button-back"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-800">Contador de Movimentos</h1>
-          <div className="w-10" />
+        <div className="flex items-center justify-center mb-6 pt-12">
+          <h1 className="text-2xl font-bold text-pink-600 dark:text-pink-400">Contador de Movimentos</h1>
         </div>
 
         <Tabs defaultValue="counter" className="w-full">
@@ -516,6 +519,7 @@ export default function KickCounter() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+      </div>
+    </AnimatedBackground>
   );
 }

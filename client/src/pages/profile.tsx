@@ -144,17 +144,19 @@ export default function Profile() {
     <div className="min-h-screen gradient-bg pb-20 relative">
       <AnimatedBackground />
       <div className="p-4 pt-12 relative z-10">
+        {/* Botão de Voltar */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setLocation("/")}
+          className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+          data-testid="button-back"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="mr-4 hover:bg-white/10"
-            data-testid="button-back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center mb-8 pt-12">
           <h1 className="text-2xl font-bold text-gray-800">Meu Perfil</h1>
         </div>
 
@@ -341,6 +343,7 @@ export default function Profile() {
         ) : (
           /* View Mode */
           <div className="space-y-6">
+            {/* Debug: isEditing = {isEditing.toString()} */}
             {/* Information Display */}
             <Card className="glass-effect shadow-xl">
               <CardHeader>
@@ -351,9 +354,9 @@ export default function Profile() {
                   </div>
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="outline"
                     onClick={() => setIsEditing(true)}
-                    className="p-2"
+                    className="p-2 bg-pink-50 hover:bg-pink-100 border-pink-200 text-pink-600"
                     data-testid="button-edit-profile"
                   >
                     <Edit2 className="h-4 w-4" />
@@ -423,14 +426,14 @@ export default function Profile() {
             )}
 
             {/* Edit Button */}
-            <Card className="glass-effect shadow-xl">
+            <Card className="glass-effect shadow-xl border-2 border-pink-200">
               <CardContent className="p-6">
                 <Button
                   onClick={() => setIsEditing(true)}
-                  className="w-full bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg"
+                  className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold py-4 rounded-xl shadow-lg text-lg"
                   data-testid="button-start-edit"
                 >
-                  <Edit2 className="h-5 w-5 mr-2" />
+                  <Edit2 className="h-6 w-6 mr-3" />
                   Editar Perfil
                 </Button>
               </CardContent>

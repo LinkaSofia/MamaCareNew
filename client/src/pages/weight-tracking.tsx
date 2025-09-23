@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import WeightChart from "@/components/weight-chart";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { ArrowLeft, Scale, Plus, TrendingUp } from "lucide-react";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 // Função utilitária para garantir o formato YYYY-MM-DD
 function formatDateToISO(dateStr: string) {
@@ -113,25 +114,29 @@ export default function WeightTracking() {
     parseFloat(latestWeight.weight) - parseFloat(firstWeight.weight) : 0;
 
   return (
-    <div className="min-h-screen bg-cream pb-20">
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
       <div className="p-4 pt-12">
-        <div className="flex items-center justify-between mb-6">
+        {/* Header com Botão de Voltar e Título */}
+        <div className="flex items-center justify-between mb-6 pt-4">
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full bg-white shadow-lg"
+            className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
             onClick={() => setLocation("/")}
             data-testid="button-back"
           >
-            <ArrowLeft className="h-5 w-5 text-charcoal" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h2 className="text-xl font-bold text-charcoal" data-testid="text-page-title">
+          
+          <h2 className="text-2xl font-bold text-baby-pink-dark" data-testid="text-page-title">
             Controle de Peso
           </h2>
+          
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full bg-baby-pink-dark shadow-lg"
+            className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg"
             onClick={() => setShowAddForm(true)}
             data-testid="button-add-weight"
           >
@@ -315,13 +320,7 @@ export default function WeightTracking() {
       )}
 
       <BottomNavigation />
-      <a
-  href="https://www.gov.br/ans/pt-br/arquivos/assuntos/gestao-em-saude/parto-adequado/GuiaDaGestante_dez241.pdf"
-  target="_blank"
-  rel="noopener noreferrer"
->
-  Abrir PDF
-</a>
-    </div>
+      </div>
+    </AnimatedBackground>
   );
 }

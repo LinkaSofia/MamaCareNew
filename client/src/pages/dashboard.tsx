@@ -466,36 +466,6 @@ export default function Dashboard() {
                   </div>
           )}
 
-          {/* Card de Comparação Separado - Destaque */}
-          {development && (
-            <div className="mx-4 mb-6">
-              <div className="bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100 rounded-3xl p-8 border-2 border-orange-200 shadow-2xl relative overflow-hidden">
-                {/* Decoração de fundo */}
-                <div className="absolute top-0 right-0 w-40 h-40 bg-orange-200/20 rounded-full -translate-y-20 translate-x-20"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-200/20 rounded-full translate-y-16 -translate-x-16"></div>
-                
-                <div className="text-center relative z-10">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
-                    <span className="text-4xl">🍎</span>
-                    Comparação de Tamanho
-                  </h2>
-                  <p className="text-gray-600 mb-8">Seu bebê tem o tamanho de</p>
-                  
-                  <div className="flex justify-center mb-8">
-                    <div className="w-64 h-64 flex items-center justify-center">
-                      {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg max-w-md mx-auto">
-                    <p className="text-3xl font-bold text-orange-600 leading-tight">
-                      {development.fruit_comparison ?? "Calculando..."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           
           {/* Informações da gestação - LADO A LADO */}
               <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
@@ -542,36 +512,6 @@ export default function Dashboard() {
               </div>
           </div>
 
-          {/* Informações do bebê - horizontal */}
-        {development && (
-            <div className="glass-effect rounded-2xl p-4 mx-4 backdrop-blur-md bg-white/80">
-              <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
-                <div className="text-center">
-                  <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
-                  <p className="text-xs text-gray-500 mb-1">Tamanho</p>
-                  <p className="font-semibold text-gray-800">
-                  {development.length_cm ? `${development.length_cm} cm` : development.size || "Calculando..."}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
-                  <p className="text-xs text-gray-500 mb-1">Peso</p>
-                  <p className="font-semibold text-gray-800">
-                  {development.weight_grams && Number(development.weight_grams) > 0 
-                    ? `${development.weight_grams}g` 
-                    : development.weight || "< 1g"}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                    {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'small')}
-                  </div>
-                  <p className="text-sm font-semibold text-gray-600 mb-1">Comparação</p>
-                  <p className="font-bold text-gray-800 text-sm leading-tight">{development.fruit_comparison || "Calculando..."}</p>
-                </div>
-              </div>
-        </div>
-      )}
 
         {/* Seção de Conteúdos de Especialistas */}
       <div className="glass-effect rounded-2xl p-5 mx-4 mt-6 backdrop-blur-md bg-white/80">
@@ -1060,14 +1000,6 @@ export default function Dashboard() {
               <span className="text-sm font-medium">Diário</span>
             </Button>
 
-            <Button
-              onClick={() => setLocation("/analytics")}
-              className="h-20 bg-gradient-to-r from-indigo-400 to-blue-400 hover:from-indigo-500 hover:to-blue-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
-              data-testid="button-analytics"
-            >
-              <TrendingUp className="h-6 w-6" />
-              <span className="text-sm font-medium">Analytics</span>
-            </Button>
 
             <Button
             onClick={() => setLocation("/medical-articles")}

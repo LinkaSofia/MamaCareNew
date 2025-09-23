@@ -1417,14 +1417,18 @@ export default function Diary() {
 
       {/* Add/Edit Entry Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle className="text-gray-800">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-pink-50/95 to-purple-50/95 backdrop-blur-md border border-pink-200/50 shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-pink-100/80 to-purple-100/80 border-b border-pink-200/50">
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent flex items-center">
+                <Book className="mr-2 h-6 w-6 text-pink-500" />
                 {editingEntry ? "Editar Entrada" : "Nova Entrada"}
               </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                {editingEntry ? "Atualize sua entrada do diário" : "Registre um momento especial da sua gestação"}
+              </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="bg-white/70 backdrop-blur-sm">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {selectedPrompt && (
                   <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1434,7 +1438,8 @@ export default function Diary() {
                 )}
                 
                 <div>
-                  <Label htmlFor="title" className="text-gray-700 font-medium">
+                  <Label htmlFor="title" className="text-gray-700 font-medium flex items-center">
+                    <Star className="mr-2 h-4 w-4 text-pink-500" />
                     Título (opcional)
                   </Label>
                   <Input
@@ -1442,11 +1447,13 @@ export default function Diary() {
                     placeholder="Ex: Um dia especial"
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="bg-white/80 border-pink-200 focus:border-pink-400 focus:ring-pink-200"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="content" className="text-gray-700 font-medium">
+                  <Label htmlFor="content" className="text-gray-700 font-medium flex items-center">
+                    <Heart className="mr-2 h-4 w-4 text-pink-500" />
                     Conteúdo *
                   </Label>
                   <Textarea
@@ -1454,14 +1461,15 @@ export default function Diary() {
                     placeholder="Descreva seus sentimentos, experiências ou reflexões..."
                     value={formData.content}
                     onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                    className="h-32 resize-none"
+                    className="h-32 resize-none bg-white/80 border-pink-200 focus:border-pink-400 focus:ring-pink-200"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-gray-700 font-medium mb-2 block">
+                    <Label className="text-gray-700 font-medium mb-2 block flex items-center">
+                      <Sparkles className="mr-2 h-4 w-4 text-pink-500" />
                       Como você se sente? (1-10)
                     </Label>
                     <div className="space-y-3">
@@ -1523,7 +1531,8 @@ export default function Diary() {
                 </div>
 
                 <div>
-                  <Label className="text-gray-700 font-medium mb-2 block">
+                  <Label className="text-gray-700 font-medium mb-2 block flex items-center">
+                    <Zap className="mr-2 h-4 w-4 text-pink-500" />
                     Emoções (selecione as que se aplicam)
                   </Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -1568,13 +1577,14 @@ export default function Diary() {
                     type="button" 
                     variant="outline"
                     onClick={handleCloseForm}
-                    className="flex-1"
+                    className="flex-1 border-pink-200 text-pink-600 hover:bg-pink-50"
                   >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                     Cancelar
                   </Button>
                   <Button 
                     type="submit" 
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
+                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                     disabled={addEntryMutation.isPending || updateEntryMutation.isPending}
                   >
                     {(addEntryMutation.isPending || updateEntryMutation.isPending) ? (

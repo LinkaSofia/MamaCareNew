@@ -13,6 +13,7 @@ import { db } from "./storage";
 import { sql, eq } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
+import cors from "cors";
 
 // Simple session store for user authentication
 declare module "express-session" {
@@ -23,6 +24,25 @@ declare module "express-session" {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Configurar CORS para permitir cookies
+  app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+  }));
+  
+  // Endpoint de debug para verificar sessão
+  app.get("/api/debug/session", (req, res) => {
+    res.json({
+      hasSession: !!req.session,
+      sessionId: req.sessionID,
+      sessionData: req.session,
+      cookies: req.headers.cookie,
+      userAgent: req.headers['user-agent']
+    });
+  });
+
   // Endpoint público para verificar comparações (sem auth)
   app.get("/api/public/baby-development/comparisons", async (req, res) => {
     try {
@@ -498,11 +518,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("🔐 Auth check:", { 
       hasSession: !!req.session, 
       userId: req.session?.userId, 
-      sessionId: req.session?.id 
+      sessionId: req.session?.id,
+      sessionKeys: req.session ? Object.keys(req.session) : [],
+      sessionData: req.session
     });
     
-    if (!req.session.userId) {
-      console.log("❌ No session userId found, returning 401");
+    if (!req.session || !req.session.userId) {
+      console.log("❌ No session or userId found, returning 401");
       return res.status(401).json({ error: "Authentication required" });
     }
     console.log("✅ Auth check passed for user:", req.session.userId);
@@ -1060,7 +1082,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/weight-entries", requireAuth, async (req, res) => {
     try {
-      console.log("⚖️ Weight entry data received:", req.body);
+      console.log("⚖️ Weight entry data received:", JSON.stringify(req.body, null, 2));
+      
+      // Log each field individually
+      console.log("⚖️ Field validation:");
+      console.log("  - weight:", req.body.weight, typeof req.body.weight);
+      console.log("  - date:", req.body.date, typeof req.body.date);
+      console.log("  - notes:", req.body.notes, typeof req.body.notes);
       
       // Buscar gravidez ativa do usuário
       const userId = req.session.userId!;
@@ -1070,6 +1098,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Nenhuma gravidez ativa encontrada" });
       }
       
+      console.log("⚖️ Found pregnancy:", pregnancy.id);
+      
       // Preparar dados com pregnancyId
       const requestData = {
         ...req.body,
@@ -1078,8 +1108,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         date: req.body.date ? new Date(req.body.date) : new Date()
       };
       
-      console.log("⚖️ Processed weight data:", requestData);
+      console.log("⚖️ Processed weight data:", JSON.stringify(requestData, null, 2));
+      console.log("⚖️ Attempting to parse with Zod schema...");
       const weightData = insertWeightRecordSchema.parse(requestData);
+      console.log("⚖️ Parsed weight data:", weightData);
       const entry = await storage.createWeightRecord(weightData);
       
       // Log da ação para analytics
@@ -1099,6 +1131,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ entry });
     } catch (error) {
       console.error("❌ Weight entry validation error:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error message:", error.message);
+        console.error("❌ Error stack:", error.stack);
+      }
+      
+      // Log Zod validation errors specifically
+      if (error && typeof error === 'object' && 'issues' in error) {
+        console.error("❌ Zod validation issues:", JSON.stringify(error.issues, null, 2));
+      }
+      
       res.status(400).json({ error: "Invalid weight entry data", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
@@ -1553,10 +1595,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/objects/upload", requireAuth, async (req, res) => {
     try {
+      console.log("📸 Upload request received");
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      console.log("📸 Generated upload URL:", uploadURL);
       res.json({ uploadURL });
     } catch (error) {
+      console.error("📸 Error generating upload URL:", error);
       res.status(500).json({ error: "Failed to get upload URL" });
     }
   });
@@ -1572,23 +1617,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/photos", requireAuth, async (req, res) => {
     try {
-      const objectStorageService = new ObjectStorageService();
-      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
-        req.body.photoURL,
-        {
-          owner: req.session.userId!,
-          visibility: "private",
-        }
-      );
+      console.log("📸 Photo creation request:", req.body);
       
-      const photoData = insertPhotoSchema.parse({
+      // Buscar gravidez ativa do usuário
+      const userId = req.session.userId!;
+      const pregnancy = await storage.getActivePregnancy(userId);
+      
+      if (!pregnancy) {
+        return res.status(400).json({ error: "Nenhuma gravidez ativa encontrada" });
+      }
+      
+      console.log("📸 Found pregnancy:", pregnancy.id);
+      
+      // Preparar dados com pregnancyId
+      const requestData = {
         ...req.body,
-        objectPath,
-      });
+        pregnancyId: pregnancy.id,
+        objectPath: req.body.photoURL, // Usar photoURL como objectPath temporariamente
+      };
+      
+      console.log("📸 Processed photo data:", requestData);
+      const photoData = insertPhotoSchema.parse(requestData);
+      console.log("📸 Parsed photo data:", photoData);
+      
       const photo = await storage.createPhoto(photoData);
+      console.log("📸 Photo created successfully:", photo);
       res.json({ photo });
     } catch (error) {
-      res.status(400).json({ error: "Invalid photo data" });
+      console.error("📸 Error creating photo:", error);
+      res.status(400).json({ error: "Invalid photo data", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -1611,15 +1668,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/diary-entries", requireAuth, async (req, res) => {
-    try {
-      const entryData = insertDiaryEntrySchema.parse(req.body);
-      const entry = await storage.createDiaryEntry(entryData);
-      res.json({ entry });
-    } catch (error) {
-      res.status(400).json({ error: "Invalid diary entry data" });
+app.post("/api/diary-entries", requireAuth, async (req, res) => {
+  try {
+    console.log("📝 Diary entry data received:", JSON.stringify(req.body, null, 2));
+    
+    // Log each field individually
+    console.log("📝 Field validation:");
+    console.log("  - pregnancyId:", req.body.pregnancyId, typeof req.body.pregnancyId);
+    console.log("  - title:", req.body.title, typeof req.body.title);
+    console.log("  - content:", req.body.content, typeof req.body.content);
+    console.log("  - mood:", req.body.mood, typeof req.body.mood);
+    console.log("  - emotions:", req.body.emotions, typeof req.body.emotions);
+    console.log("  - milestone:", req.body.milestone, typeof req.body.milestone);
+    console.log("  - week:", req.body.week, typeof req.body.week);
+    console.log("  - date:", req.body.date, typeof req.body.date);
+    console.log("  - prompts:", req.body.prompts, typeof req.body.prompts);
+    
+    // Converter string date para Date object antes da validação
+    const processedBody = {
+      ...req.body,
+      date: new Date(req.body.date)
+    };
+    
+    console.log("📝 Processed body with converted date:", processedBody);
+    console.log("📝 Date type after conversion:", typeof processedBody.date);
+    
+    console.log("📝 Attempting to parse with Zod schema...");
+    const entryData = insertDiaryEntrySchema.parse(processedBody);
+    console.log("📝 Parsed entry data:", entryData);
+    const entry = await storage.createDiaryEntry(entryData);
+    console.log("📝 Entry created successfully:", entry);
+    res.json({ entry });
+  } catch (error) {
+    console.error("❌ Diary entry creation error:", error);
+    if (error instanceof Error) {
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
     }
-  });
+    
+    // Log Zod validation errors specifically
+    if (error && typeof error === 'object' && 'issues' in error) {
+      console.error("❌ Zod validation issues:", JSON.stringify(error.issues, null, 2));
+    }
+    
+    res.status(400).json({ error: "Invalid diary entry data", details: error instanceof Error ? error.message : "Unknown error" });
+  }
+});
 
   app.put("/api/diary-entries/:id", requireAuth, async (req, res) => {
     try {

@@ -314,15 +314,20 @@ export default function ShoppingList() {
 
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log("🛒 Deleting item:", id);
       const response = await apiRequest("DELETE", `/api/shopping-items/${id}`);
       return response.json();
     },
     onSuccess: () => {
+      console.log("🛒 Item deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
       toast({
         title: "🗑️ Item removido",
         description: "Item foi removido da sua lista.",
       });
+    },
+    onError: (error) => {
+      console.error("🛒 Error deleting item:", error);
     },
   });
 
@@ -349,6 +354,7 @@ export default function ShoppingList() {
   };
 
   const togglePurchased = (id: string, purchased: boolean) => {
+    console.log("🛒 Toggling item:", { id, purchased });
     updateItemMutation.mutate({ id, updates: { purchased } });
   };
 
@@ -537,8 +543,8 @@ export default function ShoppingList() {
                         >
                           <div className="flex items-center space-x-3 flex-1">
                             <Checkbox
-                              checked={false}
-                              onCheckedChange={() => togglePurchased(item.id, true)}
+                              checked={item.purchased}
+                              onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
                             />
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">
@@ -603,8 +609,8 @@ export default function ShoppingList() {
                         >
                           <div className="flex items-center space-x-3 flex-1">
                             <Checkbox
-                              checked={true}
-                              onCheckedChange={() => togglePurchased(item.id, false)}
+                              checked={item.purchased}
+                              onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
                             />
                             <div className="flex-1">
                               <div className="font-medium text-green-700 line-through">

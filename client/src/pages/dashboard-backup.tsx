@@ -386,26 +386,6 @@ export default function Dashboard() {
           </div>
         </div>
           
-        {/* Informações do bebê - horizontal */}
-        {development && (
-          <div className="glass-effect rounded-2xl p-4 mx-4 backdrop-blur-md bg-white/80">
-            <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl p-4 flex items-center justify-around">
-              <div className="text-center">
-                <Ruler className="h-6 w-6 mx-auto mb-1 text-blue-600" />
-                <p className="text-xs text-gray-500 mb-1">Tamanho</p>
-                <p className="font-semibold text-gray-800">
-                  {development.length_cm ? `${development.length_cm} cm` : development.size || "Calculando..."}
-                </p>
-              </div>
-              <div className="text-center">
-                <Weight className="h-6 w-6 mx-auto mb-1 text-pink-600" />
-                <p className="text-xs text-gray-500 mb-1">Peso</p>
-                <p className="font-semibold text-gray-800">
-                  {development.weight_grams && Number(development.weight_grams) > 0 
-                    ? `${development.weight_grams}g` 
-                    : development.weight || "< 1g"}
-                </p>
-              </div>
               <div className="text-center">
                 <div className="text-2xl mb-1">{getFruitEmoji(development.fruit_comparison)}</div>
                 <p className="text-xs text-gray-500 mb-1">Como</p>
@@ -902,14 +882,6 @@ export default function Dashboard() {
               <span className="text-sm font-medium">Diário</span>
             </Button>
 
-            <Button
-              onClick={() => setLocation("/analytics")}
-              className="h-20 bg-gradient-to-r from-indigo-400 to-blue-400 hover:from-indigo-500 hover:to-blue-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
-              data-testid="button-analytics"
-            >
-              <TrendingUp className="h-6 w-6" />
-              <span className="text-sm font-medium">Analytics</span>
-            </Button>
 
             <Button
               onClick={() => setLocation("/medical-articles")}

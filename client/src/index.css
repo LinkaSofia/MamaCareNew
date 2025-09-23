@@ -240,9 +240,7 @@ body {
 }
 
 @layer utilities {
-  .gradient-bg {
-    background: linear-gradient(135deg, var(--cream) 0%, var(--baby-pink) 50%, var(--baby-blue) 100%);
-  }
+  /* .gradient-bg removido - agora usando AnimatedBackground component */
   
   .glass-effect {
     backdrop-filter: blur(10px);

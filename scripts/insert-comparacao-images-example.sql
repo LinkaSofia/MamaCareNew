@@ -41,3 +41,4 @@ UPDATE baby_development SET fruit_image_url = '/client/src/assets/comparacao/37.
 UPDATE baby_development SET fruit_image_url = '/client/src/assets/comparacao/38.png' WHERE week = 38;
 UPDATE baby_development SET fruit_image_url = '/client/src/assets/comparacao/39.png' WHERE week = 39;
 UPDATE baby_development SET fruit_image_url = '/client/src/assets/comparacao/40.png' WHERE week = 40;
+

@@ -130,6 +130,8 @@ export const photos = pgTable("photos", {
   week: integer("week"),
   caption: text("caption"),
   date: timestamp("date").notNull(),
+  favorite: boolean("favorite").default(false),
+  milestone: text("milestone"),
 });
 
 export const diaryEntries = pgTable("diary_entries", {
@@ -139,6 +141,9 @@ export const diaryEntries = pgTable("diary_entries", {
   content: text("content").notNull(),
   week: integer("week"),
   mood: text("mood"),
+  emotions: text("emotions"), // JSON string array
+  milestone: text("milestone"),
+  prompts: text("prompts"), // JSON string array
   date: timestamp("date").notNull(),
 });
 

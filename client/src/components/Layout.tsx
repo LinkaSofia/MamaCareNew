@@ -13,14 +13,19 @@ export function Layout({ children, className }: LayoutProps) {
   const [location] = useLocation();
   const { user, isLoading } = useAuth();
   
+  console.log("🔍 Layout render:", { location, user: !!user, isLoading });
+  
   // Páginas que não devem ter layout (login, setup, etc.)
   const noLayoutPages = ['/login', '/reset-password', '/forgot-password', '/setup', '/pregnancy-setup'];
   const shouldHideLayout = noLayoutPages.some(page => location.startsWith(page));
   
+  console.log("🔍 Layout check:", { shouldHideLayout, noLayoutPages, location });
+  
   // Se está carregando, mostrar loading
   if (isLoading) {
+    console.log("🔍 Layout: Loading state");
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-pink-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando...</p>
@@ -32,16 +37,9 @@ export function Layout({ children, className }: LayoutProps) {
   // Se não está logado e não está em página pública, redirecionar para login
   if (!user && !shouldHideLayout) {
     console.log("🔄 Redirecting to login - user not authenticated");
-    // Forçar redirecionamento imediato sem cache
-    window.location.replace('/login');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-pink-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecionando...</p>
-        </div>
-      </div>
-    );
+    // Redirecionamento imediato
+    window.location.href = '/login';
+    return null;
   }
 
   if (shouldHideLayout) {
@@ -49,7 +47,7 @@ export function Layout({ children, className }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-100">
+    <div className="min-h-screen">
       {children}
     </div>
   );

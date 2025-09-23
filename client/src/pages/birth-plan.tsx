@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { generateBirthPlanPDF } from "@/lib/pdf-generator";
 import { 
   ArrowLeft, 
@@ -477,23 +478,24 @@ export default function BirthPlan() {
   // Lista de planos de parto
   if (viewMode === 'list') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
-        <div className="container mx-auto px-4 py-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <Link href="/">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mr-2"
-                  data-testid="button-back"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Planos de Parto</h1>
+      <AnimatedBackground>
+        <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+          <div className="container mx-auto px-4 py-6">
+            {/* Botão de Voltar */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              onClick={() => setLocation("/")}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
+            {/* Header */}
+            <div className="flex items-center justify-center mb-6 pt-12">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-baby-pink-dark">Planos de Parto</h1>
                 <p className="text-gray-600">Gerencie seus planos de parto</p>
               </div>
             </div>
@@ -653,29 +655,31 @@ export default function BirthPlan() {
           </div>
         </div>
         <BottomNavigation />
-      </div>
+      </AnimatedBackground>
     );
   }
 
   // Visualização do plano
   if (viewMode === 'view' && selectedPlan) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
-        <div className="container mx-auto px-4 py-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="mr-2"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Plano de Parto</h1>
+      <AnimatedBackground>
+        <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+          <div className="container mx-auto px-4 py-6">
+            {/* Botão de Voltar */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              onClick={() => setViewMode('list')}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
+            {/* Header */}
+            <div className="flex items-center justify-center mb-6 pt-12">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-baby-pink-dark">Plano de Parto</h1>
                 <p className="text-gray-600">Visualizar detalhes</p>
               </div>
             </div>
@@ -776,7 +780,7 @@ export default function BirthPlan() {
           </div>
         </div>
         <BottomNavigation />
-      </div>
+      </AnimatedBackground>
     );
   }
 
@@ -1229,8 +1233,20 @@ export default function BirthPlan() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
-      <div className="container mx-auto px-4 py-6">
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+        <div className="container mx-auto px-4 py-6">
+        {/* Botão de Voltar para Dashboard */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+          onClick={() => setLocation("/")}
+          data-testid="button-back-to-dashboard"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
@@ -1306,8 +1322,9 @@ export default function BirthPlan() {
             </Button>
           )}
         </div>
+        </div>
       </div>
       <BottomNavigation />
-    </div>
+    </AnimatedBackground>
   );
 }
