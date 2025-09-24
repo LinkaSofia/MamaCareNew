@@ -241,7 +241,8 @@ export const insertConsultationSchema = createInsertSchema(consultations).omit({
 });
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
 export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true });
-export const insertDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id: true })
+// Schema base para inserção (sem transformações)
+const baseDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id: true })
   .extend({
     // Garantir que title seja obrigatório e string
     title: z.string().min(1, "Título é obrigatório"),
@@ -257,7 +258,10 @@ export const insertDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id
     emotions: z.string().nullable().optional(),
     milestone: z.string().nullable().optional(),
     prompts: z.string().nullable().optional(),
-  })
+  });
+
+// Schema para inserção com transformações
+export const insertDiaryEntrySchema = baseDiaryEntrySchema
   .transform((data) => ({
     ...data,
     // Converter undefined para null para campos opcionais
@@ -267,6 +271,9 @@ export const insertDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id
     emotions: data.emotions === undefined ? null : data.emotions,
     prompts: data.prompts === undefined ? null : data.prompts,
   }));
+
+// Schema para atualização (parcial e sem transformações)
+export const updateDiaryEntrySchema = baseDiaryEntrySchema.partial();
 export const insertSymptomSchema = createInsertSchema(symptoms).omit({ id: true });
 export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
 export const insertCommunityPostSchema = createInsertSchema(communityPosts).omit({ id: true, likes: true, commentsCount: true, createdAt: true });
