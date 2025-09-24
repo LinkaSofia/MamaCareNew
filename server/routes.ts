@@ -1723,10 +1723,43 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
 
   app.put("/api/diary-entries/:id", requireAuth, async (req, res) => {
     try {
-      await storage.updateDiaryEntry(req.params.id, req.body);
+      console.log("📝 Updating diary entry:", req.params.id);
+      console.log("📝 Update data:", JSON.stringify(req.body, null, 2));
+      
+      // Converter string date para Date object e undefined para null antes da validação
+      const processedBody = {
+        ...req.body,
+        date: req.body.date ? new Date(req.body.date) : undefined,
+        // Converter undefined para null para campos opcionais
+        milestone: req.body.milestone === undefined || req.body.milestone === "" ? null : req.body.milestone,
+        week: req.body.week === undefined || req.body.week === "" ? null : (isNaN(parseInt(req.body.week)) ? null : parseInt(req.body.week)),
+        mood: req.body.mood === undefined || req.body.mood === "" ? null : req.body.mood,
+        emotions: req.body.emotions === undefined || req.body.emotions === "" ? null : req.body.emotions,
+        prompts: req.body.prompts === undefined || req.body.prompts === "" ? null : req.body.prompts,
+      };
+      
+      console.log("📝 Processed update data:", processedBody);
+      
+      // Validar apenas os campos que estão sendo atualizados
+      const updateData = insertDiaryEntrySchema.omit({ id: true }).partial().parse(processedBody);
+      console.log("📝 Validated update data:", updateData);
+      
+      await storage.updateDiaryEntry(req.params.id, updateData);
+      console.log("📝 Entry updated successfully");
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ error: "Failed to update diary entry" });
+      console.error("❌ Diary entry update error:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error message:", error.message);
+        console.error("❌ Error stack:", error.stack);
+      }
+      
+      // Log Zod validation errors specifically
+      if (error && typeof error === 'object' && 'issues' in error) {
+        console.error("❌ Zod validation issues:", JSON.stringify(error.issues, null, 2));
+      }
+      
+      res.status(400).json({ error: "Invalid diary entry data", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 

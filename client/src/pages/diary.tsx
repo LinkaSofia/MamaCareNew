@@ -160,13 +160,20 @@ export default function Diary() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: entriesData, isLoading } = useQuery<DiaryData>({
+  const { data: entriesData, isLoading, refetch } = useQuery<DiaryData>({
     queryKey: ["/api/diary-entries", pregnancy?.id],
     enabled: !!pregnancy,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     queryFn: async () => {
+      console.log("📝 Fetching diary entries for pregnancy:", pregnancy?.id);
+      console.log("📝 Query key:", ["/api/diary-entries", pregnancy?.id]);
+      
       // Chamada real para a API
       const response = await apiRequest("GET", `/api/diary-entries/${pregnancy?.id}`);
       const data = await response.json();
+      
+      console.log("📝 Raw API response:", data);
       
       // Parse emotions e prompts de volta para arrays
       const entries = data.entries.map((entry: any) => ({
@@ -175,12 +182,17 @@ export default function Diary() {
         prompts: typeof entry.prompts === 'string' ? JSON.parse(entry.prompts) : entry.prompts || []
       }));
       
+      console.log("📝 Processed entries:", entries);
+      console.log("📝 Number of entries:", entries.length);
       return { entries };
     },
   });
 
   // Calculations and filtering
   const entries = entriesData?.entries || [];
+  
+  console.log("📝 Current entries count:", entries.length);
+  console.log("📝 Entries data:", entries);
   
   const filteredEntries = useMemo(() => {
     return entries.filter(entry => {
@@ -283,9 +295,28 @@ export default function Diary() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+    onSuccess: async (data) => {
+      console.log("📝 Entry saved successfully, updating UI...");
+      console.log("📝 Saved entry data:", data);
+      
+      // Fechar o formulário primeiro
       handleCloseForm();
+      
+      // Forçar refetch imediatamente
+      try {
+        console.log("📝 Forcing immediate refetch...");
+        await refetch();
+        console.log("📝 Refetch completed successfully");
+      } catch (error) {
+        console.error("📝 Error during refetch:", error);
+      }
+      
+      // Invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/diary-entries"],
+        exact: false 
+      });
+      
       toast({
         title: "📝 Entrada salva!",
         description: "Sua entrada do diário foi salva com sucesso.",
@@ -303,15 +334,48 @@ export default function Diary() {
 
   const updateEntryMutation = useMutation({
     mutationFn: async ({ id, entry }: { id: string; entry: any }) => {
+      console.log("📝 Updating diary entry:", { id, entry });
       const response = await apiRequest("PUT", `/api/diary-entries/${id}`, entry);
+      console.log("📝 Update response status:", response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("📝 Update API Error:", errorData);
+        throw new Error(errorData.error || "Failed to update diary entry");
+      }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+    onSuccess: async () => {
+      console.log("📝 Entry updated successfully, refetching data...");
+      
+      // Fechar o formulário primeiro
       handleCloseForm();
+      
+      // Forçar refetch imediatamente
+      try {
+        console.log("📝 Forcing immediate refetch after update...");
+        await refetch();
+        console.log("📝 Data refetched successfully after update");
+      } catch (error) {
+        console.error("📝 Error refetching data after update:", error);
+      }
+      
+      // Invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/diary-entries"],
+        exact: false 
+      });
+      
       toast({
         title: "✏️ Entrada atualizada!",
         description: "Sua entrada foi atualizada com sucesso.",
+      });
+    },
+    onError: (error) => {
+      console.error("❌ Error updating diary entry:", error);
+      toast({
+        title: "❌ Erro",
+        description: `Erro ao atualizar entrada: ${error.message}`,
+        variant: "destructive",
       });
     },
   });
@@ -321,8 +385,17 @@ export default function Diary() {
       const response = await apiRequest("DELETE", `/api/diary-entries/${id}`);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+    onSuccess: async () => {
+      console.log("📝 Entry deleted successfully, refetching data...");
+      
+      // Refetch dos dados do diário
+      try {
+        await refetch();
+        console.log("📝 Data refetched successfully after delete");
+      } catch (error) {
+        console.error("📝 Error refetching data after delete:", error);
+      }
+      
       toast({
         title: "🗑️ Entrada removida",
         description: "Entrada foi removida do diário.",
@@ -563,7 +636,7 @@ export default function Diary() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50/80 via-purple-50/80 to-indigo-50/80 backdrop-blur-sm">
+      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-100/90 via-purple-100/90 to-indigo-100/90 backdrop-blur-sm">
       <div className="p-4 pt-8 relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 pt-12">
@@ -578,12 +651,12 @@ export default function Diary() {
           </Button>
           
           <div className="flex-1 text-center">
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-pink-200/50">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <div className="bg-gradient-to-r from-pink-100/80 to-purple-100/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-pink-200/50">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                 Diário da Gestação
               </h1>
-              <p className="text-sm text-gray-600 mt-1 flex items-center justify-center">
-                <Heart className="h-4 w-4 mr-1 text-pink-500" />
+              <p className="text-xs text-gray-600 mt-1 flex items-center justify-center">
+                <Heart className="h-3 w-3 mr-1 text-pink-500" />
                 {weekInfo ? `Semana ${weekInfo.week} de gestação` : "Registre seus momentos"}
               </p>
             </div>
@@ -721,10 +794,10 @@ export default function Diary() {
 
             {/* Writing Prompts */}
             {currentPrompts.length > 0 && (
-              <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-amber-700">
-                    <Lightbulb className="mr-2 h-5 w-5" />
+              <Card className="bg-gradient-to-r from-amber-100/90 to-orange-100/90 border-amber-300/50 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center text-amber-800 text-lg">
+                    <Lightbulb className="mr-2 h-5 w-5 text-amber-600" />
                     Inspiração para Escrever
                   </CardTitle>
                 </CardHeader>
@@ -742,7 +815,7 @@ export default function Diary() {
                           setSelectedPrompt(prompt);
                           setShowAddForm(true);
                         }}
-                        className="text-left justify-start h-auto p-3 bg-white hover:bg-amber-50"
+                        className="text-left justify-start h-auto p-3 bg-white/80 hover:bg-amber-100/80 border border-amber-200/50 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                       >
                         <MessageCircle className="w-4 h-4 mr-2 flex-shrink-0 text-amber-500" />
                         <span className="text-sm text-amber-800">{prompt}</span>
@@ -781,8 +854,8 @@ export default function Diary() {
                 {filteredEntries
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((entry) => (
-                    <Card key={entry.id} className="bg-white/80 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300 border border-pink-200/50 hover:border-pink-300/70 rounded-2xl overflow-hidden">
-                      <CardHeader className="pb-3 bg-gradient-to-r from-pink-50/50 to-purple-50/50">
+                    <Card key={entry.id} className="bg-gradient-to-br from-white/90 to-pink-50/90 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300 border border-pink-200/50 hover:border-pink-300/70 rounded-2xl overflow-hidden">
+                      <CardHeader className="pb-3 bg-gradient-to-r from-pink-100/70 to-purple-100/70">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
@@ -1242,7 +1315,7 @@ export default function Diary() {
           <TabsContent value="insights" className="space-y-6">
             {/* Summary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="text-center bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+              <Card className="text-center bg-gradient-to-br from-green-100/90 to-emerald-100/90 border-green-300/50 shadow-lg">
                 <CardContent className="p-4">
                   <div className="text-2xl mb-2">{getMoodEmoji(Math.round(moodAnalytics.averageMood))}</div>
                   <div className="text-lg font-bold text-green-700">
