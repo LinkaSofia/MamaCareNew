@@ -302,20 +302,23 @@ export default function Diary() {
       // Fechar o formulário primeiro
       handleCloseForm();
       
-      // Forçar refetch imediatamente
-      try {
-        console.log("📝 Forcing immediate refetch...");
-        await refetch();
-        console.log("📝 Refetch completed successfully");
-      } catch (error) {
-        console.error("📝 Error during refetch:", error);
-      }
-      
-      // Invalidar todas as queries relacionadas
-      queryClient.invalidateQueries({ 
+      // Invalidar e refetch imediatamente
+      console.log("📝 Invalidating queries and refetching...");
+      await queryClient.invalidateQueries({ 
         queryKey: ["/api/diary-entries"],
         exact: false 
       });
+      
+      // Forçar refetch imediatamente
+      try {
+        console.log("📝 Forcing immediate refetch...");
+        const refetchResult = await refetch();
+        console.log("📝 Refetch completed successfully");
+        console.log("📝 Refetch result:", refetchResult);
+        console.log("📝 New entries count after save:", refetchResult.data?.entries?.length);
+      } catch (error) {
+        console.error("📝 Error during refetch:", error);
+      }
       
       toast({
         title: "📝 Entrada salva!",
@@ -344,26 +347,30 @@ export default function Diary() {
       }
       return response.json();
     },
-    onSuccess: async () => {
-      console.log("📝 Entry updated successfully, refetching data...");
+    onSuccess: async (data) => {
+      console.log("📝 Entry updated successfully, updating UI...");
+      console.log("📝 Updated entry data:", data);
       
       // Fechar o formulário primeiro
       handleCloseForm();
       
-      // Forçar refetch imediatamente
-      try {
-        console.log("📝 Forcing immediate refetch after update...");
-        await refetch();
-        console.log("📝 Data refetched successfully after update");
-      } catch (error) {
-        console.error("📝 Error refetching data after update:", error);
-      }
-      
-      // Invalidar todas as queries relacionadas
-      queryClient.invalidateQueries({ 
+      // Invalidar e refetch imediatamente
+      console.log("📝 Invalidating queries and refetching...");
+      await queryClient.invalidateQueries({ 
         queryKey: ["/api/diary-entries"],
         exact: false 
       });
+      
+      // Forçar refetch imediatamente
+      try {
+        console.log("📝 Forcing immediate refetch after update...");
+        const refetchResult = await refetch();
+        console.log("📝 Refetch completed successfully after update");
+        console.log("📝 Refetch result:", refetchResult);
+        console.log("📝 New entries count after update:", refetchResult.data?.entries?.length);
+      } catch (error) {
+        console.error("📝 Error refetching data after update:", error);
+      }
       
       toast({
         title: "✏️ Entrada atualizada!",
@@ -386,12 +393,22 @@ export default function Diary() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log("📝 Entry deleted successfully, refetching data...");
+      console.log("📝 Entry deleted successfully, updating UI...");
       
-      // Refetch dos dados do diário
+      // Invalidar e refetch imediatamente
+      console.log("📝 Invalidating queries and refetching...");
+      await queryClient.invalidateQueries({ 
+        queryKey: ["/api/diary-entries"],
+        exact: false 
+      });
+      
+      // Forçar refetch imediatamente
       try {
-        await refetch();
-        console.log("📝 Data refetched successfully after delete");
+        console.log("📝 Forcing immediate refetch after delete...");
+        const refetchResult = await refetch();
+        console.log("📝 Refetch completed successfully after delete");
+        console.log("📝 Refetch result:", refetchResult);
+        console.log("📝 New entries count after delete:", refetchResult.data?.entries?.length);
       } catch (error) {
         console.error("📝 Error refetching data after delete:", error);
       }
@@ -399,6 +416,14 @@ export default function Diary() {
       toast({
         title: "🗑️ Entrada removida",
         description: "Entrada foi removida do diário.",
+      });
+    },
+    onError: (error) => {
+      console.error("❌ Error deleting diary entry:", error);
+      toast({
+        title: "❌ Erro",
+        description: `Erro ao remover entrada: ${error.message}`,
+        variant: "destructive",
       });
     },
   });

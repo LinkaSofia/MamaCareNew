@@ -668,8 +668,15 @@ export class DatabaseStorage implements IStorage {
     return newEntry;
   }
 
-  async updateDiaryEntry(id: string, updates: Partial<InsertDiaryEntry>): Promise<void> {
+  async updateDiaryEntry(id: string, updates: Partial<InsertDiaryEntry>): Promise<DiaryEntry> {
     await db.update(diaryEntries).set(updates).where(eq(diaryEntries.id, id));
+    
+    // Buscar e retornar a entrada atualizada
+    const result = await db.select().from(diaryEntries).where(eq(diaryEntries.id, id));
+    if (result.length === 0) {
+      throw new Error("Diary entry not found after update");
+    }
+    return result[0];
   }
 
   async deleteDiaryEntry(id: string): Promise<void> {

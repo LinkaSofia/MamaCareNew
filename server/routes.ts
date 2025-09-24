@@ -1744,9 +1744,9 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
       const updateData = updateDiaryEntrySchema.parse(processedBody);
       console.log("📝 Validated update data:", updateData);
       
-      await storage.updateDiaryEntry(req.params.id, updateData);
-      console.log("📝 Entry updated successfully");
-      res.json({ success: true });
+      const updatedEntry = await storage.updateDiaryEntry(req.params.id, updateData);
+      console.log("📝 Entry updated successfully:", updatedEntry);
+      res.json({ success: true, entry: updatedEntry });
     } catch (error) {
       console.error("❌ Diary entry update error:", error);
       if (error instanceof Error) {
