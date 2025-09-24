@@ -267,6 +267,13 @@ export default function Diary() {
   const addEntryMutation = useMutation({
     mutationFn: async (entry: any) => {
       console.log("📝 Sending diary entry:", entry);
+      console.log("📝 User state:", { user: !!user, userId: user?.id, pregnancyId: pregnancy?.id });
+      
+      // Verificar se o usuário está logado antes de fazer a requisição
+      if (!user) {
+        throw new Error("Usuário não está logado");
+      }
+      
       const response = await apiRequest("POST", "/api/diary-entries", entry);
       console.log("📝 Response status:", response.status);
       if (!response.ok) {
@@ -356,8 +363,20 @@ export default function Diary() {
     console.log("📝 HandleSubmit called:", { 
       hasPregnancy: !!pregnancy, 
       pregnancyId: pregnancy?.id,
+      hasUser: !!user,
+      userId: user?.id,
       formData 
     });
+    
+    // Debug: Verificar status da autenticação
+    fetch("/api/debug/session", { credentials: "include" })
+      .then(res => res.json())
+      .then(data => {
+        console.log("📝 Session debug:", data);
+      })
+      .catch(err => {
+        console.error("📝 Session debug error:", err);
+      });
     
     if (!pregnancy?.id) {
       console.error("❌ No pregnancy ID found");
@@ -378,7 +397,16 @@ export default function Diary() {
       return;
     }
     
-    if (!formData.content.trim()) {
+    if (!formData.title || !formData.title.trim()) {
+      toast({
+        title: "Erro",
+        description: "O título da entrada é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.content || !formData.content.trim()) {
       toast({
         title: "Erro",
         description: "O conteúdo da entrada é obrigatório",
@@ -394,7 +422,7 @@ export default function Diary() {
 
     const entryData = {
       pregnancyId: pregnancy!.id,
-      title: formData.title.trim() || null,
+      title: formData.title.trim(),
       content: formData.content.trim(),
       mood: formData.mood.toString(),
       emotions: JSON.stringify(formData.emotions),
@@ -403,6 +431,10 @@ export default function Diary() {
       date: new Date(),
       prompts: JSON.stringify(selectedPrompt ? [selectedPrompt] : [])
     };
+    
+    // Garantir que campos opcionais não sejam undefined
+    if (entryData.milestone === undefined) entryData.milestone = null;
+    if (entryData.week === undefined) entryData.week = null;
     
     console.log("📝 Entry data to send:", JSON.stringify(entryData, null, 2));
     console.log("📝 Pregnancy ID type:", typeof entryData.pregnancyId);
@@ -421,7 +453,7 @@ export default function Diary() {
     });
     
     // Verificar se todos os campos obrigatórios estão presentes
-    if (!entryData.pregnancyId) {
+    if (!entryData.pregnancyId || !entryData.pregnancyId.trim()) {
       console.error("❌ Missing pregnancyId");
       toast({
         title: "Erro",
@@ -431,7 +463,7 @@ export default function Diary() {
       return;
     }
     
-    if (!entryData.content) {
+    if (!entryData.content || !entryData.content.trim()) {
       console.error("❌ Missing content");
       toast({
         title: "Erro",
@@ -1440,7 +1472,7 @@ export default function Diary() {
                 <div>
                   <Label htmlFor="title" className="text-gray-700 font-medium flex items-center">
                     <Star className="mr-2 h-4 w-4 text-pink-500" />
-                    Título (opcional)
+                    Título *
                   </Label>
                   <Input
                     id="title"
@@ -1448,6 +1480,7 @@ export default function Diary() {
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     className="bg-white/80 border-pink-200 focus:border-pink-400 focus:ring-pink-200"
+                    required
                   />
                 </div>
                 
@@ -1461,7 +1494,7 @@ export default function Diary() {
                     placeholder="Descreva seus sentimentos, experiências ou reflexões..."
                     value={formData.content}
                     onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                    className="h-32 resize-none bg-white/80 border-pink-200 focus:border-pink-400 focus:ring-pink-200"
+                    className="min-h-[150px] resize-none bg-white/80 border-pink-200 focus:border-pink-400 focus:ring-pink-200"
                     required
                   />
                 </div>
@@ -1531,11 +1564,11 @@ export default function Diary() {
                 </div>
 
                 <div>
-                  <Label className="text-gray-700 font-medium mb-2 block flex items-center">
+                  <Label className="text-gray-700 font-medium mb-3 block flex items-center">
                     <Zap className="mr-2 h-4 w-4 text-pink-500" />
                     Emoções (selecione as que se aplicam)
                   </Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {emotionTags.map(emotion => (
                       <Button
                         key={emotion.value}
@@ -1543,17 +1576,20 @@ export default function Diary() {
                         variant={formData.emotions.includes(emotion.value) ? "default" : "outline"}
                         size="sm"
                         onClick={() => toggleEmotion(emotion.value)}
-                        className={`justify-start h-8 ${
+                        className={`justify-start h-10 rounded-full transition-all duration-200 ${
                           formData.emotions.includes(emotion.value) 
-                            ? 'text-white' 
-                            : ''
+                            ? 'text-white shadow-lg transform scale-105' 
+                            : 'hover:scale-105 hover:shadow-md'
                         }`}
                         style={formData.emotions.includes(emotion.value) ? {
                           backgroundColor: emotion.color,
                           borderColor: emotion.color
-                        } : {}}
+                        } : {
+                          borderColor: emotion.color,
+                          color: emotion.color
+                        }}
                       >
-                        <Tag className="w-3 h-3 mr-1" />
+                        <span className="mr-2 text-sm">💭</span>
                         {emotion.label}
                       </Button>
                     ))}

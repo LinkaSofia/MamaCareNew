@@ -137,7 +137,7 @@ export const photos = pgTable("photos", {
 export const diaryEntries = pgTable("diary_entries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
-  title: text("title"),
+  title: text("title").notNull(),
   content: text("content").notNull(),
   week: integer("week"),
   mood: text("mood"),
@@ -241,7 +241,32 @@ export const insertConsultationSchema = createInsertSchema(consultations).omit({
 });
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
 export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true });
-export const insertDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id: true });
+export const insertDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id: true })
+  .extend({
+    // Garantir que title seja obrigatório e string
+    title: z.string().min(1, "Título é obrigatório"),
+    // Garantir que content seja obrigatório e string
+    content: z.string().min(1, "Conteúdo é obrigatório"),
+    // Garantir que pregnancyId seja obrigatório e string
+    pregnancyId: z.string().min(1, "ID da gravidez é obrigatório"),
+    // Garantir que date seja uma data válida
+    date: z.date(),
+    // Campos opcionais
+    week: z.number().nullable().optional(),
+    mood: z.string().nullable().optional(),
+    emotions: z.string().nullable().optional(),
+    milestone: z.string().nullable().optional(),
+    prompts: z.string().nullable().optional(),
+  })
+  .transform((data) => ({
+    ...data,
+    // Converter undefined para null para campos opcionais
+    milestone: data.milestone === undefined ? null : data.milestone,
+    week: data.week === undefined ? null : data.week,
+    mood: data.mood === undefined ? null : data.mood,
+    emotions: data.emotions === undefined ? null : data.emotions,
+    prompts: data.prompts === undefined ? null : data.prompts,
+  }));
 export const insertSymptomSchema = createInsertSchema(symptoms).omit({ id: true });
 export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
 export const insertCommunityPostSchema = createInsertSchema(communityPosts).omit({ id: true, likes: true, commentsCount: true, createdAt: true });

@@ -1684,10 +1684,16 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     console.log("  - date:", req.body.date, typeof req.body.date);
     console.log("  - prompts:", req.body.prompts, typeof req.body.prompts);
     
-    // Converter string date para Date object antes da validação
+    // Converter string date para Date object e undefined para null antes da validação
     const processedBody = {
       ...req.body,
-      date: new Date(req.body.date)
+      date: new Date(req.body.date),
+      // Converter undefined para null para campos opcionais
+      milestone: req.body.milestone === undefined || req.body.milestone === "" ? null : req.body.milestone,
+      week: req.body.week === undefined || req.body.week === "" ? null : (isNaN(parseInt(req.body.week)) ? null : parseInt(req.body.week)),
+      mood: req.body.mood === undefined || req.body.mood === "" ? null : req.body.mood,
+      emotions: req.body.emotions === undefined || req.body.emotions === "" ? null : req.body.emotions,
+      prompts: req.body.prompts === undefined || req.body.prompts === "" ? null : req.body.prompts,
     };
     
     console.log("📝 Processed body with converted date:", processedBody);

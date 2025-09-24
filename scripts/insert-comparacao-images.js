@@ -122,3 +122,7 @@ async function insertComparacaoImages() {
 
 insertComparacaoImages();
 
+
+
+
+

@@ -13,3 +13,4 @@ export function SimpleError({ message, className = "" }: SimpleErrorProps) {
     </div>
   );
 }
+
