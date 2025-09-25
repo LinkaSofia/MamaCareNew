@@ -3,6 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importar sistema de design sofisticado */
+@import './sophisticated-design.css';
+
 /* Custom Color Variables */
 :root {
   /* Maternal Color Palette */

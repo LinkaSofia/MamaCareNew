@@ -37,3 +37,4 @@ try {
   console.error("❌ Erro de validação:", error.issues);
 }
 
+

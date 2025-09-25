@@ -230,15 +230,14 @@ export default function Dashboard() {
   const momText = development ? getMomText(development.development_milestones_mom) : '';
 
   return (
-    <div className="min-h-screen gradient-bg relative overflow-hidden">
-      {/* Background decorative elements - same as login */}
+    <div className="min-h-screen bg-maternal-gradient relative overflow-hidden">
+      {/* Background decorative elements sofisticados */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Corações flutuantes */}
-        {[...Array(8)].map((_, i) => (
-          <Heart
-            key={`heart-${i}`}
-            className={`absolute text-pink-300/30 animate-float-${i % 4 + 1}`}
-            size={20 + (i % 3) * 10}
+        {/* Elementos flutuantes sofisticados */}
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={`float-${i}`}
+            className={`absolute animate-float opacity-20`}
             style={{
               left: `${10 + (i * 12) % 80}%`,
               top: `${15 + (i * 15) % 70}%`,
@@ -279,22 +278,27 @@ export default function Dashboard() {
                       ))}
                     </div>
       
-      {/* Header Section */}
+      {/* Header Mobile Sofisticado */}
       <div className="relative z-10 px-4 pt-safe pb-4">
-        <div className="flex items-center justify-end mb-2">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center shadow-lg animate-glow">
+              <Baby className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white text-soft-shadow" data-testid="text-greeting">
+                Olá, {user?.name || 'Mamãe'}!
+              </h1>
+              <p className="text-white/90 text-lg" data-testid="text-pregnancy-week">
+                Semana {weekInfo.week} de gestação
+              </p>
+            </div>
+          </div>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center space-x-3 text-right hover:bg-white/10 rounded-lg p-2 transition-colors">
-                <div className="text-right">
-                  <h1 className="text-2xl font-bold text-gray-800" data-testid="text-greeting">
-                    Olá, Linka!
-                  </h1>
-                  <p className="text-gray-600 text-lg" data-testid="text-pregnancy-week">
-                    Semana {weekInfo.week} de gestação
-                  </p>
-                  </div>
-                <div className="w-16 h-16 bg-pink-200/50 rounded-full flex items-center justify-center">
-                  {user.profilePhotoUrl ? (
+              <button className="card-glass w-12 h-12 rounded-2xl flex items-center justify-center hover:scale-105 transition-all duration-300">
+                {user.profilePhotoUrl ? (
                     <img 
                       src={user.profilePhotoUrl} 
                       alt={user.name} 
@@ -436,27 +440,27 @@ export default function Dashboard() {
                     </div>
 
                     {/* Cards de Medidas - Tamanho e Peso */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div className="bg-gradient-to-br from-pink-100 to-pink-200 p-4 rounded-2xl border border-pink-200 shadow-lg">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white text-lg">📏</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 gradient-pink rounded-2xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-xl">📏</span>
                           </div>
-                          <span className="font-bold text-gray-800 text-sm">Tamanho</span>
+                          <span className="font-bold text-gray-800 text-lg">Tamanho</span>
                         </div>
-                        <p className="text-xl font-bold text-pink-600">
+                        <p className="text-3xl font-bold text-gradient">
                           {development.length_cm ? `${development.length_cm} cm` : (development.size ?? "Calculando...")}
                         </p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-purple-100 to-purple-200 p-4 rounded-2xl border border-purple-200 shadow-lg">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white text-lg">⚖️</span>
+                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 gradient-purple rounded-2xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-xl">⚖️</span>
                           </div>
-                          <span className="font-bold text-gray-800 text-sm">Peso</span>
+                          <span className="font-bold text-gray-800 text-lg">Peso</span>
                         </div>
-                        <p className="text-xl font-bold text-purple-600">
+                        <p className="text-3xl font-bold text-gradient">
                           {development.weight_grams && Number(development.weight_grams) > 0 
                             ? `${development.weight_grams}g` 
                             : development.weight || "< 1g"}
@@ -467,25 +471,25 @@ export default function Dashboard() {
                     {/* Cards de Informações da Gestação - Semana Atual e Faltam */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       {/* Card - Semana atual */}
-                      <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-2xl border border-blue-200 shadow-lg">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <Calendar className="h-5 w-5 text-white" />
+                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 gradient-success rounded-2xl flex items-center justify-center shadow-lg">
+                            <Calendar className="h-6 w-6 text-white" />
                           </div>
-                          <span className="font-bold text-gray-800 text-sm">
+                          <span className="font-bold text-gray-800 text-lg">
                             {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando' : 'Semana Atual'}
                           </span>
                         </div>
-                        <p className="text-xl font-bold text-blue-600 mb-1">
+                        <p className="text-3xl font-bold text-gradient mb-2">
                           {currentWeek}ª semana
                         </p>
-                        <p className="text-xs text-blue-700">
+                        <p className="text-sm text-gray-600">
                           {viewingWeek && viewingWeek !== weekInfo.week ? (
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-2">
                               <span>de desenvolvimento</span>
                               <button 
                                 onClick={backToCurrentWeek}
-                                className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors duration-200 shadow-sm"
+                                className="btn-soft text-xs px-3 py-1"
                                 data-testid="button-back-to-current-week"
                               >
                                 Voltar para semana atual ({weekInfo.week})
@@ -496,17 +500,17 @@ export default function Dashboard() {
                       </div>
                       
                       {/* Card - Semanas restantes */}
-                      <div className="bg-gradient-to-br from-green-100 to-green-200 p-4 rounded-2xl border border-green-200 shadow-lg">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <Sparkles className="h-5 w-5 text-white" />
+                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 gradient-warning rounded-2xl flex items-center justify-center shadow-lg">
+                            <Sparkles className="h-6 w-6 text-white" />
                           </div>
-                          <span className="font-bold text-gray-800 text-sm">Faltam</span>
+                          <span className="font-bold text-gray-800 text-lg">Faltam</span>
                         </div>
-                        <p className="text-xl font-bold text-green-600 mb-1">
+                        <p className="text-3xl font-bold text-gradient mb-2">
                           {40 - currentWeek} semanas
                         </p>
-                        <p className="text-xs text-green-700">
+                        <p className="text-sm text-gray-600">
                           para conhecer seu bebê!
                         </p>
                       </div>

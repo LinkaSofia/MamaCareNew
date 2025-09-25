@@ -46,3 +46,4 @@ UPDATE baby_development SET fruit_image_url = '/client/src/assets/comparacao/40.
 
 
 
+
