@@ -140,8 +140,6 @@ export default function Diary() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [filterMood, setFilterMood] = useState<string>('all');
-  const [filterEmotion, setFilterEmotion] = useState<string>('all');
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');
   
   // Form data
@@ -194,13 +192,6 @@ export default function Diary() {
   console.log("📝 Current entries count:", entries.length);
   console.log("📝 Entries data:", entries);
   
-  const filteredEntries = useMemo(() => {
-    return entries.filter(entry => {
-      const moodMatch = filterMood === 'all' || entry.mood.toString() === filterMood;
-      const emotionMatch = filterEmotion === 'all' || entry.emotions.includes(filterEmotion);
-      return moodMatch && emotionMatch;
-    });
-  }, [entries, filterMood, filterEmotion]);
 
   // Mood analytics
   const moodAnalytics = useMemo(() => {
@@ -390,27 +381,46 @@ export default function Diary() {
   const deleteEntryMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await apiRequest("DELETE", `/api/diary-entries/${id}`);
-      return response.json();
+      return { id, ...response.json() };
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       console.log("📝 Entry deleted successfully, updating UI...");
+      console.log("📝 Deleted entry ID:", data.id);
       
-      // Invalidar e refetch imediatamente
-      console.log("📝 Invalidating queries and refetching...");
-      await queryClient.invalidateQueries({ 
+      // Atualizar o cache diretamente primeiro (mudança instantânea)
+      try {
+        console.log("📝 Updating cache directly after delete...");
+        queryClient.setQueryData<DiaryData>(["/api/diary-entries", pregnancy?.id], (oldData) => {
+          if (!oldData) return oldData;
+          
+          console.log("📝 Old cache data before delete:", oldData);
+          const filteredEntries = oldData.entries.filter(entry => entry.id !== data.id);
+          console.log("📝 Filtered entries after delete:", filteredEntries);
+          
+          return {
+            ...oldData,
+            entries: filteredEntries
+          };
+        });
+        console.log("📝 Cache updated successfully after delete");
+      } catch (error) {
+        console.error("📝 Error updating cache after delete:", error);
+      }
+      
+      // Invalidar e refetch em background para sincronizar
+      console.log("📝 Invalidating queries and refetching in background...");
+      queryClient.invalidateQueries({ 
         queryKey: ["/api/diary-entries"],
         exact: false 
       });
       
-      // Forçar refetch imediatamente
+      // Refetch em background
       try {
-        console.log("📝 Forcing immediate refetch after delete...");
-        const refetchResult = await refetch();
-        console.log("📝 Refetch completed successfully after delete");
-        console.log("📝 Refetch result:", refetchResult);
-        console.log("📝 New entries count after delete:", refetchResult.data?.entries?.length);
+        console.log("📝 Background refetch after delete...");
+        await refetch();
+        console.log("📝 Background refetch completed");
       } catch (error) {
-        console.error("📝 Error refetching data after delete:", error);
+        console.error("📝 Error in background refetch after delete:", error);
       }
       
       toast({
@@ -661,7 +671,7 @@ export default function Diary() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-100/90 via-purple-100/90 to-indigo-100/90 backdrop-blur-sm">
+      <div className="min-h-screen pb-20">
       <div className="p-4 pt-8 relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 pt-12">
@@ -761,73 +771,18 @@ export default function Diary() {
               </Card>
             </div>
 
-            {/* Filters */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm text-gray-700 mb-2 block">Humor</Label>
-                    <Select value={filterMood} onValueChange={setFilterMood}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os humores</SelectItem>
-                        {moods.map((mood) => (
-                          <SelectItem key={mood.value} value={mood.value.toString()}>
-                            <div className="flex items-center">
-                              <span className="mr-2">{mood.emoji}</span>
-                              {mood.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm text-gray-700 mb-2 block">Emoção</Label>
-                    <Select value={filterEmotion} onValueChange={setFilterEmotion}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas as emoções</SelectItem>
-                        {emotionTags.map((emotion) => (
-                          <SelectItem key={emotion.value} value={emotion.value}>
-                            <div className="flex items-center">
-                              <div 
-                                className="w-3 h-3 rounded-full mr-2"
-                                style={{ backgroundColor: emotion.color }}
-                              />
-                              {emotion.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Writing Prompts */}
             {currentPrompts.length > 0 && (
-              <Card className="bg-gradient-to-r from-amber-100/90 to-orange-100/90 border-amber-300/50 shadow-lg">
+              <Card className="bg-gradient-to-r from-pink-100/90 to-purple-100/90 border-pink-300/50 shadow-lg">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center text-amber-800 text-lg">
-                    <Lightbulb className="mr-2 h-5 w-5 text-amber-600" />
+                  <CardTitle className="flex items-center text-pink-800 text-lg">
+                    <Lightbulb className="mr-2 h-5 w-5 text-pink-600" />
                     Inspiração para Escrever
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-amber-600 mb-3">
+                  <p className="text-sm text-pink-600 mb-3">
                     Baseado na sua semana atual ({weekInfo?.week}ª), aqui estão algumas perguntas para inspirar sua escrita:
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -840,10 +795,10 @@ export default function Diary() {
                           setSelectedPrompt(prompt);
                           setShowAddForm(true);
                         }}
-                        className="text-left justify-start h-auto p-3 bg-white/80 hover:bg-amber-100/80 border border-amber-200/50 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                        className="text-left justify-start h-auto p-3 bg-white/80 hover:bg-pink-100/80 border border-pink-200/50 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                       >
-                        <MessageCircle className="w-4 h-4 mr-2 flex-shrink-0 text-amber-500" />
-                        <span className="text-sm text-amber-800">{prompt}</span>
+                        <MessageCircle className="w-4 h-4 mr-2 flex-shrink-0 text-pink-500" />
+                        <span className="text-sm text-pink-800">{prompt}</span>
                       </Button>
                     ))}
                   </div>
@@ -852,7 +807,7 @@ export default function Diary() {
             )}
 
             {/* Entries List */}
-            {filteredEntries.length === 0 ? (
+            {entries.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <Book className="h-16 w-16 mx-auto mb-4 text-gray-400" />
@@ -876,7 +831,7 @@ export default function Diary() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredEntries
+                {entries
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((entry) => (
                     <Card key={entry.id} className="bg-gradient-to-br from-white/90 to-pink-50/90 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300 border border-pink-200/50 hover:border-pink-300/70 rounded-2xl overflow-hidden">
@@ -1547,9 +1502,9 @@ export default function Diary() {
 
       {/* Add/Edit Entry Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-pink-50/95 to-purple-50/95 backdrop-blur-md border border-pink-200/50 shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-pink-100/80 to-purple-100/80 border-b border-pink-200/50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+          <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-pink-50/95 to-purple-50/95 backdrop-blur-md border border-pink-200/50 shadow-2xl rounded-2xl">
+            <CardHeader className="bg-gradient-to-r from-pink-100/80 to-purple-100/80 border-b border-pink-200/50 pb-4 pt-6">
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent flex items-center">
                 <Book className="mr-2 h-6 w-6 text-pink-500" />
                 {editingEntry ? "Editar Entrada" : "Nova Entrada"}
@@ -1558,7 +1513,7 @@ export default function Diary() {
                 {editingEntry ? "Atualize sua entrada do diário" : "Registre um momento especial da sua gestação"}
               </p>
             </CardHeader>
-            <CardContent className="bg-white/70 backdrop-blur-sm">
+            <CardContent className="bg-white/70 backdrop-blur-sm pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {selectedPrompt && (
                   <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1621,10 +1576,7 @@ export default function Diary() {
                         max="10"
                         value={formData.mood}
                         onChange={(e) => setFormData(prev => ({ ...prev, mood: parseInt(e.target.value) }))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                        style={{
-                          background: `linear-gradient(to right, #DC2626 0%, #F59E0B 20%, #10B981 50%, #3B82F6 70%, #8B5CF6 100%)`
-                        }}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mood-slider-pink"
                       />
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>😭</span>

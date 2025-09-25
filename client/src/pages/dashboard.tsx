@@ -435,81 +435,85 @@ export default function Dashboard() {
                       </p>
                     </div>
 
-                    {/* Cards de Medidas - Apenas 2 colunas */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      <div className="bg-gradient-to-br from-pink-100 to-pink-200 p-6 rounded-2xl border border-pink-200 shadow-lg">
-                        <div className="flex items-center gap-4 mb-3">
-                          <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xl">📏</span>
+                    {/* Cards de Medidas - Tamanho e Peso */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="bg-gradient-to-br from-pink-100 to-pink-200 p-4 rounded-2xl border border-pink-200 shadow-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-lg">📏</span>
                           </div>
-                          <span className="font-bold text-gray-800 text-lg">Tamanho</span>
+                          <span className="font-bold text-gray-800 text-sm">Tamanho</span>
                         </div>
-                        <p className="text-2xl font-bold text-pink-600">
+                        <p className="text-xl font-bold text-pink-600">
                           {development.length_cm ? `${development.length_cm} cm` : (development.size ?? "Calculando...")}
                         </p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-purple-100 to-purple-200 p-6 rounded-2xl border border-purple-200 shadow-lg">
-                        <div className="flex items-center gap-4 mb-3">
-                          <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xl">⚖️</span>
+                      <div className="bg-gradient-to-br from-purple-100 to-purple-200 p-4 rounded-2xl border border-purple-200 shadow-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-lg">⚖️</span>
                           </div>
-                          <span className="font-bold text-gray-800 text-lg">Peso</span>
+                          <span className="font-bold text-gray-800 text-sm">Peso</span>
                         </div>
-                        <p className="text-2xl font-bold text-purple-600">
+                        <p className="text-xl font-bold text-purple-600">
                           {development.weight_grams && Number(development.weight_grams) > 0 
                             ? `${development.weight_grams}g` 
                             : development.weight || "< 1g"}
                         </p>
                       </div>
                     </div>
+
+                    {/* Cards de Informações da Gestação - Semana Atual e Faltam */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      {/* Card - Semana atual */}
+                      <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-2xl border border-blue-200 shadow-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <Calendar className="h-5 w-5 text-white" />
+                          </div>
+                          <span className="font-bold text-gray-800 text-sm">
+                            {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando' : 'Semana Atual'}
+                          </span>
+                        </div>
+                        <p className="text-xl font-bold text-blue-600 mb-1">
+                          {currentWeek}ª semana
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          {viewingWeek && viewingWeek !== weekInfo.week ? (
+                            <div className="flex flex-col gap-1">
+                              <span>de desenvolvimento</span>
+                              <button 
+                                onClick={backToCurrentWeek}
+                                className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors duration-200 shadow-sm"
+                                data-testid="button-back-to-current-week"
+                              >
+                                Voltar para semana atual ({weekInfo.week})
+                              </button>
+                            </div>
+                          ) : 'da sua gestação'}
+                        </p>
+                      </div>
+                      
+                      {/* Card - Semanas restantes */}
+                      <div className="bg-gradient-to-br from-green-100 to-green-200 p-4 rounded-2xl border border-green-200 shadow-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <Sparkles className="h-5 w-5 text-white" />
+                          </div>
+                          <span className="font-bold text-gray-800 text-sm">Faltam</span>
+                        </div>
+                        <p className="text-xl font-bold text-green-600 mb-1">
+                          {40 - currentWeek} semanas
+                        </p>
+                        <p className="text-xs text-green-700">
+                          para conhecer seu bebê!
+                        </p>
+                      </div>
+                    </div>
                   </div>
           )}
 
-          
-          {/* Informações da gestação - LADO A LADO */}
-              <div className="glass-effect rounded-2xl p-6 mx-4 backdrop-blur-md bg-white/80 mb-4">
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Semana atual */}
-                  <div className="text-center">
-                    <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando a' : 'Você está na'}
-                    </p>
-                    <p className="text-3xl font-bold text-gray-800 mb-2">
-                      {currentWeek}ª semana
-                    </p>
-                    <p className="text-gray-600 text-sm">
-                      {viewingWeek && viewingWeek !== weekInfo.week ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <span>de desenvolvimento</span>
-                          <button 
-                            onClick={backToCurrentWeek}
-                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors duration-200 shadow-sm"
-                            data-testid="button-back-to-current-week"
-                          >
-                        Voltar para semana atual ({weekInfo.week})
-                          </button>
-                        </div>
-                      ) : 'da sua gestação'}
-                    </p>
-                  </div>
-                  
-                  {/* Semanas restantes */}
-                  <div className="text-center">
-                    <p className="text-gray-700 text-lg mb-2 flex items-center justify-center gap-2">
-                      <Sparkles className="h-5 w-5" />
-                      Faltam aproximadamente
-                    </p>
-                    <p className="text-3xl font-bold text-gray-800 mb-2">
-                      {40 - currentWeek} semanas
-                    </p>
-                    <p className="text-gray-600 text-sm">
-                      para conhecer seu bebê!
-                    </p>
-                  </div>
-                </div>
-              </div>
           </div>
 
 

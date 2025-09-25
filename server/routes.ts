@@ -1162,6 +1162,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/weight-entries/:id", requireAuth, async (req, res) => {
+    try {
+      console.log("📊 Weight entry update request:", req.params.id, req.body);
+      
+      const userId = req.session.userId!;
+      const pregnancy = await storage.getActivePregnancy(userId);
+      
+      if (!pregnancy) {
+        return res.status(404).json({ error: "No active pregnancy found" });
+      }
+
+      // Processar dados de entrada - deixar o Zod fazer as transformações
+      const processedData = {
+        ...req.body,
+        // Remover conversões manuais - o Zod vai fazer as transformações
+      };
+
+      console.log("📊 Processed update data:", processedData);
+
+      // Validar dados com Zod
+      const updateData = insertWeightEntrySchema.partial().parse(processedData);
+      console.log("📊 Validated update data:", updateData);
+
+      const updatedEntry = await storage.updateWeightEntry(req.params.id, updateData);
+      console.log("📊 Weight entry updated successfully:", updatedEntry);
+      
+      res.json({ success: true, entry: updatedEntry });
+    } catch (error) {
+      console.error("❌ Weight entry update error:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error message:", error.message);
+        console.error("❌ Error stack:", error.stack);
+      }
+      res.status(500).json({ 
+        error: "Failed to update weight entry", 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  app.delete("/api/weight-entries/:id", requireAuth, async (req, res) => {
+    try {
+      console.log("🗑️ Weight entry delete request:", req.params.id);
+      
+      const userId = req.session.userId!;
+      const pregnancy = await storage.getActivePregnancy(userId);
+      
+      if (!pregnancy) {
+        return res.status(404).json({ error: "No active pregnancy found" });
+      }
+
+      const result = await storage.deleteWeightEntry(req.params.id);
+      console.log("🗑️ Weight entry deleted successfully:", result);
+      
+      res.json({ success: true, id: result.id });
+    } catch (error) {
+      console.error("❌ Weight entry delete error:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error message:", error.message);
+        console.error("❌ Error stack:", error.stack);
+      }
+      res.status(500).json({ 
+        error: "Failed to delete weight entry", 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
   // Endpoint temporário para criar tabelas de analytics
   app.get("/api/setup-analytics", async (req, res) => {
     try {

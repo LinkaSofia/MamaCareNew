@@ -55,6 +55,8 @@ export interface IStorage {
   // Weight Entries
   getWeightEntries(pregnancyId: string): Promise<WeightEntry[]>;
   createWeightEntry(weightEntry: InsertWeightEntry): Promise<WeightEntry>;
+  updateWeightEntry(id: string, updates: Partial<InsertWeightEntry>): Promise<WeightEntry>;
+  deleteWeightEntry(id: string): Promise<{ id: string }>;
   getLatestWeightEntry(pregnancyId: string): Promise<WeightEntry | undefined>;
 
   // Birth Plans
@@ -450,6 +452,40 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(weightEntries.date))
       .limit(1);
     return result[0];
+  }
+
+  async updateWeightEntry(id: string, updates: Partial<InsertWeightEntry>): Promise<WeightEntry> {
+    console.log("📊 Updating weight entry:", id, updates);
+    
+    // Atualizar a entrada
+    await db.update(weightEntries)
+      .set(updates)
+      .where(eq(weightEntries.id, id));
+    
+    // Buscar e retornar a entrada atualizada
+    const result = await db.select().from(weightEntries).where(eq(weightEntries.id, id));
+    if (result.length === 0) {
+      throw new Error("Weight entry not found after update");
+    }
+    
+    console.log("✅ Weight entry updated successfully:", result[0]);
+    return result[0];
+  }
+
+  async deleteWeightEntry(id: string): Promise<{ id: string }> {
+    console.log("🗑️ Deleting weight entry:", id);
+    
+    // Buscar a entrada antes de deletar para retornar o ID
+    const result = await db.select().from(weightEntries).where(eq(weightEntries.id, id));
+    if (result.length === 0) {
+      throw new Error("Weight entry not found");
+    }
+    
+    // Deletar a entrada
+    await db.delete(weightEntries).where(eq(weightEntries.id, id));
+    
+    console.log("✅ Weight entry deleted successfully:", id);
+    return { id };
   }
 
   async getBirthPlan(pregnancyId: string): Promise<BirthPlan | undefined> {

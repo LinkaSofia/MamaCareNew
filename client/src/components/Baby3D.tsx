@@ -156,7 +156,24 @@ export default function Baby3D({
     setIsLoading(false);
   }, [week, babyImageUrl]);
 
-  // Animação removida para evitar piscar
+  useEffect(() => {
+    if (!animate) return;
+    
+    // Animação de pulsação sutil para simular batimento cardíaco
+    // Usando uma animação CSS em vez de estado para evitar piscar
+    const heartbeatInterval = setInterval(() => {
+      // A animação será controlada via CSS classes
+      const element = document.querySelector('.baby-3d-container');
+      if (element) {
+        element.classList.add('heartbeat-pulse');
+        setTimeout(() => {
+          element.classList.remove('heartbeat-pulse');
+        }, 200);
+      }
+    }, 1200);
+
+    return () => clearInterval(heartbeatInterval);
+  }, [animate]);
 
   const getSizeClasses = () => {
     switch (size) {
@@ -194,7 +211,7 @@ export default function Baby3D({
 
   return (
     <div 
-      className={`relative ${getSizeClasses()} ${className} group`}
+      className={`baby-3d-container relative ${getSizeClasses()} ${className} group`}
       onMouseEnter={() => interactive && setIsHovered(true)}
       onMouseLeave={() => interactive && setIsHovered(false)}
       data-testid={`baby-3d-component-week-${week}`}

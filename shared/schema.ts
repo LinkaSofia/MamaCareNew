@@ -234,7 +234,18 @@ export const insertUserSchema = createInsertSchema(users).omit({ id: true }).ext
 export const insertPregnancySchema = createInsertSchema(pregnancies).omit({ id: true, createdAt: true });
 export const insertKickCountSchema = createInsertSchema(kickCounts).omit({ id: true });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords).omit({ id: true });
-export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true });
+export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ id: true, createdAt: true })
+  .extend({
+    weight: z.union([z.string(), z.number()]).transform((val) => {
+      const num = typeof val === 'string' ? parseFloat(val) : val;
+      if (isNaN(num)) throw new Error('Peso deve ser um número válido');
+      return num;
+    }),
+    date: z.union([z.string(), z.date()]).transform((val) => {
+      return typeof val === 'string' ? new Date(val) : val;
+    }),
+    notes: z.string().optional().transform((val) => val || null),
+  });
 export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true }).extend({
   date: z.string().transform((val) => new Date(val)),

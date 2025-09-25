@@ -18,7 +18,9 @@ import {
   Activity,
   User,
   Calendar,
-  Info
+  Info,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
@@ -31,18 +33,18 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
   const { pregnancy, weekInfo, isLoading: pregnancyLoading } = usePregnancy();
   const { data: developmentData, isLoading: developmentLoading } = useBabyDevelopment(weekInfo?.week || 0);
   const [activeTab, setActiveTab] = useState("baby");
+  const [currentPage, setCurrentPage] = useState(0);
   const [, setLocation] = useLocation();
 
   const isLoading = authLoading || pregnancyLoading || developmentLoading;
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-bg relative">
-        <AnimatedBackground />
-        <div className="relative z-10">
+      <AnimatedBackground>
+        <div className="min-h-screen flex items-center justify-center">
           <LoadingSpinner size="lg" />
         </div>
-      </div>
+      </AnimatedBackground>
     );
   }
 
@@ -53,12 +55,11 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
 
   if (pregnancyLoading || developmentLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-bg relative">
-        <AnimatedBackground />
-        <div className="relative z-10">
+      <AnimatedBackground>
+        <div className="min-h-screen flex items-center justify-center">
           <LoadingSpinner size="lg" />
         </div>
-      </div>
+      </AnimatedBackground>
     );
   }
 
@@ -69,21 +70,22 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
 
   if (!weekInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-bg relative">
-        <AnimatedBackground />
-        <div className="text-center p-6 relative z-10">
-          <Baby className="mx-auto h-12 w-12 text-pink-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Erro ao calcular semana
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Verifique os dados da sua gravidez
-          </p>
-          <Button onClick={onBack} variant="outline">
-            Voltar
-          </Button>
+      <AnimatedBackground>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center p-6">
+            <Baby className="mx-auto h-12 w-12 text-pink-400 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Erro ao calcular semana
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Verifique os dados da sua gravidez
+            </p>
+            <Button onClick={onBack} variant="outline">
+              Voltar
+            </Button>
+          </div>
         </div>
-      </div>
+      </AnimatedBackground>
     );
   }
 
@@ -110,9 +112,33 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
   const babyMilestones = development ? parseMilestones(development.development_milestones_baby) : [];
   const momMilestones = development ? parseMilestones(development.development_milestones_mom) : [];
 
+  // Funções para controlar o carrossel
+  const itemsPerPage = 2;
+  const totalPages = Math.ceil((activeTab === "baby" ? babyMilestones : momMilestones).length / itemsPerPage);
+  
+  const getCurrentItems = () => {
+    const milestones = activeTab === "baby" ? babyMilestones : momMilestones;
+    const startIndex = currentPage * itemsPerPage;
+    return milestones.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => (prev + 1) % totalPages);
+  };
+
+  const goToPrevPage = () => {
+    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+
+  // Reset page when switching tabs
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setCurrentPage(0);
+  };
+
   return (
-    <div className="min-h-screen gradient-bg pb-20 relative">
-      <AnimatedBackground />
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-pink-100 shadow-sm relative">
         <div className="flex items-center justify-between p-4 pt-12">
@@ -230,8 +256,8 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                   babyImageUrl={development?.baby_image_url ?? undefined}
                   fruitImageUrl={development?.fruit_image_url ?? undefined}
                   developmentData={development ? {
-                    length_cm: development.length_cm || 0,
-                    weight_grams: development.weight_grams || 0,
+                    length_cm: typeof development.length_cm === 'string' ? parseFloat(development.length_cm) || 0 : development.length_cm || 0,
+                    weight_grams: typeof development.weight_grams === 'string' ? parseFloat(development.weight_grams) || 0 : development.weight_grams || 0,
                     fruit_comparison: development.fruit_comparison || "semente de romã"
                   } : undefined}
                 />
@@ -241,7 +267,7 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
         </Card>
 
         {/* Mom & Baby Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm border border-pink-100 shadow-lg">
             <TabsTrigger 
               value="baby" 
@@ -310,17 +336,66 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                 )}
                 
                 {babyMilestones.length > 0 ? (
-                  <div className="space-y-3">
-                    {babyMilestones.map((milestone, index) => (
-                      <div 
-                        key={index} 
-                        className="flex items-start space-x-3 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-100"
-                        data-testid={`text-baby-development-${index}`}
-                      >
-                        <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full mt-2 flex-shrink-0" />
-                        <span className="text-gray-700">{milestone}</span>
+                  <div className="space-y-4">
+                    {/* Carrossel de marcos */}
+                    <div className="space-y-3">
+                      {getCurrentItems().map((milestone, index) => (
+                        <div 
+                          key={currentPage * itemsPerPage + index} 
+                          className="flex items-start space-x-3 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-100 shadow-sm"
+                          data-testid={`text-baby-development-${currentPage * itemsPerPage + index}`}
+                        >
+                          <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full mt-2 flex-shrink-0" />
+                          <span className="text-gray-700">{milestone}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Controles de navegação */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={goToPrevPage}
+                          disabled={totalPages <= 1}
+                          className="flex items-center gap-2 bg-white/80 hover:bg-pink-50 border-pink-200"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Anterior
+                        </Button>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">
+                            {currentPage + 1} de {totalPages}
+                          </span>
+                          <div className="flex gap-1">
+                            {Array.from({ length: totalPages }).map((_, index) => (
+                              <button
+                                key={index}
+                                onClick={() => setCurrentPage(index)}
+                                className={`w-2 h-2 rounded-full transition-colors ${
+                                  index === currentPage 
+                                    ? 'bg-pink-500' 
+                                    : 'bg-pink-200 hover:bg-pink-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={goToNextPage}
+                          disabled={totalPages <= 1}
+                          className="flex items-center gap-2 bg-white/80 hover:bg-pink-50 border-pink-200"
+                        >
+                          Próximo
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -376,6 +451,7 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+      </div>
+    </AnimatedBackground>
   );
 }

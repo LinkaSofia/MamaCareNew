@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, ExternalLink, RefreshCw, Stethoscope, BookOpen, Heart, Activity, Utensils, Dumbbell, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Clock, ExternalLink, RefreshCw, Stethoscope, BookOpen, Heart, Activity, Utensils, Dumbbell, ChevronDown, ChevronRight, ChevronLeft, Play, Pause, X, Download } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserTracking } from "@/hooks/useUserTracking";
@@ -18,17 +18,22 @@ interface MedicalArticle {
   id: string;
   week: number;
   title: string;
-  summary: string;
-  content: string;
-  source: string;
+  summary?: string;
+  content?: string;
+  source: string | null;
   sourceUrl?: string;
-  category: string;
-  importance: string;
-  readingTime: number;
-  tags: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  category?: string;
+  importance?: string;
+  readingTime?: number;
+  tags?: string[];
+  isActive: boolean | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  video_url?: string | null;
+  description?: string | null;
+  image?: string | null;
+  type?: string;
+  categoria?: string | null;
 }
 
 const categoryIcons = {
@@ -60,6 +65,23 @@ export default function MedicalArticles() {
   const { toast } = useToast();
   const [selectedArticle, setSelectedArticle] = useState<MedicalArticle | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  
+  // Estados para o carrossel
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlay, setIsAutoPlay] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  
+  // Estados para o modal de conteúdo
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [currentContent, setCurrentContent] = useState<{
+    type: 'video' | 'pdf';
+    url: string;
+    title: string;
+    source: string;
+  } | null>(null);
 
   // Buscar artigos organizados por categoria
   const { data: categoriesData, isLoading: categoriesLoading } = useArticlesCategories();
@@ -72,6 +94,132 @@ export default function MedicalArticles() {
       newExpanded.add(categoryName);
     }
     setExpandedCategories(newExpanded);
+  };
+
+  // Funções do carrossel
+  const goToSlide = (slideIndex: number, articles: any[]) => {
+    if (slideIndex >= 0 && slideIndex <= Math.ceil(articles.length / 2) - 1) {
+      setCurrentSlide(slideIndex);
+    }
+  };
+
+  const nextSlide = (articles: any[]) => {
+    const maxSlides = Math.ceil(articles.length / 2) - 1;
+    setCurrentSlide(prev => prev < maxSlides ? prev + 1 : 0);
+  };
+
+  const prevSlide = (articles: any[]) => {
+    const maxSlides = Math.ceil(articles.length / 2) - 1;
+    setCurrentSlide(prev => prev > 0 ? prev - 1 : maxSlides);
+  };
+
+  const toggleAutoPlay = () => {
+    setIsAutoPlay(prev => !prev);
+  };
+
+  // Auto-play effect
+  useEffect(() => {
+    if (!isAutoPlay) return;
+    
+    const interval = setInterval(() => {
+      categoriesData?.categories.forEach(category => {
+        if (expandedCategories.has(category.name)) {
+          nextSlide(category.articles);
+        }
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlay, expandedCategories, categoriesData]);
+
+  // Funções de drag
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX - (carouselRef.current?.offsetLeft || 0));
+    setScrollLeft(carouselRef.current?.scrollLeft || 0);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !carouselRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - (carouselRef.current.offsetLeft || 0);
+    const walk = (x - startX) * 2;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  // Touch events para mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - (carouselRef.current?.offsetLeft || 0));
+    setScrollLeft(carouselRef.current?.scrollLeft || 0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !carouselRef.current) return;
+    const x = e.touches[0].pageX - (carouselRef.current.offsetLeft || 0);
+    const walk = (x - startX) * 2;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Funções para o modal de conteúdo
+  const openContent = (article: any) => {
+    console.log("🎬 Opening content:", article);
+    console.log("🎬 Video URL:", article.video_url);
+    console.log("🎬 Content:", article.content);
+    console.log("🎬 Source URL:", article.sourceUrl);
+    
+    if (article.video_url) {
+      console.log("🎬 Opening video:", article.video_url);
+      setCurrentContent({
+        type: 'video',
+        url: article.video_url,
+        title: article.title,
+        source: article.source || 'Fonte não disponível'
+      });
+      setShowContentModal(true);
+    } else if (article.content && article.content.includes('.pdf')) {
+      console.log("📄 Opening PDF:", article.content);
+      setCurrentContent({
+        type: 'pdf',
+        url: article.content,
+        title: article.title,
+        source: article.source || 'Fonte não disponível'
+      });
+      setShowContentModal(true);
+    } else {
+      console.log("🔗 Opening external link:", article.sourceUrl || article.video_url);
+      // Se não for vídeo nem PDF, abrir em nova aba
+      window.open(article.sourceUrl || article.video_url, '_blank');
+    }
+  };
+
+  const closeContentModal = () => {
+    setShowContentModal(false);
+    setCurrentContent(null);
+  };
+
+  const downloadContent = () => {
+    if (currentContent) {
+      const link = document.createElement('a');
+      link.href = currentContent.url;
+      link.download = `${currentContent.title}.${currentContent.type === 'video' ? 'mp4' : 'pdf'}`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   // Mutation para popular artigos médicos (para admin/desenvolvimento)
@@ -195,7 +343,16 @@ export default function MedicalArticles() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+      <style jsx>{`
+        .carousel-container::-webkit-scrollbar {
+          display: none;
+        }
+        .carousel-container {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      <div className="min-h-screen pb-20">
         <div className="container mx-auto px-4 py-6">
           {/* Botão de Voltar */}
           <Button
@@ -297,15 +454,37 @@ export default function MedicalArticles() {
                       <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-3">
                         Artigos:
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {category.articles.map((article) => (
+                      <div className="relative">
+                        {/* Carrossel de artigos */}
+                        <div 
+                          ref={carouselRef}
+                          className="flex gap-4 overflow-x-auto carousel-container"
+                          style={{ 
+                            scrollSnapType: 'x mandatory',
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none'
+                          }}
+                          onMouseDown={handleMouseDown}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
+                        >
+                          {category.articles.map((article, index) => (
+                            <div 
+                              key={article.id}
+                              className="flex-none w-full md:w-1/2"
+                              style={{ scrollSnapAlign: 'start' }}
+                            >
                           <Card 
                             key={article.id} 
                             className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-pink-200"
-                            onClick={() => {
-                              if (article.video_url) {
-                                window.open(article.video_url, '_blank');
-                              }
+                            onClick={(e) => {
+                              console.log("🖱️ Card clicked:", article.title);
+                              e.preventDefault();
+                              openContent(article);
                             }}
                           >
                             <CardContent className="p-4">
@@ -332,7 +511,74 @@ export default function MedicalArticles() {
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Controles de navegação */}
+                        {category.articles.length > 2 && (
+                          <div className="flex items-center justify-between mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (carouselRef.current) {
+                                  carouselRef.current.scrollBy({
+                                    left: -carouselRef.current.offsetWidth / 2,
+                                    behavior: 'smooth'
+                                  });
+                                }
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                              Anterior
+                            </Button>
+                            
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">
+                                {Math.floor((carouselRef.current?.scrollLeft || 0) / (carouselRef.current?.offsetWidth || 1)) + 1} de {Math.ceil(category.articles.length / 2)}
+                              </span>
+                              <div className="flex gap-1">
+                                {Array.from({ length: Math.ceil(category.articles.length / 2) }).map((_, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => {
+                                      if (carouselRef.current) {
+                                        carouselRef.current.scrollTo({
+                                          left: index * (carouselRef.current.offsetWidth / 2),
+                                          behavior: 'smooth'
+                                        });
+                                      }
+                                    }}
+                                    className={`w-2 h-2 rounded-full transition-colors ${
+                                      Math.floor((carouselRef.current?.scrollLeft || 0) / (carouselRef.current?.offsetWidth || 1)) === index
+                                        ? 'bg-pink-500' 
+                                        : 'bg-pink-200 hover:bg-pink-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (carouselRef.current) {
+                                  carouselRef.current.scrollBy({
+                                    left: carouselRef.current.offsetWidth / 2,
+                                    behavior: 'smooth'
+                                  });
+                                }
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              Próximo
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -358,6 +604,88 @@ export default function MedicalArticles() {
       )}
         </div>
       </div>
+
+      {/* Modal de Conteúdo */}
+      {showContentModal && currentContent && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+            {/* Header do Modal */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
+                  {currentContent.type === 'video' ? (
+                    <Play className="h-5 w-5 text-white" />
+                  ) : (
+                    <BookOpen className="h-5 w-5 text-white" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+                    {currentContent.title}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {currentContent.source}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={downloadContent}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Baixar
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeContentModal}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Conteúdo do Modal */}
+            <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
+              {currentContent.type === 'video' ? (
+                <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                  <video
+                    controls
+                    className="w-full h-full"
+                    preload="metadata"
+                  >
+                    <source src={currentContent.url} type="video/mp4" />
+                    <source src={currentContent.url} type="video/webm" />
+                    <p className="text-white p-4">
+                      Seu navegador não suporta a reprodução de vídeo.
+                      <a 
+                        href={currentContent.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-400 underline ml-1"
+                      >
+                        Clique aqui para baixar o vídeo.
+                      </a>
+                    </p>
+                  </video>
+                </div>
+              ) : (
+                <div className="w-full h-[600px]">
+                  <iframe
+                    src={`${currentContent.url}#toolbar=0&navpanes=0&scrollbar=0`}
+                    className="w-full h-full border-0 rounded-lg"
+                    title={currentContent.title}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </AnimatedBackground>
   );
 }
