@@ -17,8 +17,8 @@ const emailConfigs: Record<string, EmailConfig> = {
     port: 587,
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER || '',
-      pass: process.env.EMAIL_PASS || ''
+      user: process.env.GMAIL_USER || '',
+      pass: process.env.GMAIL_APP_PASSWORD || ''
     }
   },
   outlook: {
@@ -26,8 +26,8 @@ const emailConfigs: Record<string, EmailConfig> = {
     port: 587,
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER || '',
-      pass: process.env.EMAIL_PASS || ''
+      user: process.env.GMAIL_USER || '',
+      pass: process.env.GMAIL_APP_PASSWORD || ''
     }
   },
   yahoo: {
@@ -35,18 +35,21 @@ const emailConfigs: Record<string, EmailConfig> = {
     port: 587,
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER || '',
-      pass: process.env.EMAIL_PASS || ''
+      user: process.env.GMAIL_USER || '',
+      pass: process.env.GMAIL_APP_PASSWORD || ''
     }
   }
 };
 
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
   // Verificar se as credenciais do Gmail estão disponíveis
+  console.log('📧 GMAIL_USER:', process.env.GMAIL_USER);
+  console.log('📧 GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '***configurado***' : 'não configurado');
+  
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.log(`🔄 Email simulado para: ${email}`);
     console.log(`🔑 Token de reset: ${resetToken}`);
-    console.log(`🌐 Link de reset: http://localhost:5000/reset-password?token=${resetToken}`);
+    console.log(`🌐 Link de reset: http://localhost:3000/reset-password?token=${resetToken}`);
     return true;
   }
 

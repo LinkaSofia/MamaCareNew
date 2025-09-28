@@ -945,7 +945,7 @@ export default function Dashboard() {
         <div className="px-4 mt-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">O que você gostaria de fazer?</h3>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <Button
             onClick={() => setLocation("/weight-tracking")}
               className="h-20 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"

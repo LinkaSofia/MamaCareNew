@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Mail, ArrowLeft, Heart } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import logoImage from "@assets/4_1755308511005.png";
 import { TokenReset } from "./token-reset";
 
@@ -355,41 +356,30 @@ export default function ResetPassword() {
   return (
     <AnimatedBackground>
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="text-center mb-10">
-          <div className="mx-auto w-40 h-40 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
-            <img 
-              src={logoImage} 
-              alt="Maternidade Logo" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <h1 className="text-4xl font-bold text-charcoal mb-3">Recuperar Senha</h1>
-          <p className="text-gray-600 text-lg">Digite seu email para receber as instruções</p>
-        </div>
-
-        <Card className="w-full max-w-md glass-effect shadow-2xl z-10">
-        <CardContent className="p-6">
+        <Card className="w-full max-w-sm glass-effect shadow-xl">
+          <CardContent className="p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-charcoal mb-2">Esqueci minha senha</h2>
+              <p className="text-gray-600 text-sm">Digite seu email para recuperar a senha</p>
+            </div>
           {emailMessage && (
-            <div className="mb-4 p-3 rounded-lg border bg-green-50 border-green-200 text-green-800 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              <span className="text-sm">{emailMessage}</span>
+            <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <p className="text-blue-800 text-sm">{emailMessage}</p>
             </div>
           )}
 
           <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-charcoal font-medium">
-                Email
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <div>
+              <Label className="text-charcoal font-medium">Email</Label>
+              <div className="relative mt-1">
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <Input
-                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
                   placeholder="Digite seu email"
+                  className="pl-10"
+                  required
                   data-testid="input-email"
                 />
               </div>
@@ -413,26 +403,27 @@ export default function ResetPassword() {
             <Button
               type="submit"
               disabled={emailLoading}
-              className="w-full bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90 text-white font-medium py-3"
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white"
               data-testid="button-send-email"
             >
-              {emailLoading ? "Enviando..." : "Enviar Email de Recuperação"}
+              {emailLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                "Enviar email de recuperação"
+              )}
             </Button>
 
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setLocation("/login")}
-                className="text-sm text-baby-pink-dark hover:underline flex items-center justify-center gap-1"
-                data-testid="button-back-to-login"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Voltar ao Login
-              </button>
-            </div>
+            <Button
+              onClick={() => setLocation("/login")}
+              className="w-full text-charcoal hover:bg-gray-100"
+              data-testid="button-back-to-login"
+            >
+              Voltar ao login
+            </Button>
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AnimatedBackground>
   );
 }
