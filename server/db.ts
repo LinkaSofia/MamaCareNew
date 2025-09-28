@@ -1,14 +1,14 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+// Configuração do banco de dados
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.yrpbjxhtsnaxlfsazall:88L53i36n59ka@@aws-0-sa-east-1.pooler.supabase.com:5432/postgres';
 
-if (!process.env.DATABASE_URL) {
-  console.warn("⚠️ DATABASE_URL não encontrada. Usando URL de exemplo...");
-  process.env.DATABASE_URL = "postgresql://postgres:password@localhost:5432/mamacare";
-}
+console.log("🔗 Conectando ao Supabase...");
+console.log("🔗 Database URL:", connectionString.replace(/\/\/.*@/, '//***:***@'));
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const pool = new Pool({ connectionString });
+export const db = drizzle(pool, { schema });
+
+export { pool, db };

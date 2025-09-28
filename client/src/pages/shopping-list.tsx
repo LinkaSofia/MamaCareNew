@@ -15,6 +15,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import BottomNavigation from "@/components/layout/bottom-navigation";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { 
   ArrowLeft, 
   Plus, 
@@ -385,24 +386,25 @@ export default function ShoppingList() {
   const suggestions = getSuggestions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 pb-20">
-      <div className="p-4 pt-8">
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20">
+        <div className="p-4 pt-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Button 
             variant="ghost" 
             size="icon"
-            className="rounded-full bg-white shadow-lg"
+            className="rounded-full bg-white/95 backdrop-blur-sm shadow-xl border border-white/20"
             onClick={() => setLocation("/")}
             data-testid="button-back"
           >
             <ArrowLeft className="h-5 w-5 text-gray-700" />
           </Button>
-          <h1 className="text-2xl font-bold text-gray-800">Lista de Compras</h1>
+          <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">Lista de Compras</h1>
           <Button 
             variant="ghost" 
             size="icon"
-            className="rounded-full bg-gradient-to-r from-pink-500 to-blue-500 shadow-lg"
+            className="rounded-full bg-gradient-to-r from-pink-500 to-blue-500 shadow-xl border border-white/20"
             onClick={() => setShowAddForm(true)}
             data-testid="button-add-item"
           >
@@ -539,7 +541,7 @@ export default function ShoppingList() {
                       return (
                         <div 
                           key={item.id} 
-                          className="flex items-center justify-between p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+                          className="flex items-center justify-between p-4 bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300"
                         >
                           <div className="flex items-center space-x-3 flex-1">
                             <Checkbox
@@ -605,7 +607,7 @@ export default function ShoppingList() {
                       return (
                         <div 
                           key={item.id} 
-                          className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200"
+                          className="flex items-center justify-between p-4 bg-green-50/95 backdrop-blur-sm border border-green-200/50 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300"
                         >
                           <div className="flex items-center space-x-3 flex-1">
                             <Checkbox
@@ -1006,7 +1008,7 @@ export default function ShoppingList() {
       {/* Add item modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
             <CardHeader>
               <CardTitle className="text-gray-800">Novo Item</CardTitle>
             </CardHeader>
@@ -1119,6 +1121,7 @@ export default function ShoppingList() {
       )}
 
       <BottomNavigation />
-    </div>
+      </div>
+    </AnimatedBackground>
   );
 }

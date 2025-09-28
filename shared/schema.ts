@@ -81,7 +81,7 @@ export const weightRecords = pgTable("weight_records", {
 });
 
 export const weightEntries = pgTable("weight_entries", {
-  id: serial("id").primaryKey(),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
   weight: decimal("weight", { precision: 5, scale: 2 }).notNull(),
   date: timestamp("date").notNull(),
@@ -244,8 +244,23 @@ export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({ 
     date: z.union([z.string(), z.date()]).transform((val) => {
       return typeof val === 'string' ? new Date(val) : val;
     }),
-    notes: z.string().optional().transform((val) => val || null),
+    notes: z.string().optional().nullable().transform((val) => val || null),
   });
+
+// Schema específico para atualização - mais permissivo
+export const updateWeightEntrySchema = z.object({
+  weight: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (val === undefined) return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    if (isNaN(num)) throw new Error('Peso deve ser um número válido');
+    return num;
+  }),
+  date: z.union([z.string(), z.date()]).optional().transform((val) => {
+    if (val === undefined) return undefined;
+    return typeof val === 'string' ? new Date(val) : val;
+  }),
+  notes: z.string().optional().nullable().transform((val) => val || null),
+}).partial();
 export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true }).extend({
   date: z.string().transform((val) => new Date(val)),

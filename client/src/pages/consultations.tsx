@@ -49,6 +49,8 @@ interface ConsultationsData {
 export default function Consultations() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [consultationToDelete, setConsultationToDelete] = useState<Consultation | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -144,6 +146,8 @@ export default function Consultations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
+      setShowDeleteModal(false);
+      setConsultationToDelete(null);
       toast({
         title: "✅ Consulta removida!",
         description: "A consulta foi excluída com sucesso.",
@@ -157,6 +161,22 @@ export default function Consultations() {
       });
     },
   });
+
+  const handleDeleteClick = (consultation: Consultation) => {
+    setConsultationToDelete(consultation);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (consultationToDelete) {
+      deleteConsultationMutation.mutate(consultationToDelete.id);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setConsultationToDelete(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,11 +314,7 @@ export default function Consultations() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          if (confirm('Tem certeza que deseja excluir esta consulta?')) {
-                            deleteConsultationMutation.mutate(consultation.id);
-                          }
-                        }}
+                        onClick={() => handleDeleteClick(consultation)}
                         className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />

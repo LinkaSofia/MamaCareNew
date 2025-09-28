@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import FileStore from "session-file-store";
@@ -1173,16 +1173,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "No active pregnancy found" });
       }
 
-      // Processar dados de entrada - deixar o Zod fazer as transformações
+      // Processar dados de entrada
       const processedData = {
         ...req.body,
-        // Remover conversões manuais - o Zod vai fazer as transformações
       };
 
       console.log("📊 Processed update data:", processedData);
 
-      // Validar dados com Zod
-      const updateData = insertWeightEntrySchema.partial().parse(processedData);
+      // Validar dados com Zod - usar schema específico para atualização
+      const updateData = updateWeightEntrySchema.parse(processedData);
       console.log("📊 Validated update data:", updateData);
 
       const updatedEntry = await storage.updateWeightEntry(req.params.id, updateData);

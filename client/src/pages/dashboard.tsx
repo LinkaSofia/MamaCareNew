@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NextConsultationCard } from "@/components/NextConsultationCard";
 import Baby3D from "@/components/Baby3D";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { 
   Bell, 
   Baby, 
@@ -230,7 +231,8 @@ export default function Dashboard() {
   const momText = development ? getMomText(development.development_milestones_mom) : '';
 
   return (
-    <div className="min-h-screen bg-maternal-gradient relative overflow-hidden">
+    <AnimatedBackground>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100 relative overflow-hidden">
       {/* Background decorative elements sofisticados */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Elementos flutuantes sofisticados */}
@@ -286,10 +288,10 @@ export default function Dashboard() {
               <Baby className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white text-soft-shadow" data-testid="text-greeting">
+              <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg" data-testid="text-greeting">
                 Olá, {user?.name || 'Mamãe'}!
               </h1>
-              <p className="text-white/90 text-lg" data-testid="text-pregnancy-week">
+              <p className="text-gray-700 text-lg drop-shadow-md" data-testid="text-pregnancy-week">
                 Semana {weekInfo.week} de gestação
               </p>
             </div>
@@ -307,7 +309,6 @@ export default function Dashboard() {
                   ) : (
                     <User className="h-8 w-8 text-gray-600" />
                   )}
-                </div>
                 <ChevronDown className="h-4 w-4 text-gray-600" />
               </button>
             </DropdownMenuTrigger>
@@ -441,26 +442,26 @@ export default function Dashboard() {
 
                     {/* Cards de Medidas - Tamanho e Peso */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                      <div className="bg-gradient-to-br from-pink-200 to-pink-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
                         <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 gradient-pink rounded-2xl flex items-center justify-center shadow-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
                             <span className="text-white text-xl">📏</span>
                           </div>
                           <span className="font-bold text-gray-800 text-lg">Tamanho</span>
                         </div>
-                        <p className="text-3xl font-bold text-gradient">
+                        <p className="text-3xl font-bold text-gray-800">
                           {development.length_cm ? `${development.length_cm} cm` : (development.size ?? "Calculando...")}
                         </p>
                       </div>
 
-                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                      <div className="bg-gradient-to-br from-purple-200 to-purple-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
                         <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 gradient-purple rounded-2xl flex items-center justify-center shadow-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                             <span className="text-white text-xl">⚖️</span>
                           </div>
                           <span className="font-bold text-gray-800 text-lg">Peso</span>
                         </div>
-                        <p className="text-3xl font-bold text-gradient">
+                        <p className="text-3xl font-bold text-gray-800">
                           {development.weight_grams && Number(development.weight_grams) > 0 
                             ? `${development.weight_grams}g` 
                             : development.weight || "< 1g"}
@@ -471,16 +472,16 @@ export default function Dashboard() {
                     {/* Cards de Informações da Gestação - Semana Atual e Faltam */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       {/* Card - Semana atual */}
-                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                      <div className="bg-gradient-to-br from-blue-200 to-blue-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
                         <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 gradient-success rounded-2xl flex items-center justify-center shadow-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
                             <Calendar className="h-6 w-6 text-white" />
                           </div>
                           <span className="font-bold text-gray-800 text-lg">
                             {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando' : 'Semana Atual'}
                           </span>
                         </div>
-                        <p className="text-3xl font-bold text-gradient mb-2">
+                        <p className="text-3xl font-bold text-gray-800 mb-2">
                           {currentWeek}ª semana
                         </p>
                         <p className="text-sm text-gray-600">
@@ -500,14 +501,14 @@ export default function Dashboard() {
                       </div>
                       
                       {/* Card - Semanas restantes */}
-                      <div className="card-sophisticated p-6 hover:scale-105 transition-all duration-300">
+                      <div className="bg-gradient-to-br from-green-200 to-green-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
                         <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 gradient-warning rounded-2xl flex items-center justify-center shadow-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
                             <Sparkles className="h-6 w-6 text-white" />
                           </div>
                           <span className="font-bold text-gray-800 text-lg">Faltam</span>
                         </div>
-                        <p className="text-3xl font-bold text-gradient mb-2">
+                        <p className="text-3xl font-bold text-gray-800 mb-2">
                           {40 - currentWeek} semanas
                         </p>
                         <p className="text-sm text-gray-600">
@@ -944,7 +945,7 @@ export default function Dashboard() {
         <div className="px-4 mt-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">O que você gostaria de fazer?</h3>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Button
             onClick={() => setLocation("/weight-tracking")}
               className="h-20 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
@@ -954,14 +955,6 @@ export default function Dashboard() {
               <span className="text-sm font-medium">Controle de Peso</span>
             </Button>
 
-            <Button
-            onClick={() => setLocation("/kick-counter")}
-              className="h-20 bg-gradient-to-r from-blue-400 to-indigo-400 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
-              data-testid="button-kick-counter"
-            >
-              <Activity className="h-6 w-6" />
-              <span className="text-sm font-medium">Contar Chutes</span>
-            </Button>
 
             <Button
               onClick={() => setLocation("/birth-plan")}
@@ -990,14 +983,6 @@ export default function Dashboard() {
               <span className="text-sm font-medium">Lista de Compras</span>
             </Button>
 
-            <Button
-            onClick={() => setLocation("/photo-album")}
-              className="h-20 bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-500 hover:to-cyan-500 text-white shadow-lg flex flex-col items-center justify-center space-y-2"
-              data-testid="button-photos"
-            >
-              <Info className="h-6 w-6" />
-              <span className="text-sm font-medium">Fotos</span>
-            </Button>
 
             <Button
             onClick={() => setLocation("/diary")}
@@ -1040,6 +1025,7 @@ export default function Dashboard() {
       </footer>
 
 
-    </div>
+      </div>
+    </AnimatedBackground>
   );
 }

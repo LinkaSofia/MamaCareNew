@@ -532,12 +532,12 @@ export default function Diary() {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim(),
       content: formData.content.trim(),
-      mood: formData.mood.toString(),
-      emotions: JSON.stringify(formData.emotions),
+      mood: formData.mood ? formData.mood.toString() : null,
+      emotions: formData.emotions.length > 0 ? JSON.stringify(formData.emotions) : null,
       milestone: milestone || null,
       week: week || null,
       date: new Date(),
-      prompts: JSON.stringify(selectedPrompt ? [selectedPrompt] : [])
+      prompts: selectedPrompt ? JSON.stringify([selectedPrompt]) : null
     };
     
     // Garantir que campos opcionais não sejam undefined

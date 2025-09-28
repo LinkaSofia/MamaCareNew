@@ -264,7 +264,7 @@ export default function Baby3D({
         {/* Informações do bebê */}
         {showInfo && babyData && (
           <div className="absolute bottom-2 left-2 right-2 text-center">
-            <div className="text-xs font-medium text-white/90 bg-black/30 rounded-full px-2 py-1 backdrop-blur-sm">
+            <div className="text-xs font-medium text-gray-800 bg-white/90 rounded-full px-2 py-1 backdrop-blur-sm shadow-lg">
               {babyData.size} • {babyData.weight}
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function Baby3D({
             data-testid="interactive-overlay"
           >
             <div 
-              className="text-white/80 text-sm font-medium bg-black/20 rounded-full px-4 py-2 backdrop-blur-sm"
+              className="text-gray-800 text-sm font-medium bg-white/90 rounded-full px-4 py-2 backdrop-blur-sm shadow-lg"
               data-testid="interactive-overlay-text"
             >
               Clique para mais detalhes

@@ -143,8 +143,10 @@ export default function ResetPassword() {
         email,
       });
       const data = await response.json();
+      console.log("📧 Email response:", data);
       setEmailMessage(data.message);
       setSentEmail(email);
+      console.log("📧 Setting showTokenReset to true");
       setShowTokenReset(true);
     } catch (error: any) {
       console.error("Forgot password error:", error);
@@ -336,6 +338,7 @@ export default function ResetPassword() {
 
   // Se deve mostrar a tela de token
   if (showTokenReset) {
+    console.log("📧 Rendering TokenReset component with email:", sentEmail);
     return (
       <TokenReset 
         email={sentEmail}
@@ -350,22 +353,21 @@ export default function ResetPassword() {
 
   // Modo solicitar email de recuperação
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center p-6 gradient-bg">
-      <AnimatedBackground />
-      
-      <div className="text-center mb-8 z-10">
-        <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
-          <img 
-            src={logoImage} 
-            alt="Mama Care Logo" 
-            className="w-full h-full object-cover"
-          />
+    <AnimatedBackground>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="text-center mb-10">
+          <div className="mx-auto w-40 h-40 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+            <img 
+              src={logoImage} 
+              alt="Maternidade Logo" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h1 className="text-4xl font-bold text-charcoal mb-3">Recuperar Senha</h1>
+          <p className="text-gray-600 text-lg">Digite seu email para receber as instruções</p>
         </div>
-        <h1 className="text-3xl font-bold text-charcoal mb-2">Recuperar Senha</h1>
-        <p className="text-gray-600">Digite seu email para receber as instruções</p>
-      </div>
 
-      <Card className="w-full max-w-sm glass-effect shadow-xl z-10">
+        <Card className="w-full max-w-md glass-effect shadow-2xl z-10">
         <CardContent className="p-6">
           {emailMessage && (
             <div className="mb-4 p-3 rounded-lg border bg-green-50 border-green-200 text-green-800 flex items-center gap-2">

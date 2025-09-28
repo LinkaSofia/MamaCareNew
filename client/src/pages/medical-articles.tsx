@@ -173,6 +173,25 @@ export default function MedicalArticles() {
     setIsDragging(false);
   };
 
+  // Função para converter URL do YouTube para embed
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (url.includes('youtube.com/watch?v=')) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    } else if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    } else if (url.includes('youtube.com/embed/')) {
+      return `${url}?autoplay=1&rel=0`;
+    }
+    return url;
+  };
+
+  // Função para detectar se é um vídeo do YouTube
+  const isYouTubeVideo = (url: string) => {
+    return url.includes('youtube.com') || url.includes('youtu.be');
+  };
+
   // Funções para o modal de conteúdo
   const openContent = (article: any) => {
     console.log("🎬 Opening content:", article);
@@ -182,9 +201,13 @@ export default function MedicalArticles() {
     
     if (article.video_url) {
       console.log("🎬 Opening video:", article.video_url);
+      const embedUrl = isYouTubeVideo(article.video_url) 
+        ? getYouTubeEmbedUrl(article.video_url)
+        : article.video_url;
+      
       setCurrentContent({
         type: 'video',
-        url: article.video_url,
+        url: embedUrl,
         title: article.title,
         source: article.source || 'Fonte não disponível'
       });
@@ -343,7 +366,7 @@ export default function MedicalArticles() {
 
   return (
     <AnimatedBackground>
-      <style jsx>{`
+      <style>{`
         .carousel-container::-webkit-scrollbar {
           display: none;
         }
@@ -480,34 +503,64 @@ export default function MedicalArticles() {
                             >
                           <Card 
                             key={article.id} 
-                            className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-pink-200"
+                            className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border-0 overflow-hidden hover:scale-105 rounded-2xl"
                             onClick={(e) => {
                               console.log("🖱️ Card clicked:", article.title);
                               e.preventDefault();
                               openContent(article);
                             }}
                           >
-                            <CardContent className="p-4">
-                              <div className="flex items-start gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                  <span className="text-lg">
-                                    {article.type === 'pdf' || article.video_url?.includes('.pdf') ? '📄' : '🎥'}
-                                  </span>
+                            <CardContent className="p-0">
+                              <div className="relative">
+                                {/* Article Image - Full Width */}
+                                <div className="w-full h-56 bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center overflow-hidden relative rounded-t-2xl">
+                                  {article.image ? (
+                                    <img 
+                                      src={article.image.startsWith('@assets/') 
+                                        ? article.image.replace('@assets/', '/src/assets/') 
+                                        : article.image.startsWith('/src/assets/')
+                                        ? article.image
+                                        : `/src/assets/imagem_artigos/${article.image}`
+                                      } 
+                                      alt={article.title}
+                                      className="w-full h-full object-cover"
+                                      onLoad={() => console.log('✅ Imagem carregada:', article.image)}
+                                      onError={(e) => {
+                                        console.log('❌ Erro ao carregar imagem:', article.image);
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        const parent = target.parentElement;
+                                        if (parent) {
+                                          parent.innerHTML = '<div class="flex items-center justify-center h-full bg-gradient-to-br from-pink-100 to-purple-100"><span class="text-6xl">📖</span></div>';
+                                        }
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="flex items-center justify-center h-full bg-gradient-to-br from-pink-100 to-purple-100">
+                                      <span className="text-6xl">
+                                        {article.type === 'pdf' || article.video_url?.includes('.pdf') ? '📄' : '🎥'}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Video Badge */}
+                                  <div className="absolute top-4 left-4 bg-gray-800 bg-opacity-80 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                    <span>🎥</span>
+                                    <span>Vídeo</span>
+                                  </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-medium text-gray-800 dark:text-gray-200 line-clamp-2 mb-1">
+                                
+                                {/* Article Info - Clean Bottom */}
+                                <div className="p-6 bg-white">
+                                  <h4 className="font-bold text-gray-800 text-lg mb-2 line-clamp-2 leading-tight">
                                     {article.title}
                                   </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                    Semana {article.week} • {article.source}
-                                  </p>
-                                  {article.description && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">
-                                      {article.description}
+                                  {article.source && (
+                                    <p className="text-sm text-gray-600">
+                                      Fonte: {article.source}
                                     </p>
                                   )}
                                 </div>
-                                <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0" />
                               </div>
                             </CardContent>
                           </Card>
@@ -653,25 +706,36 @@ export default function MedicalArticles() {
             <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
               {currentContent.type === 'video' ? (
                 <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                  <video
-                    controls
-                    className="w-full h-full"
-                    preload="metadata"
-                  >
-                    <source src={currentContent.url} type="video/mp4" />
-                    <source src={currentContent.url} type="video/webm" />
-                    <p className="text-white p-4">
-                      Seu navegador não suporta a reprodução de vídeo.
-                      <a 
-                        href={currentContent.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-400 underline ml-1"
-                      >
-                        Clique aqui para baixar o vídeo.
-                      </a>
-                    </p>
-                  </video>
+                  {isYouTubeVideo(currentContent.url) ? (
+                    <iframe
+                      src={currentContent.url}
+                      title={currentContent.title}
+                      className="w-full h-full"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video
+                      controls
+                      className="w-full h-full"
+                      preload="metadata"
+                    >
+                      <source src={currentContent.url} type="video/mp4" />
+                      <source src={currentContent.url} type="video/webm" />
+                      <p className="text-white p-4">
+                        Seu navegador não suporta a reprodução de vídeo.
+                        <a 
+                          href={currentContent.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-400 underline ml-1"
+                        >
+                          Clique aqui para baixar o vídeo.
+                        </a>
+                      </p>
+                    </video>
+                  )}
                 </div>
               ) : (
                 <div className="w-full h-[600px]">

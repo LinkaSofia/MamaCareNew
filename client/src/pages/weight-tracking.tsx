@@ -100,7 +100,14 @@ export default function WeightTracking() {
 
   const updateWeightMutation = useMutation({
     mutationFn: async ({ id, weightEntry }: { id: string; weightEntry: any }) => {
+      console.log("📊 Sending update request:", { id, weightEntry });
       const response = await apiRequest("PUT", `/api/weight-entries/${id}`, weightEntry);
+      console.log("📊 Update response status:", response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("📊 Update error:", errorData);
+        throw new Error(errorData.error || "Failed to update weight entry");
+      }
       return response.json();
     },
     onSuccess: async () => {
@@ -142,7 +149,14 @@ export default function WeightTracking() {
 
   const deleteWeightMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log("🗑️ Sending delete request:", id);
       const response = await apiRequest("DELETE", `/api/weight-entries/${id}`);
+      console.log("🗑️ Delete response status:", response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("🗑️ Delete error:", errorData);
+        throw new Error(errorData.error || "Failed to delete weight entry");
+      }
       return response.json();
     },
     onSuccess: async (data) => {
@@ -239,7 +253,7 @@ export default function WeightTracking() {
       weightEntry: {
         weight: parseFloat(weight),
         date: formattedDate,
-        notes: notes.trim() || undefined,
+        notes: notes.trim() || null,
       },
     });
   };
@@ -354,25 +368,24 @@ export default function WeightTracking() {
           </Button>
         </div>
 
-        {/* Peso Atual Card */}
-        <Card className="glass-effect shadow-xl mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Scale className="h-6 w-6 text-white" />
+        {/* Cards de Peso - Todos lado a lado */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Peso Atual Card */}
+          <Card className="bg-gradient-to-br from-pink-200 to-purple-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Scale className="h-6 w-6 text-white" />
+                </div>
+                <span className="font-bold text-gray-800 text-lg">Peso Atual</span>
               </div>
-              <span className="font-bold text-gray-800 text-lg">Peso Atual</span>
-            </div>
-            <div className="text-2xl font-bold text-pink-600" data-testid="text-current-weight">
-              {latestWeight ? `${latestWeight.weight} kg` : "Não registrado"}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ganho de Peso e Meta de Peso Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="text-2xl font-bold text-pink-600" data-testid="text-current-weight">
+                {latestWeight ? `${latestWeight.weight} kg` : "Não registrado"}
+              </div>
+            </CardContent>
+          </Card>
           {/* Ganho de Peso Card */}
-          <Card className="glass-effect shadow-xl">
+          <Card className="bg-gradient-to-br from-green-200 to-green-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -393,7 +406,7 @@ export default function WeightTracking() {
           </Card>
 
           {/* Meta de Peso Card */}
-          <Card className="glass-effect shadow-xl">
+          <Card className="bg-gradient-to-br from-blue-200 to-indigo-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
