@@ -149,7 +149,7 @@ export default function WeightTracking() {
 
   const deleteWeightMutation = useMutation({
     mutationFn: async (id: string) => {
-      console.log("🗑️ Sending delete request:", id);
+      console.log("🗑️ Sending delete request for ID:", id, "Type:", typeof id);
       const response = await apiRequest("DELETE", `/api/weight-entries/${id}`);
       console.log("🗑️ Delete response status:", response.status);
       if (!response.ok) {

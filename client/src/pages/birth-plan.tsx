@@ -479,50 +479,49 @@ export default function BirthPlan() {
   if (viewMode === 'list') {
     return (
       <AnimatedBackground>
-        <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+        <div className="min-h-screen pb-20">
           <div className="container mx-auto px-4 py-6">
             {/* Botão de Voltar */}
             <Button
               variant="ghost"
               size="icon"
-              className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              className="fixed top-4 left-4 z-50 bg-white/95 backdrop-blur-sm shadow-xl rounded-full hover:bg-gray-100 border border-white/20"
               onClick={() => setLocation("/")}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-gray-700" />
             </Button>
             
             {/* Header */}
-            <div className="flex items-center justify-center mb-6 pt-12">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-baby-pink-dark">Planos de Parto</h1>
+            <div className="flex items-center justify-between mb-6 pt-12">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">Planos de Parto</h1>
                 <p className="text-gray-600">Gerencie seus planos de parto</p>
               </div>
+              <Button
+                onClick={() => {
+                  resetForm();
+                  setActiveStep(0); // Começar do primeiro passo
+                  setViewMode('create');
+                }}
+                className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-xl border border-white/20 rounded-full px-6 py-2"
+                data-testid="button-create-plan"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Plano
+              </Button>
             </div>
-            <Button
-              onClick={() => {
-                resetForm();
-                setActiveStep(0); // Começar do primeiro passo
-                setViewMode('create');
-              }}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-              data-testid="button-create-plan"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Plano
-            </Button>
-          </div>
 
-          {/* Lista de planos */}
-          <div className="space-y-4">
+            {/* Lista de planos */}
+            <div className="space-y-4 max-w-4xl mx-auto">
             {birthPlansData?.birthPlan ? (
-              <Card className="border-pink-200/30 hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
+              <Card className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+                <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <FileText className="w-5 h-5 text-pink-600 mr-2" />
+                      <FileText className="w-5 h-5 text-pink-500 mr-2" />
                       <div>
-                        <CardTitle className="text-lg text-pink-700">
+                        <CardTitle className="text-lg text-gray-800">
                           Plano de Parto Principal
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
@@ -530,7 +529,7 @@ export default function BirthPlan() {
                         </p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-pink-100 text-pink-700">
+                    <Badge variant="secondary" className="bg-gradient-to-r from-pink-100 to-blue-100 text-pink-700 border border-pink-200/50">
                       <Calendar className="w-3 h-3 mr-1" />
                       Ativo
                     </Badge>
@@ -561,7 +560,7 @@ export default function BirthPlan() {
                     </div>
                     <div className="flex space-x-2">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => {
                           if (birthPlansData?.birthPlan) {
@@ -569,12 +568,13 @@ export default function BirthPlan() {
                             setViewMode('view');
                           }
                         }}
+                        className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-full"
                         data-testid="button-view-plan"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => {
                           if (birthPlansData?.birthPlan) {
@@ -583,14 +583,16 @@ export default function BirthPlan() {
                             setViewMode('edit');
                           }
                         }}
+                        className="h-8 w-8 p-0 text-pink-500 hover:text-pink-700 hover:bg-pink-100 rounded-full"
                         data-testid="button-edit-plan"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => birthPlansData?.birthPlan && handleGeneratePDF(birthPlansData.birthPlan as BirthPlan)}
+                        className="h-8 w-8 p-0 text-green-500 hover:text-green-700 hover:bg-green-100 rounded-full"
                         data-testid="button-download-plan"
                       >
                         <Download className="w-4 h-4" />
@@ -598,9 +600,9 @@ export default function BirthPlan() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="text-red-600 hover:text-red-700"
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full"
                             data-testid="button-delete-plan"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -629,10 +631,10 @@ export default function BirthPlan() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="border-dashed border-2 border-pink-200 bg-pink-50/30">
+              <Card className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl">
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                  <FileText className="w-16 h-16 text-pink-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  <FileText className="w-16 h-16 text-pink-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
                     Nenhum plano de parto encontrado
                   </h3>
                   <p className="text-gray-600 text-center mb-6">
@@ -644,7 +646,7 @@ export default function BirthPlan() {
                       setActiveStep(0); // Começar do primeiro passo
                       setViewMode('create');
                     }}
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                    className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-xl border border-white/20 rounded-full px-6 py-2"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Criar Primeiro Plano
@@ -663,43 +665,44 @@ export default function BirthPlan() {
   if (viewMode === 'view' && selectedPlan) {
     return (
       <AnimatedBackground>
-        <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+        <div className="min-h-screen pb-20">
           <div className="container mx-auto px-4 py-6">
             {/* Botão de Voltar */}
             <Button
               variant="ghost"
               size="icon"
-              className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              className="fixed top-4 left-4 z-50 bg-white/95 backdrop-blur-sm shadow-xl rounded-full hover:bg-gray-100 border border-white/20"
               onClick={() => setViewMode('list')}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-gray-700" />
             </Button>
             
             {/* Header */}
-            <div className="flex items-center justify-center mb-6 pt-12">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-baby-pink-dark">Plano de Parto</h1>
+            <div className="flex items-center justify-between mb-6 pt-12">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">Plano de Parto</h1>
                 <p className="text-gray-600">Visualizar detalhes</p>
               </div>
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setViewMode('edit')}
-                data-testid="button-edit"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </Button>
-              <Button
-                onClick={() => handleGeneratePDF(selectedPlan)}
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                data-testid="button-download"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
-              </Button>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setViewMode('edit')}
+                  className="border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl"
+                  data-testid="button-edit"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar
+                </Button>
+                <Button
+                  onClick={() => handleGeneratePDF(selectedPlan)}
+                  className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-xl border border-white/20 rounded-xl"
+                  data-testid="button-download"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
             </div>
           </div>
 

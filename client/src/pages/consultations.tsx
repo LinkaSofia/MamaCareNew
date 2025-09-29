@@ -229,42 +229,42 @@ export default function Consultations() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
+      <div className="min-h-screen pb-20">
         <div className="container mx-auto px-4 pt-6 pb-20">
           {/* Botão de Voltar */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setLocation("/")}
-            className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+            className="fixed top-4 left-4 z-50 bg-white/95 backdrop-blur-sm shadow-xl rounded-full hover:bg-gray-100 border border-white/20"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
           </Button>
           
           {/* Header */}
           <div className="flex items-center justify-between mb-6 pt-12">
-            <h1 className="text-2xl font-bold text-gray-800">Consultas</h1>
-          <Button
-            onClick={() => setShowAddForm(true)}
-            className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nova
-          </Button>
-        </div>
+            <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">Consultas</h1>
+            <Button
+              onClick={() => setShowAddForm(true)}
+              className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-xl border border-white/20 rounded-full px-6 py-2"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nova
+            </Button>
+          </div>
 
         {/* Upcoming Consultations */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-blue-500" />
+        <Card className="mb-6 bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-gray-800">
+              <Calendar className="mr-2 h-5 w-5 text-pink-500" />
               Próximas Consultas
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {upcoming.map((consultation) => (
-                <div key={consultation.id} className="p-4 bg-gray-50 rounded-lg border">
+                <div key={consultation.id} className="p-4 bg-gradient-to-r from-pink-50 to-blue-50 rounded-xl border border-pink-200/50 shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-800">{consultation.title}</h3>
@@ -307,7 +307,7 @@ export default function Consultations() {
                           setEditingId(consultation.id);
                           setShowAddForm(true);
                         }}
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 text-pink-500 hover:text-pink-700 hover:bg-pink-100 rounded-full"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -315,7 +315,7 @@ export default function Consultations() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteClick(consultation)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -324,7 +324,11 @@ export default function Consultations() {
                 </div>
               ))}
               {upcoming.length === 0 && (
-                <p className="text-gray-500 text-center py-8">Nenhuma consulta agendada</p>
+                <div className="text-center py-12">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">Nenhuma consulta agendada</p>
+                  <p className="text-gray-400 text-sm mt-2">Clique em "Nova" para adicionar uma consulta</p>
+                </div>
               )}
             </div>
           </CardContent>
@@ -334,9 +338,9 @@ export default function Consultations() {
       {/* Add consultation modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle className="text-gray-800">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-gray-800 text-xl">
                 {editingId ? 'Editar Consulta' : 'Nova Consulta'}
               </CardTitle>
             </CardHeader>
@@ -427,13 +431,13 @@ export default function Consultations() {
                     type="button" 
                     variant="outline"
                     onClick={resetForm}
-                    className="flex-1"
+                    className="flex-1 border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     type="submit" 
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-lg rounded-xl"
                     disabled={addConsultationMutation.isPending || updateConsultationMutation.isPending}
                   >
                     {(addConsultationMutation.isPending || updateConsultationMutation.isPending) ? (

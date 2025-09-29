@@ -141,6 +141,8 @@ export default function Diary() {
   const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<DiaryEntry | null>(null);
   
   // Form data
   const [formData, setFormData] = useState({
@@ -463,6 +465,24 @@ export default function Diary() {
       week: entry.week?.toString() || "",
     });
     setShowAddForm(true);
+  };
+
+  const handleDeleteClick = (entry: DiaryEntry) => {
+    setEntryToDelete(entry);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (entryToDelete) {
+      deleteEntryMutation.mutate(entryToDelete.id);
+      setShowDeleteModal(false);
+      setEntryToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setEntryToDelete(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -901,7 +921,7 @@ export default function Diary() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => deleteEntryMutation.mutate(entry.id)}
+                              onClick={() => handleDeleteClick(entry)}
                               className="text-red-500 hover:text-red-700 h-8 w-8"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -1684,6 +1704,47 @@ export default function Diary() {
               </form>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Modal de confirmação de exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                Excluir Entrada
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Tem certeza que deseja excluir esta entrada do diário? Esta ação não pode ser desfeita.
+              </p>
+              <div className="flex space-x-3">
+                <Button
+                  onClick={cancelDelete}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  data-testid="button-cancel-delete"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={confirmDelete}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={deleteEntryMutation.isPending}
+                  data-testid="button-confirm-delete"
+                >
+                  {deleteEntryMutation.isPending ? (
+                    <LoadingSpinner size="sm" className="mr-2" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
+                  Excluir
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

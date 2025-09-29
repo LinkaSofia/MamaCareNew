@@ -454,12 +454,12 @@ export class DatabaseStorage implements IStorage {
     console.log("📊 Updating weight entry:", id, updates);
     
     // Atualizar a entrada
-    await db.update(weightEntries)
+    await db.update(weightRecords)
       .set(updates)
-      .where(eq(weightEntries.id, id));
+      .where(eq(weightRecords.id, id));
     
     // Buscar e retornar a entrada atualizada
-    const result = await db.select().from(weightEntries).where(eq(weightEntries.id, id));
+    const result = await db.select().from(weightRecords).where(eq(weightRecords.id, id));
     if (result.length === 0) {
       throw new Error("Weight entry not found after update");
     }
@@ -472,13 +472,13 @@ export class DatabaseStorage implements IStorage {
     console.log("🗑️ Deleting weight entry:", id);
     
     // Buscar a entrada antes de deletar para retornar o ID
-    const result = await db.select().from(weightEntries).where(eq(weightEntries.id, id));
+    const result = await db.select().from(weightRecords).where(eq(weightRecords.id, id));
     if (result.length === 0) {
       throw new Error("Weight entry not found");
     }
     
     // Deletar a entrada
-    await db.delete(weightEntries).where(eq(weightEntries.id, id));
+    await db.delete(weightRecords).where(eq(weightRecords.id, id));
     
     console.log("✅ Weight entry deleted successfully:", id);
     return { id };

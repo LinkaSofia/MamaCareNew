@@ -1203,15 +1203,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/weight-entries/:id", requireAuth, async (req, res) => {
     try {
-      console.log("🗑️ Weight entry delete request:", req.params.id);
+      console.log("🗑️ Weight entry delete request - ID:", req.params.id, "Type:", typeof req.params.id);
       
       const userId = req.session.userId!;
       const pregnancy = await storage.getActivePregnancy(userId);
       
       if (!pregnancy) {
+        console.log("❌ No active pregnancy found for user:", userId);
         return res.status(404).json({ error: "No active pregnancy found" });
       }
 
+      console.log("🗑️ Calling storage.deleteWeightEntry with ID:", req.params.id);
       const result = await storage.deleteWeightEntry(req.params.id);
       console.log("🗑️ Weight entry deleted successfully:", result);
       
