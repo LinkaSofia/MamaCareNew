@@ -331,7 +331,10 @@ export default function Login() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setShowForgotPassword(true)}
+                    onClick={() => {
+                      setForgotPasswordEmail(email); // Preenche automaticamente com o email do login
+                      setShowForgotPassword(true);
+                    }}
                     className="text-sm text-pink-500 hover:text-pink-600"
                     data-testid="button-forgot-password"
                   >

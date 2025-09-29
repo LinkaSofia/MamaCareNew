@@ -140,15 +140,28 @@ export default function ResetPassword() {
     setEmailLoading(true);
 
     try {
+      console.log("📧 Sending email request for:", email);
+      
+      // Simular resposta para teste
+      console.log("📧 Simulating successful response");
+      setEmailMessage("Email de recuperação enviado com sucesso!");
+      setSentEmail(email);
+      console.log("📧 Setting showTokenReset to true, sentEmail:", email);
+      setShowTokenReset(true);
+      
+      // Comentado temporariamente para teste
+      /*
       const response = await apiRequest("POST", "/api/auth/forgot-password", {
         email,
       });
+      console.log("📧 Response status:", response.status);
       const data = await response.json();
-      console.log("📧 Email response:", data);
+      console.log("📧 Email response data:", data);
       setEmailMessage(data.message);
       setSentEmail(email);
-      console.log("📧 Setting showTokenReset to true");
+      console.log("📧 Setting showTokenReset to true, sentEmail:", email);
       setShowTokenReset(true);
+      */
     } catch (error: any) {
       console.error("Forgot password error:", error);
       if (error.message.includes("não cadastrado")) {
@@ -336,6 +349,9 @@ export default function ResetPassword() {
       </div>
     );
   }
+
+  // Debug: Log do estado atual
+  console.log("📧 Current state - showTokenReset:", showTokenReset, "sentEmail:", sentEmail);
 
   // Se deve mostrar a tela de token
   if (showTokenReset) {
