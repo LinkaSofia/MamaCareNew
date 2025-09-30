@@ -95,6 +95,22 @@ export default function Consultations() {
     setShowAddForm(false);
   };
 
+  const handleDeleteClick = (consultation: Consultation) => {
+    setConsultationToDelete(consultation);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (consultationToDelete) {
+      deleteConsultationMutation.mutate(consultationToDelete.id);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setConsultationToDelete(null);
+  };
+
   const addConsultationMutation = useMutation({
     mutationFn: async (consultation: any) => {
       const response = await apiRequest("POST", "/api/consultations", consultation);
@@ -161,22 +177,6 @@ export default function Consultations() {
       });
     },
   });
-
-  const handleDeleteClick = (consultation: Consultation) => {
-    setConsultationToDelete(consultation);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    if (consultationToDelete) {
-      deleteConsultationMutation.mutate(consultationToDelete.id);
-    }
-  };
-
-  const cancelDelete = () => {
-    setShowDeleteModal(false);
-    setConsultationToDelete(null);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -451,6 +451,45 @@ export default function Consultations() {
               </form>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Modal de confirmação de exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                Excluir Consulta
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Tem certeza que deseja excluir esta consulta? Esta ação não pode ser desfeita.
+              </p>
+              <div className="flex space-x-3">
+                <Button
+                  onClick={cancelDelete}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={confirmDelete}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={deleteConsultationMutation.isPending}
+                >
+                  {deleteConsultationMutation.isPending ? (
+                    <LoadingSpinner size="sm" className="mr-2" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
+                  Excluir
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

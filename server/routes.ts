@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -31,6 +31,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
   }));
+
+  // Servir arquivos estáticos do diretório public
+  app.use(express.static(path.join(process.cwd(), 'client/public')));
   
   // Endpoint de debug para verificar sessão
   app.get("/api/debug/session", (req, res) => {
