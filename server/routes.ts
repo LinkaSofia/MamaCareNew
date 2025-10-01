@@ -706,28 +706,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Buscar usuário real no banco
-      let user = await storage.getUserByEmail(email);
+      const user = await storage.getUserByEmail(email);
       if (!user) {
-        // WORKAROUND: Como há problema na inserção no Supabase, vamos simular que o usuário existe
-        // para permitir teste do sistema de recuperação de senha
-        console.log("⚠️  User not found in DB, using simulation for email recovery");
-        user = { 
-          id: randomUUID(), 
-          email: email, 
-          name: "Usuário Simulado",
-          password: "temp-hash",
-          profilePhotoUrl: null,
-          birthDate: null
-        };
-      } else {
-        console.log("📧 Found real user:", user.email);
+        console.log("❌ User not found in DB:", email);
+        return res.status(404).json({ 
+          error: "Email não cadastrado no sistema. Verifique o endereço ou crie uma conta." 
+        });
       }
+      
+      console.log("📧 Found real user:", user.email);
 
       // Gerar token de reset com 4 números
       const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
       const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hora
 
-      await storage.setPasswordResetToken(user!.id as string, resetToken, resetTokenExpires);
+      await storage.setPasswordResetToken(user.id as string, resetToken, resetTokenExpires);
 
       // Enviar email - em desenvolvimento, simular sempre sucesso
       try {

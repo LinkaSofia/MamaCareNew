@@ -62,6 +62,7 @@ function AnimatedBackground() {
   );
 }
 
+// Cache buster - v4.0 - Modern design with forced blue colors
 export default function ResetPassword() {
   const [, setLocation] = useLocation();
   const [token, setToken] = useState("");
@@ -90,6 +91,8 @@ export default function ResetPassword() {
       setIsResetMode(true);
     } else if (emailFromUrl) {
       setEmail(decodeURIComponent(emailFromUrl));
+      setSentEmail(decodeURIComponent(emailFromUrl));
+      setShowTokenReset(true); // Mostrar tela de token quando vem do login
       setIsResetMode(false);
     } else {
       setIsResetMode(false);
@@ -142,15 +145,6 @@ export default function ResetPassword() {
     try {
       console.log("📧 Sending email request for:", email);
       
-      // Simular resposta para teste
-      console.log("📧 Simulating successful response");
-      setEmailMessage("Email de recuperação enviado com sucesso!");
-      setSentEmail(email);
-      console.log("📧 Setting showTokenReset to true, sentEmail:", email);
-      setShowTokenReset(true);
-      
-      // Comentado temporariamente para teste
-      /*
       const response = await apiRequest("POST", "/api/auth/forgot-password", {
         email,
       });
@@ -161,7 +155,6 @@ export default function ResetPassword() {
       setSentEmail(email);
       console.log("📧 Setting showTokenReset to true, sentEmail:", email);
       setShowTokenReset(true);
-      */
     } catch (error: any) {
       console.error("Forgot password error:", error);
       if (error.message.includes("não cadastrado")) {
@@ -322,20 +315,21 @@ export default function ResetPassword() {
                   </div>
                 )}
 
-                <Button
+                <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90 text-white font-medium py-3"
+                  className="w-full !bg-blue-600 hover:!bg-blue-700 !text-white font-medium py-3 rounded-lg shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: '#2563eb', color: 'white' }}
                   data-testid="button-reset-password"
                 >
                   {loading ? "Redefinindo..." : "Redefinir Senha"}
-                </Button>
+                </button>
 
                 <div className="text-center">
                   <button
                     type="button"
                     onClick={() => setLocation("/login")}
-                    className="text-sm text-baby-pink-dark hover:underline flex items-center justify-center gap-1"
+                    className="text-sm text-gray-500 hover:text-gray-700 hover:underline flex items-center justify-center gap-1 transition-colors duration-200"
                     data-testid="button-back-to-login"
                   >
                     <ArrowLeft className="w-4 h-4" />
@@ -370,38 +364,52 @@ export default function ResetPassword() {
 
   // Modo solicitar email de recuperação
   return (
-    <AnimatedBackground>
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <Card className="w-full max-w-sm glass-effect shadow-xl">
-          <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-charcoal mb-2">Esqueci minha senha</h2>
-              <p className="text-gray-600 text-sm">Digite seu email para recuperar a senha</p>
-            </div>
+    <div className="min-h-screen relative flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <AnimatedBackground />
+      
+      {/* Logo e título */}
+      <div className="text-center mb-10 z-10">
+        <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+          <img
+            src={logoImage}
+            alt="MamaCare Logo"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <h1 className="text-4xl font-bold text-gray-800 mb-3">Esqueci minha senha</h1>
+        <p className="text-gray-600 text-lg">Digite seu email para receber as instruções de recuperação</p>
+      </div>
+
+      <Card className="w-full max-w-md bg-white/90 backdrop-blur-sm border border-white/30 rounded-2xl shadow-2xl z-10">
+        <CardContent className="p-8">
           {emailMessage && (
-            <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
-              <p className="text-blue-800 text-sm">{emailMessage}</p>
+            <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              <span className="text-sm font-medium">{emailMessage}</span>
             </div>
           )}
 
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div>
-              <Label className="text-charcoal font-medium">Email</Label>
-              <div className="relative mt-1">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <form onSubmit={handleEmailSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="email" className="text-gray-700 font-semibold text-base">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Digite seu email"
-                  className="pl-10"
+                  className="pl-12 h-12 text-base rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
                   required
                   data-testid="input-email"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
+                <p className="text-sm text-red-600 flex items-center mt-2">
+                  <AlertCircle className="h-4 w-4 mr-2" />
                   {errors.email}
                 </p>
               )}
@@ -416,30 +424,37 @@ export default function ResetPassword() {
               </div>
             )}
 
-            <Button
-              type="submit"
-              disabled={emailLoading}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white"
-              data-testid="button-send-email"
-            >
-              {emailLoading ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                "Enviar email de recuperação"
-              )}
-            </Button>
+            <div className="space-y-4">
+              <button
+                type="submit"
+                disabled={emailLoading}
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}
+                data-testid="button-send-email"
+              >
+                {emailLoading ? (
+                  <div className="flex items-center">
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    Enviando...
+                  </div>
+                ) : (
+                  "Enviar email de recuperação"
+                )}
+              </button>
 
-            <Button
-              onClick={() => setLocation("/login")}
-              className="w-full text-charcoal hover:bg-gray-100"
-              data-testid="button-back-to-login"
-            >
-              Voltar ao login
-            </Button>
+              <button
+                type="button"
+                onClick={() => setLocation("/login")}
+                className="w-full h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-base rounded-xl border border-gray-200 transition-all duration-200 flex items-center justify-center gap-2"
+                data-testid="button-back-to-login"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Voltar ao login
+              </button>
+            </div>
           </form>
         </CardContent>
       </Card>
-      </div>
-    </AnimatedBackground>
+    </div>
   );
 }

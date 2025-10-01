@@ -45,6 +45,8 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
   // Verificar se as credenciais do Gmail estão disponíveis
   console.log('📧 GMAIL_USER:', process.env.GMAIL_USER);
   console.log('📧 GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '***configurado***' : 'não configurado');
+  console.log('📧 NODE_ENV:', process.env.NODE_ENV);
+  console.log('📧 Todas as variáveis de ambiente:', Object.keys(process.env).filter(key => key.includes('GMAIL')));
   
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.log(`🔄 Email simulado para: ${email}`);
@@ -56,6 +58,9 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
   try {
     // Configuração específica para Gmail com as novas variáveis
     console.log('📧 Configurando Gmail SMTP para Mama Care');
+    console.log('📧 User:', process.env.GMAIL_USER);
+    console.log('📧 Pass length:', process.env.GMAIL_APP_PASSWORD?.length);
+    
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
@@ -70,7 +75,9 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
     });
 
     // Verificar conexão
+    console.log('📧 Verificando conexão SMTP...');
     await transporter.verify();
+    console.log('✅ Conexão SMTP verificada com sucesso!');
 
     const resetUrl = `${process.env.NODE_ENV === 'production' ? 'https://yourapp.replit.app' : 'http://localhost:5000'}/reset-password?token=${resetToken}`;
 
@@ -180,12 +187,14 @@ Mama Care - Cuidando de você e seu bebê 💕
       `
     };
 
+    console.log('📧 Enviando email...');
     await transporter.sendMail(mailOptions);
     console.log(`✅ Email enviado com sucesso para: ${email}`);
     return true;
 
   } catch (error: any) {
     console.error('❌ Erro ao enviar email:', error.message);
+    console.error('❌ Erro completo:', error);
     
     // Para desenvolvimento, simular sucesso mesmo com erro
     if (process.env.NODE_ENV === 'development') {

@@ -315,24 +315,48 @@ export function TokenReset({ email, onBack }: TokenResetProps) {
       <Card className="w-full max-w-sm glass-effect shadow-xl z-10">
         <CardContent className="p-6">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-charcoal mb-2">Seta o Token</h2>
-            <p className="text-sm text-gray-600">Token enviado para {email}</p>
+            <h2 className="text-xl font-semibold text-charcoal mb-2">Digite o Token</h2>
+            <p className="text-sm text-gray-600">Insira o código de 4 dígitos enviado para seu email</p>
           </div>
 
-          <form onSubmit={handleVerifyToken} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="token" className="text-charcoal font-medium">
-                Token de Recuperação
+          <form onSubmit={handleVerifyToken} className="space-y-6">
+            <div className="space-y-3">
+              <Label className="text-charcoal font-medium text-center block">
+                Código de Verificação
               </Label>
-              <Input
-                id="token"
-                type="text"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="Digite o token recebido no email"
-                className="text-center text-lg tracking-wider"
-                data-testid="input-reset-token"
-              />
+              
+              {/* Caixinhas para cada dígito */}
+              <div className="flex justify-center gap-3">
+                {[0, 1, 2, 3].map((index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    maxLength={1}
+                    value={token[index] || ''}
+                    onChange={(e) => {
+                      const newToken = token.split('');
+                      newToken[index] = e.target.value;
+                      setToken(newToken.join(''));
+                      
+                      // Auto-focus no próximo campo
+                      if (e.target.value && index < 3) {
+                        const nextInput = document.querySelector(`input[data-index="${index + 1}"]`) as HTMLInputElement;
+                        nextInput?.focus();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Voltar para o campo anterior ao pressionar backspace
+                      if (e.key === 'Backspace' && !token[index] && index > 0) {
+                        const prevInput = document.querySelector(`input[data-index="${index - 1}"]`) as HTMLInputElement;
+                        prevInput?.focus();
+                      }
+                    }}
+                    data-index={index}
+                    className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                    data-testid={`token-digit-${index}`}
+                  />
+                ))}
+              </div>
             </div>
 
             <Button 

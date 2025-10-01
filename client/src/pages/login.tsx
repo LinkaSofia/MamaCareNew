@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import logoImage from "@assets/4_1755308511005.png";
-import { Heart, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Heart, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function Login() {
@@ -119,9 +119,21 @@ export default function Login() {
       });
       const data = await response.json();
       setForgotPasswordMessage(data.message);
+      
+      // Redirecionar para a tela de inserção do código após 2 segundos
+      setTimeout(() => {
+        setLocation(`/reset-password?email=${encodeURIComponent(forgotPasswordEmail)}`);
+      }, 2000);
+      
     } catch (error: any) {
       console.error("Erro ao enviar email de recuperação:", error);
-      setForgotPasswordMessage("Erro ao enviar email. Tente novamente.");
+      
+      // Verificar se é erro de email não cadastrado
+      if (error.message && error.message.includes("não cadastrado")) {
+        setForgotPasswordMessage("Email não cadastrado no sistema. Verifique o endereço ou crie uma conta.");
+      } else {
+        setForgotPasswordMessage("Erro ao enviar email. Tente novamente.");
+      }
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -131,18 +143,35 @@ export default function Login() {
     return (
       <AnimatedBackground>
         <div className="min-h-screen flex flex-col items-center justify-center p-6">
-          <Card className="w-full max-w-sm glass-effect shadow-xl">
-            <CardContent className="p-6">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-charcoal mb-2">Esqueci minha senha</h2>
-                <p className="text-gray-600 text-sm">Digite seu email para recuperar a senha</p>
+          <div className="text-center mb-10">
+            <div className="mx-auto w-40 h-40 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+              <img 
+                src={logoImage} 
+                alt="Maternidade Logo" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <h1 className="text-4xl font-bold text-charcoal mb-3">Esqueci minha senha</h1>
+            <p className="text-gray-600 text-lg">Digite seu email para recuperar a senha</p>
+          </div>
+
+          <Card className="w-full max-w-md glass-effect shadow-2xl z-10">
+            <CardContent className="p-8">
+            {forgotPasswordMessage && (
+              <div className={`mb-4 p-3 rounded-lg border ${
+                forgotPasswordMessage.includes("não cadastrado") 
+                  ? "bg-red-50 border-red-200" 
+                  : "bg-blue-50 border-blue-200"
+              }`}>
+                <p className={`text-sm ${
+                  forgotPasswordMessage.includes("não cadastrado") 
+                    ? "text-red-800" 
+                    : "text-blue-800"
+                }`}>
+                  {forgotPasswordMessage}
+                </p>
               </div>
-              
-              {forgotPasswordMessage && (
-                <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
-                  <p className="text-blue-800 text-sm">{forgotPasswordMessage}</p>
-                </div>
-              )}
+            )}
               
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div>
@@ -163,7 +192,7 @@ export default function Login() {
                 <Button
                   type="submit"
                   disabled={forgotPasswordLoading}
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-white"
+                  className="w-full bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90 text-white font-medium py-3"
                 >
                   {forgotPasswordLoading ? (
                     <LoadingSpinner size="sm" />
@@ -175,7 +204,7 @@ export default function Login() {
               
               <Button
                 onClick={() => setShowForgotPassword(false)}
-                className="w-full text-charcoal hover:bg-gray-100"
+                className="w-full text-charcoal hover:bg-gray-100 mt-4"
                 data-testid="button-back-to-login"
               >
                 Voltar ao login
@@ -332,7 +361,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => {
-                      setForgotPasswordEmail(email); // Preenche automaticamente com o email do login
+                      setForgotPasswordEmail(formData.email); // Preenche automaticamente com o email do login
                       setShowForgotPassword(true);
                     }}
                     className="text-sm text-pink-500 hover:text-pink-600"
