@@ -1420,7 +1420,7 @@ export class DatabaseStorage implements IStorage {
       LIMIT ${limit}
     `));
     
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       userId: row.user_id,
       sessionId: row.session_id,
@@ -1496,7 +1496,10 @@ export class DatabaseStorage implements IStorage {
 
   async createMedicalArticle(article: InsertMedicalArticle): Promise<MedicalArticle> {
     const result = await db.insert(medicalArticles)
-      .values(article)
+      .values({
+        ...article,
+        tags: Array.isArray(article.tags) ? article.tags : []
+      })
       .returning();
     return result[0];
   }
@@ -1510,7 +1513,7 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("🏥 Creating medical articles table...");
       
-      await client.execute(`
+      await client.query(`
         CREATE TABLE IF NOT EXISTS medical_articles (
           id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
           week INTEGER NOT NULL,
