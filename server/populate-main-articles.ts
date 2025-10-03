@@ -32,7 +32,7 @@ const mainArticlesData = [
     category: "nutrition",
     importance: "high",
     readingTime: 5,
-    tags: JSON.stringify(["nutrição", "alimentação", "saúde"])
+    tags: ["nutrição", "alimentação", "saúde"]
   },
   {
     week: 12,
@@ -64,7 +64,7 @@ Sempre consulte seu médico antes de iniciar qualquer atividade física.`,
     category: "exercise",
     importance: "high",
     readingTime: 4,
-    tags: JSON.stringify(["exercícios", "atividade física", "bem-estar"])
+    tags: ["exercícios", "atividade física", "bem-estar"]
   },
   {
     week: 16,
@@ -95,7 +95,7 @@ Este é um período de grande crescimento e desenvolvimento!`,
     category: "development",
     importance: "high",
     readingTime: 4,
-    tags: JSON.stringify(["desenvolvimento", "ultrassom", "segundo trimestre"])
+    tags: ["desenvolvimento", "ultrassom", "segundo trimestre"]
   },
   {
     week: 20,
@@ -130,7 +130,7 @@ Este é um período de grande crescimento e desenvolvimento!`,
     category: "birth",
     importance: "high",
     readingTime: 6,
-    tags: JSON.stringify(["parto", "preparação", "trabalho de parto"])
+    tags: ["parto", "preparação", "trabalho de parto"]
   },
   {
     week: 24,
@@ -167,7 +167,7 @@ O diagnóstico precoce é fundamental para a saúde da mãe e do bebê.`,
     category: "health",
     importance: "high",
     readingTime: 5,
-    tags: JSON.stringify(["diabetes", "glicose", "prevenção"])
+    tags: ["diabetes", "glicose", "prevenção"]
   }
 ];
 

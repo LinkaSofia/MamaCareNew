@@ -1510,7 +1510,7 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("🏥 Creating medical articles table...");
       
-      await client.query(`
+      await client.execute(`
         CREATE TABLE IF NOT EXISTS medical_articles (
           id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
           week INTEGER NOT NULL,
