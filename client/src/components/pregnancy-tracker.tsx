@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Baby3D from "@/components/Baby3D";
+import { API_CONFIG } from "@/lib/apiConfig";
 import { 
   ArrowLeft, 
   Baby, 
@@ -253,7 +254,11 @@ export default function PregnancyTracker({ onBack }: PregnancyTrackerProps) {
                   showInfo={true}
                   animate={true}
                   showSizeComparison={true}
-                  babyImageUrl={development?.baby_image_url ?? undefined}
+                  babyImageUrl={development?.baby_image_url ? 
+                    (development.baby_image_url.startsWith('http') ? 
+                      development.baby_image_url : 
+                      `${API_CONFIG.BASE_URL}/api/baby-development/image/${development.week}`) : 
+                    undefined}
                   fruitImageUrl={development?.fruit_image_url ?? undefined}
                   developmentData={development ? {
                     length_cm: typeof development.length_cm === 'string' ? parseFloat(development.length_cm) || 0 : development.length_cm || 0,

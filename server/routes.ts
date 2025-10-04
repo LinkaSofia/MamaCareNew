@@ -35,6 +35,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Servir arquivos estáticos do diretório public
   app.use(express.static(path.join(process.cwd(), 'client/public')));
   
+  // Endpoint para servir imagens do desenvolvimento do bebê
+  app.get("/api/baby-development/image/:week", async (req, res) => {
+    try {
+      const week = parseInt(req.params.week);
+      if (isNaN(week)) {
+        return res.status(400).json({ error: "Week must be a number" });
+      }
+
+      const result = await db.select().from(babyDevelopment).where(eq(babyDevelopment.week, week)).limit(1);
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Week not found" });
+      }
+
+      const babyDev = result[0];
+      
+      if (!babyDev.baby_image_url) {
+        return res.status(404).json({ error: "Image not found for this week" });
+      }
+
+      // Construir o caminho para o arquivo de imagem
+      const imagePath = path.join(process.cwd(), 'client/src/assets', babyDev.baby_image_url);
+      
+      // Verificar se o arquivo existe
+      if (!fs.existsSync(imagePath)) {
+        return res.status(404).json({ error: "Image file not found" });
+      }
+
+      // Detectar o tipo de imagem baseado na extensão
+      const ext = path.extname(babyDev.baby_image_url).toLowerCase();
+      let mimeType = 'image/png';
+      if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+      else if (ext === '.gif') mimeType = 'image/gif';
+      else if (ext === '.webp') mimeType = 'image/webp';
+
+      // Servir o arquivo de imagem
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache por 1 ano
+      res.sendFile(imagePath);
+    } catch (error) {
+      console.error("Error serving baby development image:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
   // Endpoint de debug para verificar sessão
   app.get("/api/debug/session", (req, res) => {
     res.json({
