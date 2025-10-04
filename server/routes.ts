@@ -56,7 +56,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Se a URL já é completa (Supabase), redirecionar diretamente
-      if (babyDev.baby_image_url.startsWith('http')) {
+      if (babyDev.baby_image_url && babyDev.baby_image_url.startsWith('http')) {
+        console.log("🔄 Redirecting to Supabase URL:", babyDev.baby_image_url);
         return res.redirect(babyDev.baby_image_url);
       }
       
