@@ -51,7 +51,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const babyDev = result[0];
       
+      console.log("🔍 Baby dev data:", {
+        week: babyDev.week,
+        baby_image_url: babyDev.baby_image_url,
+        url_type: typeof babyDev.baby_image_url,
+        starts_with_http: babyDev.baby_image_url?.startsWith('http')
+      });
+      
       if (!babyDev.baby_image_url) {
+        console.log("❌ No baby_image_url found");
         return res.status(404).json({ error: "Image not found for this week" });
       }
 
@@ -60,6 +68,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("🔄 Redirecting to Supabase URL:", babyDev.baby_image_url);
         return res.redirect(babyDev.baby_image_url);
       }
+      
+      console.log("📁 Trying local file path for:", babyDev.baby_image_url);
       
       // Construir o caminho para o arquivo de imagem local
       const imagePath = path.join(process.cwd(), 'client/public/baby-images', babyDev.baby_image_url);
