@@ -55,8 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Image not found for this week" });
       }
 
-      // Construir o caminho para o arquivo de imagem
-      const imagePath = path.join(process.cwd(), 'client/src/assets', babyDev.baby_image_url);
+      // Construir o caminho para o arquivo de imagem (usar public em vez de src)
+      const imagePath = path.join(process.cwd(), 'client/public/baby-images', babyDev.baby_image_url);
       
       // Verificar se o arquivo existe
       if (!fs.existsSync(imagePath)) {
