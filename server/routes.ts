@@ -91,6 +91,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Endpoint de debug para verificar dados do baby development
+  app.get("/api/debug/baby-development/:week", async (req, res) => {
+    try {
+      const week = parseInt(req.params.week);
+      const result = await db.select().from(babyDevelopment).where(eq(babyDevelopment.week, week)).limit(1);
+      
+      res.json({
+        week,
+        found: result.length > 0,
+        data: result[0] || null,
+        imagePath: result[0] ? path.join(process.cwd(), 'client/src/assets', result[0].baby_image_url || '') : null,
+        imageExists: result[0] ? fs.existsSync(path.join(process.cwd(), 'client/src/assets', result[0].baby_image_url || '')) : false
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Endpoint público para verificar comparações (sem auth)
   app.get("/api/public/baby-development/comparisons", async (req, res) => {
     try {
