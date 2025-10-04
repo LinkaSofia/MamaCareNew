@@ -55,7 +55,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Image not found for this week" });
       }
 
-      // Construir o caminho para o arquivo de imagem (usar public em vez de src)
+      // Se a URL já é completa (Supabase), redirecionar diretamente
+      if (babyDev.baby_image_url.startsWith('http')) {
+        return res.redirect(babyDev.baby_image_url);
+      }
+      
+      // Construir o caminho para o arquivo de imagem local
       const imagePath = path.join(process.cwd(), 'client/public/baby-images', babyDev.baby_image_url);
       
       // Verificar se o arquivo existe
