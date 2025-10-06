@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Cache-Control', 'Pragma']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Cache-Control', 'Pragma', 'Expires']
   }));
 
   // Servir arquivos estáticos do diretório public
