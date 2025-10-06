@@ -26,7 +26,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Configurar CORS para permitir cookies
   app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: [
+      'http://localhost:3000', 
+      'http://localhost:5173',
+      'https://splendorous-rabanadas-6fe8f2.netlify.app',
+      'https://joyful-bavarois-e44cbe.netlify.app'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
