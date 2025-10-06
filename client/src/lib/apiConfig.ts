@@ -2,7 +2,13 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (import.meta.env.PROD 
     ? 'https://mamacarenew.onrender.com' 
-    : 'http://localhost:3000');
+    : 'http://localhost:5000');
+
+console.log('🔧 API Config:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  PROD: import.meta.env.PROD,
+  API_BASE_URL
+});
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
