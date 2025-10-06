@@ -1,4 +1,6 @@
 // Gerenciador de autenticação sem React Context
+import { API_CONFIG } from "./apiConfig";
+
 export interface User {
   id: string;
   email: string;
@@ -18,7 +20,7 @@ class AuthManager {
   private async checkAuth() {
     try {
       console.log("🔍 Checking authentication...");
-      const response = await fetch("/api/auth/me", {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/me`, {
         credentials: "include",
         cache: "no-cache",
         headers: {
@@ -46,7 +48,7 @@ class AuthManager {
   }
 
   async login(email: string, password: string): Promise<void> {
-    const response = await fetch("/api/auth/login", {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -73,7 +75,7 @@ class AuthManager {
   }
 
   async register(email: string, password: string, name: string): Promise<void> {
-    const response = await fetch("/api/auth/register", {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -92,7 +94,7 @@ class AuthManager {
   }
 
   async logout(): Promise<void> {
-    await fetch("/api/auth/logout", {
+    await fetch(`${API_CONFIG.BASE_URL}/api/auth/logout`, {
       method: "POST",
       credentials: "include",
       headers: {
