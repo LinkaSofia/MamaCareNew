@@ -581,6 +581,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const FileStoreSession = FileStore(session);
   
   // Session middleware for authentication
+  // Configuração de sessão adaptada para produção e desenvolvimento
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   app.use(session({
     secret: process.env.SESSION_SECRET || "maternity-app-secret-key-for-mama-care-app-v2",
     store: new FileStoreSession({
@@ -593,12 +596,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false, 
     saveUninitialized: false,
     cookie: { 
-      secure: false, // Allow non-HTTPS in development
+      secure: isProduction, // true em produção (HTTPS), false em dev
       httpOnly: true, 
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax' // Allow same-site requests
+      sameSite: isProduction ? 'none' : 'lax', // 'none' para cross-domain HTTPS em produção
+      domain: isProduction ? undefined : undefined // Deixar o navegador decidir
     },
-    name: 'mama-care-session-v2' // Force new session cookie
+    name: 'mama-care-session-v2', // Force new session cookie
+    proxy: isProduction // Confiar em proxy reverso em produção
   }));
 
   // Authentication middleware
