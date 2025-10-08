@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,40 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function PregnancySetup() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [checkingPregnancy, setCheckingPregnancy] = useState(true);
+  
+  // Verificar se já tem gravidez cadastrada
+  useEffect(() => {
+    const checkExistingPregnancy = async () => {
+      try {
+        const response = await fetch("/api/pregnancy", {
+          credentials: "include",
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.isActive) {
+            // Já tem gravidez cadastrada, redirecionar para dashboard
+            console.log("✅ Pregnancy already exists, redirecting to dashboard");
+            setLocation("/");
+            return;
+          }
+        }
+      } catch (error) {
+        console.log("No existing pregnancy found:", error);
+      } finally {
+        setCheckingPregnancy(false);
+      }
+    };
+    
+    checkExistingPregnancy();
+  }, [setLocation]);
   const [formData, setFormData] = useState({
     lastMenstrualPeriod: "",
     dueDate: "",
@@ -71,6 +100,15 @@ export default function PregnancySetup() {
       setLoading(false);
     }
   };
+
+  // Mostrar loading enquanto verifica
+  if (checkingPregnancy) {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-bg">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 gradient-bg relative">
