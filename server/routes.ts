@@ -29,6 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     origin: [
       'http://localhost:3000', 
       'http://localhost:5173',
+      'https://friendly-alpaca-bf0d68.netlify.app',
       'https://splendorous-rabanadas-6fe8f2.netlify.app',
       'https://joyful-bavarois-e44cbe.netlify.app'
     ],

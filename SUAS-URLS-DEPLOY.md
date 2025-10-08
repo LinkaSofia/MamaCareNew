@@ -7,6 +7,12 @@
 ✅ Arquivo `netlify.toml` já está configurado com essa URL
 ✅ Arquivo `client/src/lib/apiConfig.ts` já está configurado
 
+## ✅ Frontend (Netlify) - CONFIGURADO
+
+**URL do Frontend:** https://friendly-alpaca-bf0d68.netlify.app
+
+✅ Arquivo `server/routes.ts` já está configurado com essa URL no CORS
+
 ---
 
 ## 🚀 PRÓXIMOS PASSOS
@@ -65,34 +71,19 @@ https://random-name-123456.netlify.app
 
 ---
 
-### 4️⃣ Adicionar URL do Netlify no CORS
+### 4️⃣ ✅ URL do Netlify adicionada no CORS
 
-Abra o arquivo `server/routes.ts` e adicione a URL do Netlify na linha 29:
+✅ **JÁ CONFIGURADO!** A URL `https://friendly-alpaca-bf0d68.netlify.app` foi adicionada no CORS.
 
-```typescript
-app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://localhost:5173',
-    'https://sua-url-aqui.netlify.app',  // ← ADICIONE SUA URL DO NETLIFY AQUI
-    'https://splendorous-rabanadas-6fe8f2.netlify.app',
-    'https://joyful-bavarois-e44cbe.netlify.app'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Cache-Control', 'Pragma', 'Expires']
-}));
-```
-
-Depois faça commit e push:
+Agora faça commit e push:
 
 ```bash
-git add server/routes.ts
-git commit -m "Add Netlify URL to CORS"
+git add .
+git commit -m "Add Netlify URL to CORS and update all configs"
 git push
 ```
 
-O Render vai fazer redeploy automático!
+O Render vai fazer redeploy automático em 2-3 minutos!
 
 ---
 
@@ -101,8 +92,8 @@ O Render vai fazer redeploy automático!
 Depois de todos os passos, seu app estará completamente no ar!
 
 **URLs finais:**
-- **Frontend (Netlify):** [Preencher após deploy do Netlify]
-- **Backend (Render):** https://mamacare-w5ir.onrender.com
+- **Frontend (Netlify):** https://friendly-alpaca-bf0d68.netlify.app ✅
+- **Backend (Render):** https://mamacare-w5ir.onrender.com ✅
 - **Database (Supabase):** Já configurado ✅
 
 ---
@@ -112,12 +103,14 @@ Depois de todos os passos, seu app estará completamente no ar!
 - [x] Backend no Render configurado
 - [x] `netlify.toml` atualizado
 - [x] `apiConfig.ts` atualizado
-- [ ] Commit e push das alterações
-- [ ] Frontend no Netlify configurado
-- [ ] URL do Netlify adicionada no CORS
-- [ ] Testado: registro de usuário
-- [ ] Testado: login
-- [ ] Testado: funcionalidades principais
+- [x] Frontend no Netlify configurado
+- [x] URL do Netlify adicionada no CORS
+- [ ] **FAZER AGORA:** Commit e push das alterações
+- [ ] Aguardar redeploy do Render (2-3 min)
+- [ ] Testar: abrir https://friendly-alpaca-bf0d68.netlify.app
+- [ ] Testar: registro de usuário
+- [ ] Testar: login
+- [ ] Testar: funcionalidades principais
 
 ---
 
