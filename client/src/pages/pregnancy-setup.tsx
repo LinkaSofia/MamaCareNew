@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { API_CONFIG } from "@/lib/apiConfig";
 
 export default function PregnancySetup() {
   const [, setLocation] = useLocation();
@@ -23,7 +24,7 @@ export default function PregnancySetup() {
   useEffect(() => {
     const checkExistingPregnancy = async () => {
       try {
-        const response = await fetch("/api/pregnancy", {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/pregnancy`, {
           credentials: "include",
         });
         
