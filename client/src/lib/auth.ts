@@ -68,10 +68,39 @@ class AuthManager {
     this.notifyListeners();
     
     console.log("✅ Login successful, user:", this.user);
-    // Redirecionar para dashboard diretamente
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 200);
+    
+    // Verificar se usuário tem gravidez cadastrada
+    try {
+      const pregnancyResponse = await fetch(`${API_CONFIG.BASE_URL}/api/pregnancy`, {
+        credentials: "include",
+      });
+      
+      if (pregnancyResponse.ok) {
+        const pregnancyData = await pregnancyResponse.json();
+        // Se tem gravidez ativa, vai para dashboard
+        if (pregnancyData && pregnancyData.isActive) {
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 200);
+        } else {
+          // Se não tem gravidez, vai para setup
+          setTimeout(() => {
+            window.location.href = "/setup";
+          }, 200);
+        }
+      } else {
+        // Se erro ao buscar gravidez, vai para setup
+        setTimeout(() => {
+          window.location.href = "/setup";
+        }, 200);
+      }
+    } catch (error) {
+      console.log("Error checking pregnancy, redirecting to setup:", error);
+      // Em caso de erro, vai para setup
+      setTimeout(() => {
+        window.location.href = "/setup";
+      }, 200);
+    }
   }
 
   async register(email: string, password: string, name: string): Promise<void> {

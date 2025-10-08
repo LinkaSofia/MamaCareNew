@@ -30,7 +30,7 @@ export default function Setup() {
         title: "Sucesso!",
         description: "Perfil atualizado com sucesso!",
       });
-      setLocation("/");
+      setLocation("/pregnancy-setup");
     },
     onError: () => {
       toast({
@@ -69,7 +69,7 @@ export default function Setup() {
   };
 
   const handleSkip = () => {
-    setLocation("/");
+    setLocation("/pregnancy-setup");
   };
 
   return (
