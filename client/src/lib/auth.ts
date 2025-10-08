@@ -83,22 +83,22 @@ class AuthManager {
             window.location.href = "/";
           }, 200);
         } else {
-          // Se não tem gravidez, vai para setup
+          // Se não tem gravidez, vai DIRETO para pregnancy-setup
           setTimeout(() => {
-            window.location.href = "/setup";
+            window.location.href = "/pregnancy-setup";
           }, 200);
         }
       } else {
-        // Se erro ao buscar gravidez, vai para setup
+        // Se erro ao buscar gravidez, vai DIRETO para pregnancy-setup
         setTimeout(() => {
-          window.location.href = "/setup";
+          window.location.href = "/pregnancy-setup";
         }, 200);
       }
     } catch (error) {
-      console.log("Error checking pregnancy, redirecting to setup:", error);
-      // Em caso de erro, vai para setup
+      console.log("Error checking pregnancy, redirecting to pregnancy-setup:", error);
+      // Em caso de erro, vai DIRETO para pregnancy-setup
       setTimeout(() => {
-        window.location.href = "/setup";
+        window.location.href = "/pregnancy-setup";
       }, 200);
     }
   }

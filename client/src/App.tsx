@@ -59,7 +59,7 @@ function Router() {
         <Route path="/reset-password" component={ResetPassword} />
         <Route path="/forgot-password" component={ResetPassword} />
         <Route path="/pregnancy-setup" component={PregnancySetup} />
-        <Route path="/setup" component={Setup} />
+        {/* <Route path="/setup" component={Setup} /> */} {/* REMOVIDO - Vai direto para pregnancy-setup */}
         
         {/* Páginas principais com layout */}
         <Route path="/" component={Dashboard} />

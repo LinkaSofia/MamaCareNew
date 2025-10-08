@@ -189,7 +189,7 @@ export default function Dashboard() {
   }
 
   if (!pregnancy) {
-    setLocation("/setup");
+    setLocation("/pregnancy-setup");
     return null;
   }
 
