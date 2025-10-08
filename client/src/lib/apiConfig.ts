@@ -1,12 +1,12 @@
 // Configuração da API baseada no ambiente
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (import.meta.env.PROD 
-    ? 'https://mamacarenew.onrender.com' 
+    ? 'https://mamacare-w5ir.onrender.com' 
     : 'http://localhost:5000');
 
 // Forçar URL do Render em produção se a variável não estiver definida
 const FINAL_API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL 
-  ? 'https://mamacarenew.onrender.com' 
+  ? 'https://mamacare-w5ir.onrender.com' 
   : API_BASE_URL;
 
 console.log('🔧 API Config:', {

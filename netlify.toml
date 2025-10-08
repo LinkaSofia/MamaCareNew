@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_VERSION = "9"
+  VITE_API_URL = "https://mamacare-w5ir.onrender.com"
 
 [[redirects]]
   from = "/*"
