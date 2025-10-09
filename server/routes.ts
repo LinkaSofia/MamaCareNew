@@ -6,7 +6,7 @@ import { ObjectPermission } from "./objectAcl";
 import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
-import FileStore from "session-file-store";
+// FileStore removido - usando MemoryStore (in-memory) para compatibilidade com Render
 import { sendPasswordResetEmail } from "./nodemailer";
 import { randomUUID } from "crypto";
 import { db } from "./storage";
@@ -577,30 +577,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File-based session storage para persistir sessões
-  const FileStoreSession = FileStore(session);
-  
   // Session middleware for authentication
-  // Configuração de sessão adaptada para produção e desenvolvimento
-  const isProduction = process.env.NODE_ENV === 'production';
+  // REMOVIDO FileStore - Render tem filesystem efêmero
+  // Usando MemoryStore (in-memory) que funciona imediatamente
   
   console.log('🔧 Session Config:', {
     NODE_ENV: process.env.NODE_ENV,
-    isProduction,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    proxy: isProduction
+    usingMemoryStore: true,
+    secure: true,
+    sameSite: 'none',
+    proxy: true
   });
   
   app.use(session({
     secret: process.env.SESSION_SECRET || "maternity-app-secret-key-for-mama-care-app-v2",
-    store: new FileStoreSession({
-      path: './sessions', // Diretório para salvar sessões
-      ttl: 86400, // 24 horas em segundos
-      retries: 0, // Don't retry on missing files
-      reapInterval: 3600, // Limpar sessões expiradas a cada hora
-      logFn: () => {} // Disable logging to reduce noise
-    }),
+    // SEM store = usa MemoryStore (in-memory) - funciona no Render!
     resave: false, 
     saveUninitialized: false,
     cookie: { 
