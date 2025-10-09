@@ -24,13 +24,22 @@ export default function PregnancySetup() {
   useEffect(() => {
     const checkExistingPregnancy = async () => {
       try {
+        const authToken = localStorage.getItem('authToken');
+        const headers: HeadersInit = { credentials: "include" };
+        if (authToken) {
+          headers['X-Auth-Token'] = authToken;
+        }
+        
         const response = await fetch(`${API_CONFIG.BASE_URL}/api/pregnancy`, {
           credentials: "include",
+          headers: authToken ? { 'X-Auth-Token': authToken } : {}
         });
         
         if (response.ok) {
           const data = await response.json();
-          if (data && data.isActive) {
+          console.log("🤰 Pregnancy check response:", data);
+          // Corrigido: verificar data.pregnancy.isActive ao invés de data.isActive
+          if (data && data.pregnancy && data.pregnancy.isActive) {
             // Já tem gravidez cadastrada, redirecionar para dashboard
             console.log("✅ Pregnancy already exists, redirecting to dashboard");
             setLocation("/");
