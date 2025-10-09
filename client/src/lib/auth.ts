@@ -20,14 +20,26 @@ class AuthManager {
   async checkAuth() {
     try {
       console.log("🔍 Checking authentication...");
+      
+      // Pegar token do localStorage
+      const authToken = localStorage.getItem('authToken');
+      
+      const headers: HeadersInit = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      };
+      
+      // Adicionar token se existir
+      if (authToken) {
+        headers['X-Auth-Token'] = authToken;
+        console.log("🔑 Using auth token from localStorage");
+      }
+      
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/me`, {
         credentials: "include",
         cache: "no-cache",
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
+        headers
       });
       
       console.log("🔍 Auth response status:", response.status);
@@ -39,10 +51,13 @@ class AuthManager {
       } else {
         console.log("❌ User not authenticated - Status:", response.status);
         this.user = null;
+        // Limpar token inválido
+        localStorage.removeItem('authToken');
       }
     } catch (error) {
       console.log("❌ Auth check failed:", error);
       this.user = null;
+      localStorage.removeItem('authToken');
     } finally {
       this.isLoading = false;
       this.notifyListeners();
@@ -67,16 +82,17 @@ class AuthManager {
 
     const data = await response.json();
     this.user = data.user;
+    
+    // SALVAR TOKEN NO LOCALSTORAGE
+    if (data.authToken) {
+      localStorage.setItem('authToken', data.authToken);
+      console.log("✅ Auth token saved to localStorage");
+    }
+    
     console.log("✅ Login successful, user:", this.user);
     
-    // Notificar listeners ANTES de redirecionar
+    // Notificar listeners
     this.notifyListeners();
-    
-    // Aguardar um pouco para garantir que o cookie foi salvo
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Verificar autenticação novamente para garantir que o cookie funciona
-    await this.checkAuth();
     
     // Redirecionar para dashboard
     window.location.href = "/";
@@ -102,6 +118,10 @@ class AuthManager {
   }
 
   async logout(): Promise<void> {
+    // Limpar localStorage
+    localStorage.removeItem('authToken');
+    console.log("🗑️ Auth token removed from localStorage");
+    
     await fetch(`${API_CONFIG.BASE_URL}/api/auth/logout`, {
       method: "POST",
       credentials: "include",

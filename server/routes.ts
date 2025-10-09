@@ -605,22 +605,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     proxy: true // SEMPRE true no Render (proxy reverso)
   }));
 
-  // Authentication middleware
+  // Authentication middleware - aceita session OU token
   const requireAuth = (req: any, res: any, next: any) => {
-    console.log("🔐 Auth check:", { 
-      hasSession: !!req.session, 
-      userId: req.session?.userId, 
-      sessionId: req.session?.id,
-      sessionKeys: req.session ? Object.keys(req.session) : [],
-      sessionData: req.session
-    });
-    
-    if (!req.session || !req.session.userId) {
-      console.log("❌ No session or userId found, returning 401");
-      return res.status(401).json({ error: "Authentication required" });
+    // Tentar session primeiro
+    if (req.session && req.session.userId) {
+      console.log("🔐 Auth via session:", { userId: req.session.userId });
+      req.userId = req.session.userId;
+      return next();
     }
-    console.log("✅ Auth check passed for user:", req.session.userId);
-    next();
+    
+    // Tentar token do header
+    const authToken = req.headers['x-auth-token'];
+    if (authToken) {
+      try {
+        const decoded = JSON.parse(Buffer.from(authToken, 'base64').toString());
+        if (decoded.userId && decoded.timestamp) {
+          // Token válido por 24h
+          if (Date.now() - decoded.timestamp < 24 * 60 * 60 * 1000) {
+            console.log("🔑 Auth via token:", { userId: decoded.userId });
+            req.userId = decoded.userId;
+            return next();
+          }
+        }
+      } catch (error) {
+        console.log("❌ Invalid token:", error);
+      }
+    }
+    
+    console.log("❌ No valid session or token");
+    return res.status(401).json({ error: "Authentication required" });
   };
 
   // Auth routes
@@ -698,6 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Senha incorreta" });
       }
       
+      // USAR SESSÃO E TAMBÉM RETORNAR TOKEN
       req.session.userId = user.id;
       
       // Se "lembrar de mim" estiver marcado, estender a sessão para 30 dias
@@ -755,7 +769,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("❌ Failed to check pregnancy data:", err?.message);
         });
         
-        res.json({ user: { id: user.id, email: user.email, name: user.name } });
+        // Criar um token simples (userId) para autenticação alternativa via localStorage
+        const authToken = Buffer.from(JSON.stringify({ 
+          userId: user.id, 
+          email: user.email,
+          timestamp: Date.now()
+        })).toString('base64');
+        
+        res.json({ 
+          user: { id: user.id, email: user.email, name: user.name },
+          authToken: authToken  // Token para localStorage
+        });
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -891,18 +915,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       'Expires': '0'
     });
     
-    console.log("🔍 Auth check endpoint - Session:", {
-      hasSession: !!req.session,
-      userId: req.session?.userId,
-      sessionId: req.sessionID,
-      cookie: req.session?.cookie
-    });
+    let userId = req.session?.userId;
     
-    if (!req.session.userId) {
+    // Se não tem session, tentar token do localStorage
+    if (!userId) {
+      const authToken = req.headers['x-auth-token'];
+      if (authToken) {
+        try {
+          const decoded = JSON.parse(Buffer.from(authToken as string, 'base64').toString());
+          if (decoded.userId && decoded.timestamp) {
+            // Token válido por 24h
+            if (Date.now() - decoded.timestamp < 24 * 60 * 60 * 1000) {
+              userId = decoded.userId;
+              console.log("🔑 Auth via token:", { userId });
+            }
+          }
+        } catch (error) {
+          console.log("❌ Invalid token:", error);
+        }
+      }
+    } else {
+      console.log("🔐 Auth via session:", { userId });
+    }
+    
+    if (!userId) {
       return res.status(401).json({ error: "Authentication required" });
     }
+    
     try {
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUser(userId);
       if (!user) {
         console.log("❌ User not found in database:", req.session.userId);
         return res.status(401).json({ error: "User not found" });

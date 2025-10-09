@@ -30,9 +30,17 @@ export async function apiRequest(
   // Se a URL não começar com http, adicionar a base URL
   const fullUrl = url.startsWith('http') ? url : `${API_CONFIG.BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
   
+  // Pegar token do localStorage
+  const authToken = localStorage.getItem('authToken');
+  
+  const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
+  if (authToken) {
+    headers['X-Auth-Token'] = authToken;
+  }
+  
   const res = await fetch(fullUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -50,8 +58,16 @@ export const getQueryFn: <T>(options: {
     const url = queryKey.join("/") as string;
     const fullUrl = url.startsWith('http') ? url : `${API_CONFIG.BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
     
+    // Pegar token do localStorage
+    const authToken = localStorage.getItem('authToken');
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['X-Auth-Token'] = authToken;
+    }
+    
     const res = await fetch(fullUrl, {
       credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
