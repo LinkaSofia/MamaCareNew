@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { calculatePregnancyWeek, calculateProgress } from "@/lib/pregnancy-calculator";
+import { API_CONFIG } from "@/lib/apiConfig";
 
 export function usePregnancy() {
   const { data: pregnancyData, isLoading, error } = useQuery({
@@ -7,8 +8,15 @@ export function usePregnancy() {
     retry: false,
     queryFn: async () => {
       try {
-        const response = await fetch("/api/pregnancies/active", {
+        const authToken = localStorage.getItem('authToken');
+        const headers: HeadersInit = {};
+        if (authToken) {
+          headers['X-Auth-Token'] = authToken;
+        }
+        
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/pregnancies/active`, {
           credentials: "include",
+          headers
         });
         if (!response.ok) {
           // Se não autenticado ou não tem gravidez, return null
