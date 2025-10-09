@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { BabyDevelopment } from "@shared/schema";
 import { getInterpolatedBabyData, getBabyDevelopmentData, getPregnancyPhase, type BabyDevelopmentData } from "@/lib/baby-data";
+import { API_CONFIG } from "@/lib/apiConfig";
 
 interface BabyDevelopmentResponse {
   developmentData: BabyDevelopment;
@@ -16,8 +17,15 @@ export function useBabyDevelopment(week: number) {
     enabled: week > 0 && week <= 42,
     queryFn: async () => {
       try {
-        const response = await fetch(`/api/baby-development/${week}`, {
+        const authToken = localStorage.getItem('authToken');
+        const headers: HeadersInit = {};
+        if (authToken) {
+          headers['X-Auth-Token'] = authToken;
+        }
+        
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/baby-development/${week}`, {
           credentials: "include",
+          headers
         });
         if (!response.ok) {
           return null;
@@ -72,8 +80,15 @@ export function useAllBabyDevelopment() {
     queryKey: ["/api/baby-development"],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/baby-development", {
+        const authToken = localStorage.getItem('authToken');
+        const headers: HeadersInit = {};
+        if (authToken) {
+          headers['X-Auth-Token'] = authToken;
+        }
+        
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/baby-development`, {
           credentials: "include",
+          headers
         });
         if (!response.ok) {
           return null;
