@@ -22,9 +22,9 @@ export function PWAInstallPrompt() {
   useEffect(() => {
     console.log('🔧 PWA Install Prompt: Iniciando verificações...');
     
-    // Para depuração - sempre limpar o localStorage
-    localStorage.removeItem('pwa-prompt-dismissed');
-    console.log('🧹 localStorage limpo para depuração');
+    // COMENTADO - NÃO limpar localStorage (estava apagando authToken!)
+    // localStorage.removeItem('pwa-prompt-dismissed');
+    // console.log('🧹 localStorage limpo para depuração');
     
     // Verificar se foi dispensado recentemente (TEMPORARIAMENTE DESABILITADO)
     // const dismissed = localStorage.getItem('pwa-prompt-dismissed');
