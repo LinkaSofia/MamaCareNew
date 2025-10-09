@@ -17,7 +17,7 @@ class AuthManager {
     this.checkAuth();
   }
 
-  private async checkAuth() {
+  async checkAuth() {
     try {
       console.log("🔍 Checking authentication...");
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/me`, {
@@ -30,12 +30,14 @@ class AuthManager {
         }
       });
       
+      console.log("🔍 Auth response status:", response.status);
+      
       if (response.ok) {
         const data = await response.json();
         console.log("✅ User authenticated:", data);
         this.user = data;
       } else {
-        console.log("❌ User not authenticated");
+        console.log("❌ User not authenticated - Status:", response.status);
         this.user = null;
       }
     } catch (error) {
@@ -65,14 +67,19 @@ class AuthManager {
 
     const data = await response.json();
     this.user = data.user;
-    this.notifyListeners();
-    
     console.log("✅ Login successful, user:", this.user);
     
-    // Redirecionar para dashboard - pregnancy-setup vai verificar e redirecionar se necessário
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 200);
+    // Notificar listeners ANTES de redirecionar
+    this.notifyListeners();
+    
+    // Aguardar um pouco para garantir que o cookie foi salvo
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Verificar autenticação novamente para garantir que o cookie funciona
+    await this.checkAuth();
+    
+    // Redirecionar para dashboard
+    window.location.href = "/";
   }
 
   async register(email: string, password: string, name: string): Promise<void> {
