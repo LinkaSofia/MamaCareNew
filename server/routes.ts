@@ -1098,7 +1098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Pregnancy routes
   app.get("/api/pregnancies/active", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Usar req.userId que foi setado pelo requireAuth
       console.log("🤰 Searching for active pregnancy for user:", userId);
       
       const pregnancy = await storage.getActivePregnancy(userId);
@@ -1115,6 +1115,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ pregnancy });
     } catch (error) {
       console.error("Error getting pregnancy:", error);
+      res.status(500).json({ error: "Failed to get pregnancy" });
+    }
+  });
+
+  // Alias para compatibilidade com frontend
+  app.get("/api/pregnancy", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!; // Usar req.userId que foi setado pelo requireAuth
+      console.log("🤰 [/api/pregnancy] Searching for active pregnancy for user:", userId);
+      
+      const pregnancy = await storage.getActivePregnancy(userId);
+      console.log("🤰 [/api/pregnancy] Pregnancy found:", pregnancy ? "YES" : "NO");
+      
+      if (pregnancy) {
+        console.log("🤰 [/api/pregnancy] Pregnancy details:", { 
+          id: pregnancy.id, 
+          dueDate: pregnancy.dueDate, 
+          isActive: pregnancy.isActive 
+        });
+      }
+      
+      res.json({ pregnancy });
+    } catch (error) {
+      console.error("[/api/pregnancy] Error getting pregnancy:", error);
       res.status(500).json({ error: "Failed to get pregnancy" });
     }
   });
