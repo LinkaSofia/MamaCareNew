@@ -143,7 +143,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen gradient-bg pb-20 relative">
       <AnimatedBackground />
-      <div className="p-4 pt-12 relative z-10">
+      <div className="p-4 pt-4 relative z-10">
         {/* Botão de Voltar */}
         <Button
           variant="ghost"
@@ -156,7 +156,7 @@ export default function Profile() {
         </Button>
         
         {/* Header */}
-        <div className="flex items-center mb-8 pt-12">
+        <div className="flex items-center mb-6 pt-12">
           <h1 className="text-2xl font-bold text-gray-800">Meu Perfil</h1>
         </div>
 

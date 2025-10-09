@@ -325,10 +325,10 @@ export default function Dashboard() {
           </DropdownMenu>
                 </div>
 
-        {/* Hero Section reorganizada com navegação nas extremidades */}
+        {/* Hero Section reorganizada - Imagem centralizada com % ao redor */}
         <div className="mb-8 relative">
-          {/* Layout Principal: Imagem + Círculo de % lado a lado */}
-          <div className="flex justify-center items-center gap-4 md:gap-8 mb-8 relative px-4 md:px-16">
+          {/* Layout Principal: Imagem centralizada com círculo ao redor */}
+          <div className="flex justify-center items-center mb-8 relative px-4 md:px-16">
             {/* Botão anterior - EXTREMIDADE ESQUERDA */}
                     <button
               onClick={goToPreviousWeek}
@@ -343,9 +343,36 @@ export default function Dashboard() {
               <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
                     </button>
 
-            {/* Imagem do Bebê */}
-                  <div className="relative group">
-              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl relative">
+            {/* Container centralizado com imagem e círculo sobrepostos */}
+            <div className="relative w-72 h-72 md:w-96 md:h-96 flex items-center justify-center">
+              {/* Círculo de Progresso (fundo) */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-72 h-72 md:w-96 md:h-96 transform -rotate-90" viewBox="0 0 128 128">
+                  <circle cx="64" cy="64" r="56" fill="none" stroke="#E5E7EB" strokeWidth="8"/>
+                  <circle 
+                    cx="64" 
+                    cy="64" 
+                    r="56" 
+                    fill="none" 
+                    stroke="url(#gradient)" 
+                    strokeWidth="8" 
+                    strokeDasharray="351.86" 
+                    strokeDashoffset={351.86 - (Math.round((currentWeek / 40) * 100) / 100) * 351.86}
+                    strokeLinecap="round" 
+                    className="progress-ring transition-all duration-500"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" style={{stopColor:"#E91E63"}}/>
+                      <stop offset="100%" style={{stopColor:"#2196F3"}}/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              {/* Imagem do Bebê (centro) */}
+                  <div className="relative group z-10">
+              <div className="w-56 h-56 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-white shadow-2xl relative">
                       <Baby3D 
                         week={currentWeek} 
                         className="w-full h-full rounded-full" 
@@ -354,41 +381,19 @@ export default function Dashboard() {
                     </div>
                     
                     {/* Indicadores flutuantes */}
-                    <div className="absolute -top-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    <div className="absolute -top-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg z-20">
                       {currentWeek}ª Semana
                     </div>
                   </div>
 
-            {/* Círculo de Progresso (mesmo tamanho da imagem) */}
-            <div className="relative w-48 h-48 md:w-64 md:h-64">
-              <svg className="w-48 h-48 md:w-64 md:h-64 transform -rotate-90" viewBox="0 0 128 128">
-                <circle cx="64" cy="64" r="56" fill="none" stroke="#E5E7EB" strokeWidth="8"/>
-                <circle 
-                  cx="64" 
-                  cy="64" 
-                  r="56" 
-                  fill="none" 
-                  stroke="url(#gradient)" 
-                  strokeWidth="8" 
-                  strokeDasharray="351.86" 
-                  strokeDashoffset={351.86 - (Math.round((currentWeek / 40) * 100) / 100) * 351.86}
-                  strokeLinecap="round" 
-                  className="progress-ring transition-all duration-500"
-                />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style={{stopColor:"#E91E63"}}/>
-                    <stop offset="100%" style={{stopColor:"#2196F3"}}/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <span className="text-2xl md:text-3xl font-bold text-gray-800">
+              {/* Texto de Porcentagem (sobreposto no canto superior direito) */}
+              <div className="absolute top-4 right-4 md:top-8 md:right-8">
+                <div className="text-center bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
+                  <span className="text-3xl md:text-4xl font-bold text-gray-800 block">
                     {Math.round((currentWeek / 40) * 100)}%
                   </span>
                   <div className="text-xs md:text-sm text-gray-600">completo</div>
-                  <div className="text-xs text-gray-500 mt-1 hidden md:block">
+                  <div className="text-xs text-gray-500 mt-1">
                     {40 - currentWeek} semanas restantes
                   </div>
                 </div>
