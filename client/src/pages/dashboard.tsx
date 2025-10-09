@@ -446,27 +446,27 @@ export default function Dashboard() {
                     </div>
 
                     {/* Cards de Medidas - Tamanho e Peso */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-pink-200 to-pink-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xl">📏</span>
+                    <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6">
+                      <div className="bg-gradient-to-br from-pink-200 to-pink-400 backdrop-blur-sm border border-white/20 rounded-3xl p-4 md:p-6 shadow-xl hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-base md:text-xl">📏</span>
                           </div>
-                          <span className="font-bold text-gray-800 text-lg">Tamanho</span>
+                          <span className="font-bold text-gray-800 text-sm md:text-lg">Tamanho</span>
                         </div>
-                        <p className="text-3xl font-bold text-gray-800">
+                        <p className="text-xl md:text-3xl font-bold text-gray-800">
                           {development.length_cm ? `${development.length_cm} cm` : (development.size ?? "Calculando...")}
                         </p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-purple-200 to-purple-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xl">⚖️</span>
+                      <div className="bg-gradient-to-br from-purple-200 to-purple-400 backdrop-blur-sm border border-white/20 rounded-3xl p-4 md:p-6 shadow-xl hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-base md:text-xl">⚖️</span>
                           </div>
-                          <span className="font-bold text-gray-800 text-lg">Peso</span>
+                          <span className="font-bold text-gray-800 text-sm md:text-lg">Peso</span>
                         </div>
-                        <p className="text-3xl font-bold text-gray-800">
+                        <p className="text-xl md:text-3xl font-bold text-gray-800">
                           {development.weight_grams && Number(development.weight_grams) > 0 
                             ? `${development.weight_grams}g` 
                             : development.weight || "< 1g"}
@@ -475,21 +475,21 @@ export default function Dashboard() {
                     </div>
 
                     {/* Cards de Informações da Gestação - Semana Atual e Faltam */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6">
                       {/* Card - Semana atual */}
-                      <div className="bg-gradient-to-br from-blue-200 to-blue-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <Calendar className="h-6 w-6 text-white" />
+                      <div className="bg-gradient-to-br from-blue-200 to-blue-400 backdrop-blur-sm border border-white/20 rounded-3xl p-4 md:p-6 shadow-xl hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <Calendar className="h-5 w-5 md:h-6 md:w-6 text-white" />
                           </div>
-                          <span className="font-bold text-gray-800 text-lg">
+                          <span className="font-bold text-gray-800 text-sm md:text-lg">
                             {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando' : 'Semana Atual'}
                           </span>
                         </div>
-                        <p className="text-3xl font-bold text-gray-800 mb-2">
+                        <p className="text-xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2">
                           {currentWeek}ª semana
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs md:text-sm text-gray-600">
                           {viewingWeek && viewingWeek !== weekInfo.week ? (
                             <div className="flex flex-col gap-2">
                               <span>de desenvolvimento</span>
@@ -506,17 +506,17 @@ export default function Dashboard() {
                       </div>
                       
                       {/* Card - Semanas restantes */}
-                      <div className="bg-gradient-to-br from-green-200 to-green-400 backdrop-blur-sm border border-white/20 rounded-3xl p-6 shadow-xl hover:scale-105 transition-all duration-300">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <Sparkles className="h-6 w-6 text-white" />
+                      <div className="bg-gradient-to-br from-green-200 to-green-400 backdrop-blur-sm border border-white/20 rounded-3xl p-4 md:p-6 shadow-xl hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-white" />
                           </div>
-                          <span className="font-bold text-gray-800 text-lg">Faltam</span>
+                          <span className="font-bold text-gray-800 text-sm md:text-lg">Faltam</span>
                         </div>
-                        <p className="text-3xl font-bold text-gray-800 mb-2">
+                        <p className="text-xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2">
                           {40 - currentWeek} semanas
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs md:text-sm text-gray-600">
                           para conhecer seu bebê!
                         </p>
                       </div>
