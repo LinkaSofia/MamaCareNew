@@ -11,15 +11,30 @@ interface WeightChartProps {
   records: WeightRecord[];
 }
 
+// Função para formatar data sem problemas de timezone
+function formatDateForChart(dateStr: string) {
+  // Se vier no formato YYYY-MM-DD, converte diretamente
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toLocaleDateString('pt-BR', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+  // Fallback para outras formas
+  return new Date(dateStr).toLocaleDateString('pt-BR', { 
+    month: 'short', 
+    day: 'numeric' 
+  });
+}
+
 export default function WeightChart({ records }: WeightChartProps) {
   const chartData = records
     .slice()
     .reverse()
     .map((record) => ({
-      date: new Date(record.date).toLocaleDateString('pt-BR', { 
-        month: 'short', 
-        day: 'numeric' 
-      }),
+      date: formatDateForChart(record.date),
       weight: parseFloat(record.weight),
       fullDate: record.date,
     }));
