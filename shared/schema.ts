@@ -120,6 +120,7 @@ export const shoppingItems = pgTable("shopping_items", {
   purchased: boolean("purchased").default(false),
   category: text("category"),
   priority: text("priority"),
+  essential: boolean("essential").default(false),
   purchaseDate: timestamp("purchase_date"),
 });
 

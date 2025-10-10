@@ -292,26 +292,30 @@ export default function Diary() {
       console.log("📝 Entry saved successfully, updating UI...");
       console.log("📝 Saved entry data:", data);
       
-      // Fechar o formulário primeiro
+      // Atualizar o cache IMEDIATAMENTE (otimistic update)
+      try {
+        queryClient.setQueryData(["/api/diary-entries", pregnancy?.id], (oldData: any) => {
+          if (!oldData) return { entries: [data.entry] };
+          
+          // Adicionar nova entrada no início da lista
+          return {
+            ...oldData,
+            entries: [data.entry, ...oldData.entries]
+          };
+        });
+        console.log("📝 Cache updated immediately with new entry");
+      } catch (error) {
+        console.error("📝 Error updating cache:", error);
+      }
+      
+      // Fechar o formulário
       handleCloseForm();
       
-      // Invalidar e refetch imediatamente
-      console.log("📝 Invalidating queries and refetching...");
-      await queryClient.invalidateQueries({ 
+      // Invalidar queries em background para sincronizar
+      queryClient.invalidateQueries({ 
         queryKey: ["/api/diary-entries"],
         exact: false 
       });
-      
-      // Forçar refetch imediatamente
-      try {
-        console.log("📝 Forcing immediate refetch...");
-        const refetchResult = await refetch();
-        console.log("📝 Refetch completed successfully");
-        console.log("📝 Refetch result:", refetchResult);
-        console.log("📝 New entries count after save:", refetchResult.data?.entries?.length);
-      } catch (error) {
-        console.error("📝 Error during refetch:", error);
-      }
       
       toast({
         title: "📝 Entrada salva!",

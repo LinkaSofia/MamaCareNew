@@ -285,8 +285,26 @@ export default function ShoppingList() {
       const response = await apiRequest("POST", "/api/shopping-items", item);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Atualizar o cache IMEDIATAMENTE (otimistic update)
+      try {
+        queryClient.setQueryData(["/api/shopping-items", pregnancy?.id], (oldData: any) => {
+          if (!oldData) return { items: [data.item] };
+          
+          // Adicionar novo item na lista
+          return {
+            ...oldData,
+            items: [...oldData.items, data.item]
+          };
+        });
+        console.log("🛒 Cache updated immediately with new item");
+      } catch (error) {
+        console.error("🛒 Error updating cache:", error);
+      }
+      
+      // Invalidar queries em background para sincronizar
       queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
+      
       setShowAddForm(false);
       setFormData({ name: "", price: "", category: "", priority: "medium", essential: false });
       toast({
@@ -294,10 +312,11 @@ export default function ShoppingList() {
         description: "Item foi adicionado à sua lista de compras.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("🛒 Error adding item:", error);
       toast({
         title: "❌ Erro",
-        description: "Erro ao adicionar item. Tente novamente.",
+        description: error.message || "Erro ao adicionar item. Tente novamente.",
         variant: "destructive",
       });
     },
