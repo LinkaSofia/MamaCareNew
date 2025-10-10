@@ -8,11 +8,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Plus, FileText, Calendar, Edit, Trash2, Download, Eye, Heart, MapPin, Users } from 'lucide-react';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
 import BottomNavigation from '@/components/layout/bottom-navigation';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuth } from '@/hooks/useAuth';
 import { usePregnancy } from '@/hooks/use-pregnancy';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 
 export default function BirthPlan() {
   const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit' | 'view'>('list');
@@ -30,12 +31,30 @@ export default function BirthPlan() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Buscar plano de parto existente
+  const { data: birthPlanData, isLoading } = useQuery({
+    queryKey: ['/api/birth-plans', pregnancy?.id],
+    queryFn: async () => {
+      if (!pregnancy?.id) return null;
+      const response = await apiRequest('GET', `/api/birth-plans/${pregnancy.id}`);
+      return response.json();
+    },
+    enabled: !!pregnancy?.id,
+  });
+
+  const birthPlan = birthPlanData?.birthPlan;
+
   const createPlanMutation = useMutation({
     mutationFn: async (planData: any) => {
       const response = await apiRequest('POST', '/api/birth-plans', planData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidar e refetch imediatamente
+      await queryClient.invalidateQueries({ 
+        queryKey: ['/api/birth-plans', pregnancy?.id] 
+      });
+      
       toast({
         title: '✅ Plano de parto criado!',
         description: 'Seu plano de parto foi salvo com sucesso.',
@@ -132,24 +151,102 @@ export default function BirthPlan() {
           {/* Lista de planos */}
           {viewMode === 'list' && (
             <div className="space-y-4 max-w-4xl mx-auto">
-              <Card className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : birthPlan ? (
+                <Card className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center">
+                        <FileText className="w-5 h-5 mr-2 text-pink-500" />
+                        Meu Plano de Parto
+                      </span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full hover:bg-pink-100"
+                          onClick={() => setViewMode('edit')}
+                        >
+                          <Edit className="w-4 h-4 text-pink-600" />
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {birthPlan.location && (
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-gray-800">Local do Parto</p>
+                          <p className="text-gray-600">{birthPlan.location}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {birthPlan.companions && (
+                      <div className="flex items-start gap-3">
+                        <Users className="w-5 h-5 text-purple-500 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-gray-800">Acompanhantes</p>
+                          <p className="text-gray-600">{birthPlan.companions}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {birthPlan.painRelief && (
+                      <div className="flex items-start gap-3">
+                        <Heart className="w-5 h-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-gray-800">Alívio da Dor</p>
+                          <ul className="text-gray-600 space-y-1">
+                            {birthPlan.painRelief.natural && (
+                              <li>✓ Métodos naturais</li>
+                            )}
+                            {birthPlan.painRelief.epidural && (
+                              <li>✓ Anestesia epidural</li>
+                            )}
+                            {birthPlan.painRelief.other && (
+                              <li>✓ {birthPlan.painRelief.other}</li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
+                    {birthPlan.specialRequests && (
+                      <div className="flex items-start gap-3">
+                        <FileText className="w-5 h-5 text-blue-500 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-gray-800">Pedidos Especiais</p>
+                          <p className="text-gray-600 whitespace-pre-line">{birthPlan.specialRequests}</p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl">
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                  <FileText className="w-16 h-16 text-pink-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    <FileText className="w-16 h-16 text-pink-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
                       Nenhum plano de parto encontrado
                     </h3>
                     <p className="text-gray-600 text-center mb-6">
                       Crie seu primeiro plano de parto para se preparar para o nascimento do seu bebê.
                     </p>
                     <Button
-                    onClick={() => setViewMode('create')}
-                    className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-xl border border-white/20 rounded-full px-6 py-2"
+                      onClick={() => setViewMode('create')}
+                      className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-xl border border-white/20 rounded-full px-6 py-2"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Criar Primeiro Plano
                     </Button>
                   </CardContent>
                 </Card>
+              )}
             </div>
           )}
 
