@@ -247,9 +247,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen gradient-bg pb-20 relative">
-      <AnimatedBackground />
-      <div className="p-4 relative z-10">
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20 relative">
+        <div className="p-4 relative z-10">
         {/* Botão de Voltar */}
         <Button
           variant="ghost"
@@ -525,9 +525,10 @@ export default function Profile() {
             </Card>
           </div>
         )}
+        </div>
       </div>
 
       <BottomNavigation />
-    </div>
+    </AnimatedBackground>
   );
 }

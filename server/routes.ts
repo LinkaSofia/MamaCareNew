@@ -964,7 +964,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para atualizar perfil do usuário
   app.put("/api/auth/profile", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       const { name, birthDate } = req.body;
       
       console.log("📝 Updating user profile:", { userId, name, birthDate });
@@ -1011,11 +1011,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { profilePhotoUrl, birthDate } = req.body;
       const userId = req.userId!;
       
-      console.log("📝 Updating profile for user:", userId, { 
-        hasPhoto: !!profilePhotoUrl, 
-        photoType: profilePhotoUrl?.startsWith('data:') ? 'base64' : 'url',
-        birthDate 
-      });
+      console.log("📝 Updating profile for user:", userId);
+      console.log("📝 Has photo:", !!profilePhotoUrl);
+      if (profilePhotoUrl) {
+        console.log("📝 Photo type:", profilePhotoUrl.startsWith('data:') ? 'base64' : 'url');
+        console.log("📝 Photo size:", (profilePhotoUrl.length / 1024).toFixed(2), "KB");
+        console.log("📝 Photo prefix:", profilePhotoUrl.substring(0, 50) + "...");
+      }
+      console.log("📝 Birth date:", birthDate);
       
       // Aceitar base64 ou URL normal (não precisa normalizar)
       const updatedUser = await storage.updateUserProfile(userId, {
@@ -1024,10 +1027,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log("✅ Profile updated successfully");
+      console.log("✅ Updated user photo URL:", updatedUser.profilePhotoUrl ? updatedUser.profilePhotoUrl.substring(0, 50) + "..." : "null");
       res.json({ user: updatedUser });
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Update profile error:", error);
-      res.status(500).json({ error: "Failed to update profile" });
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      res.status(500).json({ error: "Failed to update profile", details: error.message });
     }
   });
 
@@ -1142,7 +1148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Direct database insert with error handling
       const pregnancyData = {
-        userId: req.session.userId!,
+        userId: req.userId!, // Corrigido: usar req.userId do requireAuth
         dueDate: new Date(dueDate),
         lastMenstrualPeriod: lastMenstrualPeriod ? new Date(lastMenstrualPeriod) : null,
         isActive: isActive !== false
@@ -1163,7 +1169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/pregnancies/:id", requireAuth, async (req, res) => {
     try {
       const pregnancyId = req.params.id;
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       const { dueDate, lastMenstrualPeriod, isActive } = req.body;
       
       console.log("🤰 Updating pregnancy:", { pregnancyId, userId, lastMenstrualPeriod });
@@ -1424,7 +1430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para visualizar todos os logs do usuário
   app.get("/api/user-logs", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       
       // Força a criação das tabelas primeiro
       await storage.logUserAction({
@@ -1457,7 +1463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota específica para logs de auditoria completa
   app.get("/api/audit-logs", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       const { tableName, recordId, limit } = req.query;
       
       console.log("📋 Fetching audit logs for user:", userId);
@@ -1495,8 +1501,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.userId!; // Corrigido para usar req.userId
       const sessionId = req.sessionID;
       
+      console.log("📋 Creating birth plan with data:", JSON.stringify(req.body, null, 2));
+      
       const birthPlanData = insertBirthPlanSchema.parse(req.body);
+      console.log("✅ Birth plan data validated:", JSON.stringify(birthPlanData, null, 2));
+      
       const birthPlan = await storage.createOrUpdateBirthPlan(birthPlanData);
+      console.log("✅ Birth plan created:", birthPlan.id);
       
       // Log da auditoria para criação
       await storage.auditDataChange(
@@ -1511,8 +1522,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       res.json({ birthPlan });
-    } catch (error) {
-      res.status(400).json({ error: "Invalid birth plan data" });
+    } catch (error: any) {
+      console.error("❌ Error creating birth plan:", error);
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      if (error.issues) {
+        console.error("❌ Zod validation errors:", JSON.stringify(error.issues, null, 2));
+      }
+      res.status(400).json({ 
+        error: "Invalid birth plan data",
+        details: error.message,
+        issues: error.issues
+      });
     }
   });
 
@@ -1668,7 +1689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionId = req.sessionID;
       const consultationId = req.params.id;
       
-      console.log("📝 Updating consultation:", consultationId, "with data:", req.body, "by user:", userId);
+      console.log("📝 Updating consultation:", consultationId, "with data:", JSON.stringify(req.body, null, 2), "by user:", userId);
       
       // Buscar dados antigos para auditoria
       const oldConsultation = await storage.getConsultationById(consultationId);
@@ -1677,6 +1698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Consulta não encontrada" });
       }
       
+      console.log("📋 Old consultation data:", JSON.stringify(oldConsultation, null, 2));
       console.log("📋 Updating consultation, user check:", { 
         consultationUserId: oldConsultation.userId, 
         consultationUser_id: (oldConsultation as any).user_id,
@@ -1690,7 +1712,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Não autorizado" });
       }
       
+      console.log("📝 About to call storage.updateConsultation...");
       const updatedConsultation = await storage.updateConsultation(consultationId, req.body);
+      console.log("✅ Storage update returned:", JSON.stringify(updatedConsultation, null, 2));
       
       // Log de auditoria
       await storage.auditDataChange(
@@ -1706,9 +1730,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("✅ Consultation updated successfully:", updatedConsultation);
       res.json({ consultation: updatedConsultation });
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error updating consultation:", error);
-      res.status(500).json({ error: "Failed to update consultation" });
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      res.status(500).json({ 
+        error: "Failed to update consultation",
+        details: error.message 
+      });
     }
   });
 
@@ -1810,7 +1839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       const canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
-        userId: req.session.userId,
+        userId: req.userId, // Corrigido: usar req.userId do requireAuth
         requestedPermission: ObjectPermission.READ,
       });
       if (!canAccess) {
@@ -1853,7 +1882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("📸 Photo creation request:", req.body);
       
       // Buscar gravidez ativa do usuário
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       const pregnancy = await storage.getActivePregnancy(userId);
       
       if (!pregnancy) {
@@ -2059,7 +2088,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     try {
       const postData = insertCommunityPostSchema.parse({
         ...req.body,
-        userId: req.session.userId!
+        userId: req.userId! // Corrigido: usar req.userId do requireAuth
       });
       const post = await storage.createCommunityPost(postData);
       res.json({ post });
@@ -2070,7 +2099,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
 
   app.post("/api/community/posts/:id/like", requireAuth, async (req, res) => {
     try {
-      await storage.likeCommunityPost(req.params.id, req.session.userId!);
+      await storage.likeCommunityPost(req.params.id, req.userId!); // Corrigido
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to like post" });
@@ -2079,7 +2108,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
 
   app.delete("/api/community/posts/:id/like", requireAuth, async (req, res) => {
     try {
-      await storage.unlikeCommunityPost(req.params.id, req.session.userId!);
+      await storage.unlikeCommunityPost(req.params.id, req.userId!); // Corrigido
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to unlike post" });
@@ -2099,7 +2128,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     try {
       const commentData = insertCommunityCommentSchema.parse({
         ...req.body,
-        userId: req.session.userId!
+        userId: req.userId! // Corrigido: usar req.userId do requireAuth
       });
       const comment = await storage.createComment(commentData);
       res.json({ comment });
@@ -2111,7 +2140,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
   // Analytics routes
   app.post("/api/analytics/page-visit", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       const { page, duration } = req.body;
       
       await storage.trackPageVisit(userId, page, duration);
@@ -2124,7 +2153,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
 
   app.post("/api/analytics/action", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       const { action, page, element } = req.body;
       
       await storage.trackUserAction(userId, action, page, element);
@@ -2137,7 +2166,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
 
   app.get("/api/analytics/user", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido: usar req.userId do requireAuth
       const analytics = await storage.getUserAnalytics(userId);
       res.json({ analytics });
     } catch (error) {

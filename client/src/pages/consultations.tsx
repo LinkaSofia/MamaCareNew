@@ -196,11 +196,16 @@ export default function Consultations() {
       updateConsultationMutation.mutate({
         id: editingId,
         data: {
+          pregnancyId: pregnancy!.id, // ADICIONADO: necessário para validação
           title: formData.title,
           date: dateTime.toISOString(),
           location: formData.location || null,
           doctorName: formData.doctorName || null,
           notes: formData.notes || null,
+          type: formData.type,
+          priority: formData.priority,
+          reminders: formData.reminders,
+          preparation: formData.preparation
         }
       });
     } else {

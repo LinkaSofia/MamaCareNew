@@ -288,26 +288,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserProfile(id: string, data: { name?: string; profilePhotoUrl?: string; birthDate?: Date }): Promise<User> {
-    console.log("📝 Updating user profile:", { id, data });
+    console.log("📝 [storage] Updating user profile:", { id });
+    console.log("📝 [storage] Data received:", {
+      hasName: data.name !== undefined,
+      hasPhoto: data.profilePhotoUrl !== undefined,
+      photoLength: data.profilePhotoUrl ? data.profilePhotoUrl.length : 0,
+      hasBirthDate: data.birthDate !== undefined
+    });
     
     try {
       const updateData: any = {};
       
       if (data.name !== undefined && data.name !== null) {
         updateData.name = data.name;
+        console.log("📝 [storage] Adding name to update");
       }
       
       if (data.profilePhotoUrl !== undefined && data.profilePhotoUrl !== null) {
         updateData.profilePhotoUrl = data.profilePhotoUrl;
+        console.log("📝 [storage] Adding photo to update, size:", (data.profilePhotoUrl.length / 1024).toFixed(2), "KB");
       }
       
       if (data.birthDate !== undefined && data.birthDate !== null) {
         updateData.birthDate = data.birthDate;
+        console.log("📝 [storage] Adding birthDate to update");
       }
+
+      console.log("📝 [storage] Final updateData keys:", Object.keys(updateData));
 
       // Se não há dados para atualizar, apenas retorna o usuário atual
       if (Object.keys(updateData).length === 0) {
-        console.log("📝 No data to update, returning current user");
+        console.log("📝 [storage] No data to update, returning current user");
         const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
         if (result.length === 0) {
           throw new Error("User not found");
@@ -315,18 +326,25 @@ export class DatabaseStorage implements IStorage {
         return result[0];
       }
 
+      console.log("📝 [storage] Executing UPDATE query...");
       // Usar Drizzle ORM para atualizar o perfil
       const result = await db.update(users)
         .set(updateData)
         .where(eq(users.id, id))
         .returning();
       
+      console.log("📝 [storage] UPDATE query executed, result count:", result.length);
+      
       if (result.length === 0) {
         throw new Error("User not found");
       }
       
       const updatedUser = result[0];
-      console.log("✅ User profile updated successfully:", updatedUser);
+      console.log("✅ [storage] User profile updated successfully");
+      console.log("✅ [storage] Updated user has photo:", !!updatedUser.profilePhotoUrl);
+      if (updatedUser.profilePhotoUrl) {
+        console.log("✅ [storage] Photo size in DB:", (updatedUser.profilePhotoUrl.length / 1024).toFixed(2), "KB");
+      }
       
       return updatedUser;
       

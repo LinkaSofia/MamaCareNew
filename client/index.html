@@ -76,9 +76,31 @@
     
     <!-- PWA Installation Script -->
     <script>
-      // Registrar Service Worker com controle de atualizações
+      // Registrar Service Worker APENAS EM PRODUÇÃO
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
+          // DESABILITAR EM DESENVOLVIMENTO para evitar problemas de cache
+          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log('🔧 Service Worker desabilitado em desenvolvimento');
+            
+            // Desregistrar qualquer SW existente
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+              await registration.unregister();
+              console.log('🗑️ Service Worker desregistrado:', registration);
+            }
+            
+            // Limpar todos os caches
+            const cacheNames = await caches.keys();
+            for (let cacheName of cacheNames) {
+              await caches.delete(cacheName);
+              console.log('🗑️ Cache removido:', cacheName);
+            }
+            
+            return;
+          }
+          
+          // Registrar apenas em produção
           try {
             const registration = await navigator.serviceWorker.register('/sw.js', {
               scope: '/',
@@ -87,12 +109,10 @@
             
             console.log('✅ SW registrado com sucesso:', registration);
             
-            // Verifica atualizações periodicamente (apenas em produção)
-            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-              setInterval(() => {
-                registration.update();
-              }, 30000);
-            }
+            // Verifica atualizações periodicamente
+            setInterval(() => {
+              registration.update();
+            }, 30000);
             
           } catch (error) {
             console.error('❌ Falha no registro do SW:', error);

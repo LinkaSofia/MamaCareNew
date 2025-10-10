@@ -232,7 +232,7 @@ export default function Dashboard() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100 relative overflow-hidden">
+      <div className="min-h-screen relative overflow-hidden">
       {/* Background decorative elements sofisticados */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Elementos flutuantes sofisticados */}

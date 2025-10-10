@@ -259,30 +259,31 @@ export default function BirthPlan() {
       return;
     }
 
+    // CORRIGIDO: enviar em camelCase, como o backend espera
     const planData = {
-      pregnancy_id: pregnancy.id,
+      pregnancyId: pregnancy.id,
       location: formData.location,
       companions: formData.companions,
-      doctor_preference: formData.doctorPreference,
+      doctorPreference: formData.doctorPreference,
       lighting: formData.lighting,
       music: formData.music,
       movement: formData.movement,
-      pain_relief_natural: formData.painReliefNatural,
-      pain_relief_epidural: formData.painReliefEpidural,
-      pain_relief_other: formData.painReliefOther,
-      labor_position: formData.laborPosition,
+      painReliefNatural: formData.painReliefNatural,
+      painReliefEpidural: formData.painReliefEpidural,
+      painReliefOther: formData.painReliefOther,
+      laborPosition: formData.laborPosition,
       monitoring: formData.monitoring,
-      hydration_food: formData.hydrationFood,
-      delivery_type: formData.deliveryType,
+      hydrationFood: formData.hydrationFood,
+      deliveryType: formData.deliveryType,
       episiotomy: formData.episiotomy,
-      umbilical_cord: formData.umbilicalCord,
-      skin_to_skin: formData.skinToSkin,
+      umbilicalCord: formData.umbilicalCord,
+      skinToSkin: formData.skinToSkin,
       breastfeeding: formData.breastfeeding,
-      baby_bath: formData.babyBath,
-      companion_presence: formData.companionPresence,
+      babyBath: formData.babyBath,
+      companionPresence: formData.companionPresence,
       photos: formData.photos,
-      religious_cultural: formData.religiousCultural,
-      special_requests: formData.specialRequests
+      religiousCultural: formData.religiousCultural,
+      specialRequests: formData.specialRequests
     };
 
     if (viewMode === 'edit' && birthPlan) {
