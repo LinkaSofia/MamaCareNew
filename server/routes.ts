@@ -1624,7 +1624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/consultations", requireAuth, async (req, res) => {
     try {
       const userId = req.userId!; // Corrigido para usar req.userId
-      console.log("📅 Creating consultation with data:", req.body);
+      console.log("📅 Creating consultation with data:", req.body, "for user:", userId);
       
       // Buscar gravidez ativa do usuário
       const activePregnancy = await storage.getActivePregnancy(userId);
@@ -1668,16 +1668,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionId = req.sessionID;
       const consultationId = req.params.id;
       
-      console.log("📝 Updating consultation:", consultationId, "with data:", req.body);
+      console.log("📝 Updating consultation:", consultationId, "with data:", req.body, "by user:", userId);
       
       // Buscar dados antigos para auditoria
       const oldConsultation = await storage.getConsultationById(consultationId);
       if (!oldConsultation) {
+        console.log("❌ Consultation not found:", consultationId);
         return res.status(404).json({ error: "Consulta não encontrada" });
       }
       
-      // Verificar se a consulta pertence ao usuário
-      if (oldConsultation.userId !== userId) {
+      console.log("📋 Updating consultation, user check:", { 
+        consultationUserId: oldConsultation.userId, 
+        consultationUser_id: (oldConsultation as any).user_id,
+        requestUserId: userId 
+      });
+      
+      // Verificar se a consulta pertence ao usuário (tentar ambas as formas do campo)
+      const consultationUserId = oldConsultation.userId || (oldConsultation as any).user_id;
+      if (consultationUserId !== userId) {
+        console.log("❌ Unauthorized update: userId mismatch", { consultationUserId, requestUserId: userId });
         return res.status(403).json({ error: "Não autorizado" });
       }
       
@@ -1709,16 +1718,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionId = req.sessionID;
       const consultationId = req.params.id;
       
-      console.log("🗑️ Deleting consultation:", consultationId);
+      console.log("🗑️ Deleting consultation:", consultationId, "by user:", userId);
       
       // Buscar dados para auditoria antes de deletar
       const consultation = await storage.getConsultationById(consultationId);
       if (!consultation) {
+        console.log("❌ Consultation not found:", consultationId);
         return res.status(404).json({ error: "Consulta não encontrada" });
       }
       
-      // Verificar se a consulta pertence ao usuário
-      if (consultation.userId !== userId) {
+      console.log("📋 Consultation details:", { 
+        consultationUserId: consultation.userId, 
+        consultationUser_id: (consultation as any).user_id,
+        requestUserId: userId 
+      });
+      
+      // Verificar se a consulta pertence ao usuário (tentar ambas as formas do campo)
+      const consultationUserId = consultation.userId || (consultation as any).user_id;
+      if (consultationUserId !== userId) {
+        console.log("❌ Unauthorized: consultation userId mismatch", { 
+          consultationUserId, 
+          requestUserId: userId 
+        });
         return res.status(403).json({ error: "Não autorizado" });
       }
       

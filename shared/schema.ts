@@ -92,11 +92,44 @@ export const weightEntries = pgTable("weight_entries", {
 export const birthPlans = pgTable("birth_plans", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
+  
+  // Informações Básicas
   location: text("location"),
-  painRelief: jsonb("pain_relief").$type<{natural: boolean, epidural: boolean, other?: string}>(),
   companions: text("companions"),
+  doctorPreference: text("doctor_preference"),
+  
+  // Ambiente
+  lighting: text("lighting"),
+  music: boolean("music"),
+  movement: boolean("movement"),
+  
+  // Alívio da Dor
+  painReliefNatural: boolean("pain_relief_natural"),
+  painReliefEpidural: boolean("pain_relief_epidural"),
+  painReliefOther: text("pain_relief_other"),
+  
+  // Durante o Trabalho de Parto
+  laborPosition: text("labor_position"),
+  monitoring: text("monitoring"),
+  hydrationFood: boolean("hydration_food"),
+  
+  // Durante o Parto
+  deliveryType: text("delivery_type"),
+  episiotomy: text("episiotomy"),
+  umbilicalCord: text("umbilical_cord"),
+  skinToSkin: boolean("skin_to_skin"),
+  
+  // Pós-Parto
+  breastfeeding: text("breastfeeding"),
+  babyBath: text("baby_bath"),
+  companionPresence: boolean("companion_presence"),
+  
+  // Solicitações Especiais
+  photos: boolean("photos"),
+  religiousCultural: text("religious_cultural"),
   specialRequests: text("special_requests"),
-  preferences: jsonb("preferences").$type<Record<string, any>>(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
