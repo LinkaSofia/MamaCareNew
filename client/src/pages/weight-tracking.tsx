@@ -340,27 +340,28 @@ export default function WeightTracking() {
   return (
     <AnimatedBackground>
       <div className="min-h-screen pb-20">
-      <div className="p-4 pt-12">
-        {/* Header com Botão de Voltar e Título */}
-        <div className="flex items-center justify-between mb-6 pt-4">
+      <div className="px-4 pt-4 pb-4">
+        {/* Header com Botão de Voltar, Título e Botão Add */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              onClick={() => setLocation("/")}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h2 className="text-2xl font-bold text-gray-800" data-testid="text-page-title">
+              Controle de Peso
+            </h2>
+          </div>
+          
           <Button
             variant="ghost"
             size="icon"
-            className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
-            onClick={() => setLocation("/")}
-            data-testid="button-back"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          
-          <h2 className="text-2xl font-bold text-baby-pink-dark" data-testid="text-page-title">
-            Controle de Peso
-          </h2>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg"
+            className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
             onClick={() => setShowAddForm(true)}
             data-testid="button-add-weight"
           >
@@ -369,37 +370,37 @@ export default function WeightTracking() {
         </div>
 
         {/* Cards de Peso - Todos lado a lado */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
           {/* Peso Atual Card */}
           <Card className="bg-gradient-to-br from-pink-200 to-purple-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Scale className="h-6 w-6 text-white" />
+            <CardContent className="p-3 md:p-6">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-2 md:mb-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Scale className="h-5 w-5 md:h-6 md:w-6 text-white" />
                 </div>
-                <span className="font-bold text-gray-800 text-lg">Peso Atual</span>
+                <span className="font-bold text-gray-800 text-xs md:text-lg text-center md:text-left">Peso Atual</span>
               </div>
-              <div className="text-2xl font-bold text-pink-600" data-testid="text-current-weight">
+              <div className="text-lg md:text-2xl font-bold text-pink-600 text-center md:text-left" data-testid="text-current-weight">
                 {latestWeight ? `${latestWeight.weight} kg` : "Não registrado"}
               </div>
             </CardContent>
           </Card>
           {/* Ganho de Peso Card */}
           <Card className="bg-gradient-to-br from-green-200 to-green-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <TrendingUp className="h-6 w-6 text-white" />
+            <CardContent className="p-3 md:p-6">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-2 md:mb-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-white" />
                 </div>
-                <span className="font-bold text-gray-800 text-lg">Ganho de Peso</span>
+                <span className="font-bold text-gray-800 text-xs md:text-lg text-center md:text-left">Ganho de Peso</span>
               </div>
-              <div className="text-2xl font-bold text-green-600" data-testid="text-weight-gain">
+              <div className="text-lg md:text-2xl font-bold text-green-600 text-center md:text-left" data-testid="text-weight-gain">
                 {!isNaN(weightGain) && weightGain !== 0 ? 
                   `${weightGain > 0 ? '+' : ''}${weightGain.toFixed(1)} kg` : 
                   entries.length < 2 ? "N/A" : "0.0 kg"
                 }
               </div>
-              <div className="text-xs text-green-700 mt-1">
+              <div className="text-xs text-green-700 mt-1 text-center md:text-left">
                 desde o início
               </div>
             </CardContent>
@@ -407,21 +408,21 @@ export default function WeightTracking() {
 
           {/* Meta de Peso Card */}
           <Card className="bg-gradient-to-br from-blue-200 to-indigo-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Scale className="h-6 w-6 text-white" />
+            <CardContent className="p-3 md:p-6">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-2 md:mb-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Scale className="h-5 w-5 md:h-6 md:w-6 text-white" />
                 </div>
-                <span className="font-bold text-gray-800 text-lg">Meta de Peso</span>
+                <span className="font-bold text-gray-800 text-xs md:text-lg text-center md:text-left">Meta de Peso</span>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm text-gray-600">Meta total: </span>
-                  <span className="font-semibold text-blue-600">12-18 kg</span>
+              <div className="flex flex-col md:flex-row items-center md:justify-between gap-2">
+                <div className="text-center md:text-left">
+                  <span className="text-xs md:text-sm text-gray-600">Meta total: </span>
+                  <span className="font-semibold text-blue-600 text-sm md:text-base">12-18 kg</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-gray-600">Restante</div>
-                  <div className="font-semibold text-blue-600">
+                <div className="text-center md:text-right">
+                  <div className="text-xs md:text-sm text-gray-600">Restante</div>
+                  <div className="font-semibold text-blue-600 text-sm md:text-base">
                     {weightGain < 12 ? 
                       `${(12 - weightGain).toFixed(1)}-${(18 - weightGain).toFixed(1)} kg` : 
                       'Meta atingida'

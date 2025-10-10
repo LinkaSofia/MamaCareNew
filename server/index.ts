@@ -4,8 +4,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' })); // Aumentar limite para fotos em base64
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Add cache control headers to prevent caching issues in development
 app.use((req, res, next) => {

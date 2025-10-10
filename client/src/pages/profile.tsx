@@ -14,7 +14,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
-import { ObjectUploader } from "@/components/ObjectUploader";
+import { useRef } from "react";
 import { 
   ArrowLeft, 
   Camera, 
@@ -35,6 +35,8 @@ export default function Profile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(user?.profilePhotoUrl || "");
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -140,25 +142,124 @@ export default function Profile() {
     });
   };
 
+  const compressImage = (file: File, maxWidth: number = 400): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Redimensionar mantendo proporção
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Erro ao criar canvas'));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Comprimir para JPEG com qualidade 0.7
+          const base64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(base64);
+        };
+        img.onerror = () => reject(new Error('Erro ao carregar imagem'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tamanho (5MB original)
+    if (file.size > 5242880) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "A foto deve ter no máximo 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Formato inválido",
+        description: "Por favor, selecione uma imagem.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    console.log("📸 Comprimindo e convertendo foto...");
+
+    try {
+      // Comprimir e converter para base64
+      const base64Image = await compressImage(file, 400);
+      console.log("✅ Foto comprimida:", (base64Image.length / 1024).toFixed(2), "KB");
+
+      // Atualizar preview imediatamente
+      setProfilePhoto(base64Image);
+
+      // Salvar no banco de dados
+      console.log("💾 Salvando foto no perfil...");
+      await apiRequest("PATCH", "/api/auth/profile", {
+        profilePhotoUrl: base64Image,
+      });
+      console.log("✅ Foto salva no banco de dados!");
+
+      // Recarregar dados do usuário
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+
+      toast({
+        title: "Foto atualizada!",
+        description: "Sua foto de perfil foi atualizada com sucesso.",
+      });
+    } catch (error) {
+      console.error("❌ Erro no upload:", error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível enviar a foto. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+      // Limpar input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-bg pb-20 relative">
       <AnimatedBackground />
-      <div className="p-4 pt-4 relative z-10">
+      <div className="p-4 relative z-10">
         {/* Botão de Voltar */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setLocation("/")}
-          className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+          className="mb-4 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
           data-testid="button-back"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        
-        {/* Header */}
-        <div className="flex items-center mb-6 pt-12">
-          <h1 className="text-2xl font-bold text-gray-800">Meu Perfil</h1>
-        </div>
 
         {/* Profile Header */}
         <Card className="glass-effect shadow-xl mb-6">
@@ -175,44 +276,28 @@ export default function Profile() {
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-                <ObjectUploader
-                  maxNumberOfFiles={1}
-                  maxFileSize={5242880}
-                  onGetUploadParameters={async () => {
-                    const response = await apiRequest("POST", "/api/objects/upload");
-                    return {
-                      method: "PUT" as const,
-                      url: response.uploadURL,
-                    };
-                  }}
-                  onComplete={async (result) => {
-                    if (result.successful?.[0]) {
-                      const uploadURL = result.successful[0].uploadURL;
-                      setProfilePhoto(uploadURL);
-                      
-                      try {
-                        await apiRequest("PATCH", "/api/auth/profile", {
-                          profilePhotoUrl: uploadURL,
-                        });
-                        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-                        toast({
-                          title: "Foto atualizada!",
-                          description: "Sua foto de perfil foi atualizada com sucesso.",
-                        });
-                      } catch (error) {
-                        console.error("Erro ao salvar foto:", error);
-                        toast({
-                          title: "Erro",
-                          description: "Erro ao salvar foto de perfil.",
-                          variant: "destructive"
-                        });
-                      }
-                    }
-                  }}
-                  buttonClassName="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 p-0 shadow-lg border-2 border-white"
+                {/* Input de arquivo oculto */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                {/* Botão de câmera */}
+                <Button
+                  type="button"
+                  size="icon"
+                  disabled={isUploadingPhoto}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 p-0 shadow-lg border-2 border-white"
                 >
-                  <Camera className="h-4 w-4 text-white" />
-                </ObjectUploader>
+                  {isUploadingPhoto ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    <Camera className="h-4 w-4 text-white" />
+                  )}
+                </Button>
               </div>
               <div className="text-center">
                 <h2 className="text-xl font-bold text-gray-800" data-testid="text-user-name">

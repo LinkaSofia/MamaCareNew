@@ -343,21 +343,22 @@ export default function Dashboard() {
               <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
                     </button>
 
-            {/* Container centralizado com imagem e círculo sobrepostos */}
-            <div className="relative w-72 h-72 md:w-96 md:h-96 flex items-center justify-center">
-              {/* Círculo de Progresso (fundo) */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="w-72 h-72 md:w-96 md:h-96 transform -rotate-90" viewBox="0 0 128 128">
-                  <circle cx="64" cy="64" r="56" fill="none" stroke="#E5E7EB" strokeWidth="8"/>
+            {/* Container centralizado com imagem e círculo como borda */}
+            <div className="flex flex-col items-center gap-6">
+              {/* Imagem com círculo de progresso como borda */}
+              <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+                {/* Círculo de Progresso como borda da imagem */}
+                <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 128 128">
+                  <circle cx="64" cy="64" r="60" fill="none" stroke="#E5E7EB" strokeWidth="6"/>
                   <circle 
                     cx="64" 
                     cy="64" 
-                    r="56" 
+                    r="60" 
                     fill="none" 
                     stroke="url(#gradient)" 
-                    strokeWidth="8" 
-                    strokeDasharray="351.86" 
-                    strokeDashoffset={351.86 - (Math.round((currentWeek / 40) * 100) / 100) * 351.86}
+                    strokeWidth="6" 
+                    strokeDasharray="376.99" 
+                    strokeDashoffset={376.99 - (Math.round((currentWeek / 40) * 100) / 100) * 376.99}
                     strokeLinecap="round" 
                     className="progress-ring transition-all duration-500"
                   />
@@ -368,34 +369,39 @@ export default function Dashboard() {
                     </linearGradient>
                   </defs>
                 </svg>
+
+                {/* Imagem do Bebê */}
+                <div className="relative group">
+                  <div className="w-56 h-56 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-white shadow-2xl relative">
+                    <Baby3D 
+                      week={currentWeek} 
+                      className="w-full h-full rounded-full" 
+                      babyImageUrl={development?.baby_image_url ?? undefined}
+                    />
+                  </div>
+                  
+                  {/* Badge da semana */}
+                  <div className="absolute -top-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg z-20">
+                    {currentWeek}ª Semana
+                  </div>
+
+                  {/* Indicador de tamanho e peso embaixo da imagem */}
+                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg z-20">
+                    <p className="text-xs md:text-sm text-gray-700 font-semibold whitespace-nowrap">
+                      {development.length_cm ? `${development.length_cm} cm` : '1cm'} • {development.weight_grams && Number(development.weight_grams) > 0 ? `${development.weight_grams}g` : '1g'}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {/* Imagem do Bebê (centro) */}
-                  <div className="relative group z-10">
-              <div className="w-56 h-56 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-white shadow-2xl relative">
-                      <Baby3D 
-                        week={currentWeek} 
-                        className="w-full h-full rounded-full" 
-                  babyImageUrl={development?.baby_image_url ?? undefined}
-                      />
-                    </div>
-                    
-                    {/* Indicadores flutuantes */}
-                    <div className="absolute -top-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg z-20">
-                      {currentWeek}ª Semana
-                    </div>
-                  </div>
-
-              {/* Texto de Porcentagem (sobreposto no canto superior direito) */}
-              <div className="absolute top-4 right-4 md:top-8 md:right-8">
-                <div className="text-center bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
-                  <span className="text-3xl md:text-4xl font-bold text-gray-800 block">
-                    {Math.round((currentWeek / 40) * 100)}%
-                  </span>
-                  <div className="text-xs md:text-sm text-gray-600">completo</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {40 - currentWeek} semanas restantes
-                  </div>
+              {/* Card de Porcentagem abaixo da imagem */}
+              <div className="text-center bg-gradient-to-br from-pink-100 to-purple-100 backdrop-blur-sm rounded-3xl px-8 py-4 shadow-xl border-2 border-white">
+                <span className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 block">
+                  {Math.round((currentWeek / 40) * 100)}%
+                </span>
+                <div className="text-sm md:text-base text-gray-700 font-medium mt-1">completo</div>
+                <div className="text-xs text-gray-600 mt-1">
+                  {40 - currentWeek} semanas restantes
                 </div>
               </div>
             </div>

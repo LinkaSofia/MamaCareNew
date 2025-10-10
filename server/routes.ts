@@ -576,7 +576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Internal server error" });
     }
   });
-
+  
   // Session middleware for authentication
   // REMOVIDO FileStore - Render tem filesystem efêmero
   // Usando MemoryStore (in-memory) que funciona imediatamente
@@ -1009,31 +1009,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/auth/profile", requireAuth, async (req, res) => {
     try {
       const { profilePhotoUrl, birthDate } = req.body;
-      const userId = req.session.userId!;
+      const userId = req.userId!;
       
-      console.log("Updating profile for user:", userId, { profilePhotoUrl, birthDate });
+      console.log("📝 Updating profile for user:", userId, { 
+        hasPhoto: !!profilePhotoUrl, 
+        photoType: profilePhotoUrl?.startsWith('data:') ? 'base64' : 'url',
+        birthDate 
+      });
       
-      // Se tem URL de upload, normalize o path e configure ACL
-      let normalizedPhotoUrl = profilePhotoUrl;
-      if (profilePhotoUrl && profilePhotoUrl.includes('storage.googleapis.com')) {
-        const objectStorageService = new ObjectStorageService();
-        normalizedPhotoUrl = await objectStorageService.trySetObjectEntityAclPolicy(
-          profilePhotoUrl,
-          {
-            owner: userId,
-            visibility: "public", // Profile photos são públicas
-          }
-        );
-      }
-      
+      // Aceitar base64 ou URL normal (não precisa normalizar)
       const updatedUser = await storage.updateUserProfile(userId, {
-        profilePhotoUrl: normalizedPhotoUrl,
+        profilePhotoUrl: profilePhotoUrl || null,
         birthDate: birthDate ? new Date(birthDate) : undefined,
       });
       
+      console.log("✅ Profile updated successfully");
       res.json({ user: updatedUser });
     } catch (error) {
-      console.error("Update profile error:", error);
+      console.error("❌ Update profile error:", error);
       res.status(500).json({ error: "Failed to update profile" });
     }
   });
@@ -1241,7 +1234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("  - notes:", req.body.notes, typeof req.body.notes);
       
       // Buscar gravidez ativa do usuário
-      const userId = req.session.userId!;
+      const userId = req.userId!;
       const pregnancy = await storage.getActivePregnancy(userId);
       
       if (!pregnancy) {
@@ -1297,7 +1290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/weight-entries", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!;
       const pregnancy = await storage.getActivePregnancy(userId);
       
       if (!pregnancy) {
@@ -1316,7 +1309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("📊 Weight entry update request:", req.params.id, req.body);
       
-      const userId = req.session.userId!;
+      const userId = req.userId!;
       const pregnancy = await storage.getActivePregnancy(userId);
       
       if (!pregnancy) {
@@ -1355,7 +1348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("🗑️ Weight entry delete request - ID:", req.params.id, "Type:", typeof req.params.id);
       
-      const userId = req.session.userId!;
+      const userId = req.userId!;
       const pregnancy = await storage.getActivePregnancy(userId);
       
       if (!pregnancy) {
@@ -1411,7 +1404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para analytics de registro de peso
   app.get("/api/weight-analytics", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!;
       const analytics = await storage.getUserAnalytics(userId);
       
       // Filtrar apenas actions relacionadas a peso
