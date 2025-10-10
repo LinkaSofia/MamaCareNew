@@ -30,6 +30,16 @@
     padding-top: max(0.5rem, env(safe-area-inset-top));
   }
   
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
   /* Maternal Background Classes */
   .maternal-bg {
     background: var(--gradient-dawn-rose);

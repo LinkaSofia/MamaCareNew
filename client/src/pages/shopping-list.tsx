@@ -419,7 +419,7 @@ export default function ShoppingList() {
           >
             <ArrowLeft className="h-5 w-5 text-gray-700" />
           </Button>
-          <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">Lista de Compras</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Lista de Compras</h1>
           <Button 
             variant="ghost" 
             size="icon"
