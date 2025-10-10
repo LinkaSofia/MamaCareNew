@@ -1492,7 +1492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/birth-plans", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido para usar req.userId
       const sessionId = req.sessionID;
       
       const birthPlanData = insertBirthPlanSchema.parse(req.body);
@@ -1518,7 +1518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/birth-plans/:id", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido para usar req.userId
       const sessionId = req.sessionID;
       const recordId = req.params.id;
       
@@ -1557,7 +1557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/birth-plans/:id", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido para usar req.userId
       const sessionId = req.sessionID;
       const recordId = req.params.id;
       
