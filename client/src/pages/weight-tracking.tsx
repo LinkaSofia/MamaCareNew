@@ -59,25 +59,49 @@ export default function WeightTracking() {
     onSuccess: async (data) => {
       console.log("⚖️ Weight entry saved successfully, updating UI...");
       console.log("⚖️ Saved entry data:", data);
+      console.log("⚖️ Current cache data:", queryClient.getQueryData(["/api/weight-entries"]));
       
-      // Atualizar o cache IMEDIATAMENTE (optimistic update)
-      try {
-        queryClient.setQueryData(["/api/weight-entries", pregnancy?.id], (oldData: any) => {
-          if (!oldData) return [data.entry];
-          
-          // Adicionar nova entrada na lista
-          return [data.entry, ...oldData];
-        });
-        console.log("⚖️ Cache updated immediately with new entry");
-      } catch (error) {
-        console.error("⚖️ Error updating cache:", error);
-      }
-      
-      // Fechar o formulário
+      // Fechar o formulário primeiro
       setShowAddForm(false);
       setWeight("");
       setDate(new Date().toISOString().split('T')[0]);
       setNotes("");
+      
+      // Atualizar o cache IMEDIATAMENTE (optimistic update)
+      try {
+        queryClient.setQueryData(["/api/weight-entries"], (oldData: any) => {
+          console.log("⚖️ Old cache data:", oldData);
+          
+          // Se não houver dados antigos, retornar apenas a nova entrada
+          if (!oldData) {
+            console.log("⚖️ No old data, creating new array");
+            return [data.entry];
+          }
+          
+          // Se oldData for um array, adicionar no início
+          if (Array.isArray(oldData)) {
+            console.log("⚖️ Adding to existing array");
+            return [data.entry, ...oldData];
+          }
+          
+          // Se oldData tiver uma propriedade entries (formato possível)
+          if (oldData.entries && Array.isArray(oldData.entries)) {
+            console.log("⚖️ Adding to entries array");
+            return {
+              ...oldData,
+              entries: [data.entry, ...oldData.entries]
+            };
+          }
+          
+          // Fallback: criar novo array
+          console.log("⚖️ Fallback: creating new array");
+          return [data.entry];
+        });
+        console.log("⚖️ Cache updated immediately with new entry");
+        console.log("⚖️ New cache data:", queryClient.getQueryData(["/api/weight-entries"]));
+      } catch (error) {
+        console.error("⚖️ Error updating cache:", error);
+      }
       
       // Invalidar queries em background para sincronizar
       queryClient.invalidateQueries({ 
@@ -112,8 +136,9 @@ export default function WeightTracking() {
       }
       return response.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       console.log("⚖️ Weight entry updated successfully, updating UI...");
+      console.log("⚖️ Updated entry data:", data);
       
       // Fechar o formulário de edição
       setShowEditForm(false);
@@ -122,17 +147,39 @@ export default function WeightTracking() {
       setDate(new Date().toISOString().split('T')[0]);
       setNotes("");
       
-      // Invalidar e refetch imediatamente
-      await queryClient.invalidateQueries({ 
+      // Atualizar o cache IMEDIATAMENTE (optimistic update)
+      try {
+        queryClient.setQueryData(["/api/weight-entries"], (oldData: any) => {
+          if (!oldData) return [data.entry];
+          
+          if (Array.isArray(oldData)) {
+            // Substituir a entrada atualizada
+            return oldData.map(item => 
+              item.id === data.entry.id ? data.entry : item
+            );
+          }
+          
+          if (oldData.entries && Array.isArray(oldData.entries)) {
+            return {
+              ...oldData,
+              entries: oldData.entries.map((item: any) => 
+                item.id === data.entry.id ? data.entry : item
+              )
+            };
+          }
+          
+          return [data.entry];
+        });
+        console.log("⚖️ Cache updated immediately with updated entry");
+      } catch (error) {
+        console.error("⚖️ Error updating cache:", error);
+      }
+      
+      // Invalidar queries em background
+      queryClient.invalidateQueries({ 
         queryKey: ["/api/weight-entries"],
         exact: false 
       });
-      
-      try {
-        await refetch();
-      } catch (error) {
-        console.error("⚖️ Error during refetch:", error);
-      }
       
       toast({
         title: "⚖️ Peso atualizado!",
@@ -164,33 +211,39 @@ export default function WeightTracking() {
     onSuccess: async (data) => {
       console.log("⚖️ Weight entry deleted successfully, updating UI...");
       
-      // Atualizar o cache diretamente primeiro (mudança instantânea)
+      // Atualizar o cache IMEDIATAMENTE (optimistic update)
       try {
-        queryClient.setQueryData<any>(["/api/weight-entries"], (oldData) => {
+        queryClient.setQueryData(["/api/weight-entries"], (oldData: any) => {
+          console.log("⚖️ Deleting from cache, old data:", oldData);
           if (!oldData) return oldData;
           
-          const filteredEntries = oldData.entries.filter((entry: any) => entry.id !== data.id);
+          // Se for um array direto
+          if (Array.isArray(oldData)) {
+            console.log("⚖️ Filtering array directly");
+            return oldData.filter((entry: any) => entry.id !== data.id);
+          }
           
-          return {
-            ...oldData,
-            entries: filteredEntries
-          };
+          // Se tiver propriedade entries
+          if (oldData.entries && Array.isArray(oldData.entries)) {
+            console.log("⚖️ Filtering entries property");
+            return {
+              ...oldData,
+              entries: oldData.entries.filter((entry: any) => entry.id !== data.id)
+            };
+          }
+          
+          return oldData;
         });
+        console.log("⚖️ Cache updated immediately - entry removed");
       } catch (error) {
         console.error("⚖️ Error updating cache after delete:", error);
       }
       
-      // Invalidar e refetch em background para sincronizar
+      // Invalidar queries em background
       queryClient.invalidateQueries({ 
         queryKey: ["/api/weight-entries"],
         exact: false 
       });
-      
-      try {
-        await refetch();
-      } catch (error) {
-        console.error("⚖️ Error in background refetch after delete:", error);
-      }
       
       toast({
         title: "🗑️ Peso removido",
