@@ -232,24 +232,32 @@ export default function Consultations() {
       <div className="min-h-screen pb-20">
         <div className="container mx-auto px-4 pt-6 pb-20">
           {/* Botão de Voltar */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setLocation("/")}
-            className="fixed top-4 left-4 z-50 bg-white/95 backdrop-blur-sm shadow-xl rounded-full hover:bg-gray-100 border border-white/20"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
-          </Button>
-          
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6 pt-12">
-            <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">Consultas</h1>
+          {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
+          <div className="flex items-center justify-between mb-6 relative">
+            {/* Botão Voltar - Esquerda */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              onClick={() => setLocation("/")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
+            {/* Título - Centro */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Consultas
+              </h1>
+              <p className="text-xs text-gray-600 mt-0.5">Agende e acompanhe</p>
+            </div>
+            
+            {/* Botão Adicionar - Direita */}
             <Button
               onClick={() => setShowAddForm(true)}
-              className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-xl border border-white/20 rounded-full px-6 py-2"
+              className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova
+              <Plus className="h-5 w-5 text-white" />
             </Button>
           </div>
 

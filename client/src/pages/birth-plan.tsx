@@ -12,26 +12,28 @@ export default function BirthPlan() {
       <AnimatedBackground>
       <div className="min-h-screen pb-20">
           <div className="container mx-auto px-4 py-4">
-            {/* Header com botão voltar e título */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
-                  onClick={() => viewMode === 'list' ? window.history.back() : setViewMode('list')}
-                  data-testid="button-back"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                    Planos de Parto
-                  </h1>
-                  <p className="text-sm text-gray-600">Gerencie seus planos de parto</p>
-                </div>
+            {/* Header com botão voltar, título centralizado e botão ação */}
+            <div className="flex items-center justify-between mb-6 relative">
+              {/* Botão Voltar - Esquerda */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+                onClick={() => viewMode === 'list' ? window.history.back() : setViewMode('list')}
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              
+              {/* Título - Centro */}
+              <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  Planos de Parto
+                </h1>
+                <p className="text-xs text-gray-600 mt-0.5">Gerencie seus planos</p>
               </div>
               
+              {/* Botão Adicionar - Direita */}
               {viewMode === 'list' && (
                 <Button
                   onClick={() => setViewMode('create')}
@@ -41,6 +43,9 @@ export default function BirthPlan() {
                   <Plus className="w-5 h-5 text-white" />
                 </Button>
               )}
+              
+              {/* Espaçador quando não há botão direito */}
+              {viewMode !== 'list' && <div className="w-10"></div>}
             </div>
 
           {/* Lista de planos */}

@@ -341,23 +341,28 @@ export default function WeightTracking() {
     <AnimatedBackground>
       <div className="min-h-screen pb-20">
       <div className="px-4 pt-4 pb-4">
-        {/* Header com Botão de Voltar, Título e Botão Add */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
-              onClick={() => setLocation("/")}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h2 className="text-2xl font-bold text-gray-800" data-testid="text-page-title">
+        {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
+        <div className="flex items-center justify-between mb-4 relative">
+          {/* Botão Voltar - Esquerda */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+            onClick={() => setLocation("/")}
+            data-testid="button-back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          
+          {/* Título - Centro */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent" data-testid="text-page-title">
               Controle de Peso
             </h2>
+            <p className="text-xs text-gray-600 mt-0.5">Acompanhe sua evolução</p>
           </div>
           
+          {/* Botão Adicionar - Direita */}
           <Button
             variant="ghost"
             size="icon"
