@@ -71,31 +71,34 @@ export default function WeightTracking() {
       try {
         queryClient.setQueryData(["/api/weight-entries"], (oldData: any) => {
           console.log("⚖️ Old cache data:", oldData);
+          console.log("⚖️ New entry to add:", data.entry);
           
-          // Se não houver dados antigos, retornar apenas a nova entrada
+          // Se não houver dados antigos, criar novo objeto com entries
           if (!oldData) {
-            console.log("⚖️ No old data, creating new array");
-            return [data.entry];
+            console.log("⚖️ No old data, creating new entries object");
+            return { entries: [data.entry] };
           }
           
-          // Se oldData for um array, adicionar no início
+          // Se oldData for um array direto, converter para objeto com entries
           if (Array.isArray(oldData)) {
-            console.log("⚖️ Adding to existing array");
-            return [data.entry, ...oldData];
+            console.log("⚖️ Converting array to entries object and adding");
+            return { entries: [data.entry, ...oldData] };
           }
           
-          // Se oldData tiver uma propriedade entries (formato possível)
+          // Se oldData tiver uma propriedade entries (formato esperado)
           if (oldData.entries && Array.isArray(oldData.entries)) {
-            console.log("⚖️ Adding to entries array");
-            return {
+            console.log("⚖️ Adding to entries array (expected format)");
+            const newData = {
               ...oldData,
               entries: [data.entry, ...oldData.entries]
             };
+            console.log("⚖️ New data structure:", newData);
+            return newData;
           }
           
-          // Fallback: criar novo array
-          console.log("⚖️ Fallback: creating new array");
-          return [data.entry];
+          // Fallback: criar objeto com entries
+          console.log("⚖️ Fallback: creating entries object");
+          return { entries: [data.entry] };
         });
         console.log("⚖️ Cache updated immediately with new entry");
         console.log("⚖️ New cache data:", queryClient.getQueryData(["/api/weight-entries"]));
@@ -150,25 +153,34 @@ export default function WeightTracking() {
       // Atualizar o cache IMEDIATAMENTE (optimistic update)
       try {
         queryClient.setQueryData(["/api/weight-entries"], (oldData: any) => {
-          if (!oldData) return [data.entry];
+          console.log("⚖️ Updating cache, old data:", oldData);
+          console.log("⚖️ Updated entry:", data.entry);
           
-          if (Array.isArray(oldData)) {
-            // Substituir a entrada atualizada
-            return oldData.map(item => 
-              item.id === data.entry.id ? data.entry : item
-            );
+          if (!oldData) {
+            return { entries: [data.entry] };
           }
           
-          if (oldData.entries && Array.isArray(oldData.entries)) {
+          if (Array.isArray(oldData)) {
+            // Converter array para objeto com entries e atualizar
             return {
-              ...oldData,
-              entries: oldData.entries.map((item: any) => 
+              entries: oldData.map(item => 
                 item.id === data.entry.id ? data.entry : item
               )
             };
           }
           
-          return [data.entry];
+          if (oldData.entries && Array.isArray(oldData.entries)) {
+            const newData = {
+              ...oldData,
+              entries: oldData.entries.map((item: any) => 
+                item.id === data.entry.id ? data.entry : item
+              )
+            };
+            console.log("⚖️ Updated data structure:", newData);
+            return newData;
+          }
+          
+          return { entries: [data.entry] };
         });
         console.log("⚖️ Cache updated immediately with updated entry");
       } catch (error) {
@@ -215,26 +227,37 @@ export default function WeightTracking() {
       try {
         queryClient.setQueryData(["/api/weight-entries"], (oldData: any) => {
           console.log("⚖️ Deleting from cache, old data:", oldData);
-          if (!oldData) return oldData;
+          console.log("⚖️ Entry to delete ID:", data.id);
           
-          // Se for um array direto
-          if (Array.isArray(oldData)) {
-            console.log("⚖️ Filtering array directly");
-            return oldData.filter((entry: any) => entry.id !== data.id);
+          if (!oldData) {
+            console.log("⚖️ No data to delete from");
+            return { entries: [] };
           }
           
-          // Se tiver propriedade entries
-          if (oldData.entries && Array.isArray(oldData.entries)) {
-            console.log("⚖️ Filtering entries property");
+          // Se for um array direto, converter para objeto com entries
+          if (Array.isArray(oldData)) {
+            console.log("⚖️ Converting array and filtering");
             return {
-              ...oldData,
-              entries: oldData.entries.filter((entry: any) => entry.id !== data.id)
+              entries: oldData.filter((entry: any) => entry.id !== data.id)
             };
           }
           
-          return oldData;
+          // Se tiver propriedade entries (formato esperado)
+          if (oldData.entries && Array.isArray(oldData.entries)) {
+            console.log("⚖️ Filtering entries property (expected format)");
+            const newData = {
+              ...oldData,
+              entries: oldData.entries.filter((entry: any) => entry.id !== data.id)
+            };
+            console.log("⚖️ Data after deletion:", newData);
+            return newData;
+          }
+          
+          console.log("⚖️ Fallback: return empty entries");
+          return { entries: [] };
         });
         console.log("⚖️ Cache updated immediately - entry removed");
+        console.log("⚖️ New cache data:", queryClient.getQueryData(["/api/weight-entries"]));
       } catch (error) {
         console.error("⚖️ Error updating cache after delete:", error);
       }
