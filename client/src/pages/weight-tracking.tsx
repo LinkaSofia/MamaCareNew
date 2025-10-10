@@ -29,6 +29,17 @@ function formatDateToISO(dateStr: string) {
   return new Date(dateStr).toISOString().slice(0, 10);
 }
 
+// Função para formatar data para exibição sem problemas de timezone
+function formatDateForDisplay(dateStr: string) {
+  // Se vier no formato YYYY-MM-DD, converte diretamente
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('pt-BR');
+  }
+  // Fallback para outras formas
+  return new Date(dateStr).toLocaleDateString('pt-BR');
+}
+
 export default function WeightTracking() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -548,11 +559,11 @@ export default function WeightTracking() {
                         {record.weight} kg
                       </div>
                       <div className="text-sm text-gray-500" data-testid={`text-record-date-${record.id}`}>
-                        📅 {new Date(record.date).toLocaleDateString('pt-BR')}
+                        📅 {formatDateForDisplay(record.date)}
                       </div>
                       {record.createdAt && (
                         <div className="text-xs text-gray-400" data-testid={`text-record-created-${record.id}`}>
-                          🕒 Registrado: {new Date(record.createdAt).toLocaleDateString('pt-BR')} às {new Date(record.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          🕒 Registrado: {formatDateForDisplay(record.createdAt)} às {new Date(record.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
                       {record.notes && (
@@ -789,7 +800,7 @@ export default function WeightTracking() {
                   {entryToDelete.weight} kg
                 </div>
                 <div className="text-sm text-gray-600">
-                  📅 {new Date(entryToDelete.date).toLocaleDateString('pt-BR')}
+                  📅 {formatDateForDisplay(entryToDelete.date)}
                 </div>
                 {entryToDelete.notes && (
                   <div className="text-sm text-gray-500 mt-1">
