@@ -50,7 +50,6 @@ export default function BirthPlan() {
       return response.json();
     },
     onSuccess: async () => {
-      // Invalidar e refetch imediatamente
       await queryClient.invalidateQueries({ 
         queryKey: ['/api/birth-plans', pregnancy?.id] 
       });
@@ -60,14 +59,7 @@ export default function BirthPlan() {
         description: 'Seu plano de parto foi salvo com sucesso.',
       });
       setViewMode('list');
-      setFormData({
-        location: '',
-        painReliefNatural: false,
-        painReliefEpidural: false,
-        painReliefOther: '',
-        companions: '',
-        specialRequests: ''
-      });
+      resetForm();
     },
     onError: (error: any) => {
       toast({
@@ -77,6 +69,89 @@ export default function BirthPlan() {
       });
     },
   });
+
+  const updatePlanMutation = useMutation({
+    mutationFn: async (planData: any) => {
+      const response = await apiRequest('PUT', `/api/birth-plans/${birthPlan.id}`, planData);
+      return response.json();
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['/api/birth-plans', pregnancy?.id] 
+      });
+      
+      toast({
+        title: '✅ Plano atualizado!',
+        description: 'Seu plano de parto foi atualizado com sucesso.',
+      });
+      setViewMode('list');
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: '❌ Erro',
+        description: error.message || 'Erro ao atualizar plano de parto. Tente novamente.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deletePlanMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/birth-plans/${id}`);
+      return response.json();
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['/api/birth-plans', pregnancy?.id] 
+      });
+      
+      toast({
+        title: '🗑️ Plano excluído!',
+        description: 'Seu plano de parto foi excluído com sucesso.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: '❌ Erro',
+        description: error.message || 'Erro ao excluir plano de parto. Tente novamente.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      location: '',
+      painReliefNatural: false,
+      painReliefEpidural: false,
+      painReliefOther: '',
+      companions: '',
+      specialRequests: ''
+    });
+  };
+
+  const loadPlanToEdit = () => {
+    if (birthPlan) {
+      setFormData({
+        location: birthPlan.location || '',
+        painReliefNatural: birthPlan.painRelief?.natural || false,
+        painReliefEpidural: birthPlan.painRelief?.epidural || false,
+        painReliefOther: birthPlan.painRelief?.other || '',
+        companions: birthPlan.companions || '',
+        specialRequests: birthPlan.specialRequests || ''
+      });
+      setViewMode('edit');
+    }
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Tem certeza que deseja excluir este plano de parto?')) {
+      if (birthPlan?.id) {
+        deletePlanMutation.mutate(birthPlan.id);
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,13 +174,19 @@ export default function BirthPlan() {
       painRelief.other = formData.painReliefOther.trim();
     }
 
-    createPlanMutation.mutate({
+    const planData = {
       pregnancyId: pregnancy.id,
       location: formData.location.trim() || null,
       painRelief,
       companions: formData.companions.trim() || null,
       specialRequests: formData.specialRequests.trim() || null,
-    });
+    };
+
+    if (viewMode === 'edit') {
+      updatePlanMutation.mutate(planData);
+    } else {
+      createPlanMutation.mutate(planData);
+    }
   };
 
     return (
@@ -133,8 +214,8 @@ export default function BirthPlan() {
                 <p className="text-xs text-gray-600 mt-0.5">Gerencie seus planos</p>
               </div>
               
-              {/* Botão Adicionar - Direita */}
-              {viewMode === 'list' && (
+              {/* Botão Adicionar - Direita (só aparece se não houver plano) */}
+              {viewMode === 'list' && !birthPlan && (
                 <Button
                   onClick={() => setViewMode('create')}
                   className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
@@ -143,6 +224,9 @@ export default function BirthPlan() {
                   <Plus className="w-5 h-5 text-white" />
                 </Button>
               )}
+              
+              {/* Espaçador quando há plano mas está em modo list */}
+              {viewMode === 'list' && birthPlan && <div className="w-10"></div>}
               
               {/* Espaçador quando não há botão direito */}
               {viewMode !== 'list' && <div className="w-10"></div>}
@@ -167,10 +251,30 @@ export default function BirthPlan() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="rounded-full hover:bg-blue-100"
+                          onClick={() => window.print()}
+                          title="Imprimir/Download PDF"
+                        >
+                          <Download className="w-4 h-4 text-blue-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="rounded-full hover:bg-pink-100"
-                          onClick={() => setViewMode('edit')}
+                          onClick={loadPlanToEdit}
+                          title="Editar"
                         >
                           <Edit className="w-4 h-4 text-pink-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full hover:bg-red-100"
+                          onClick={handleDelete}
+                          disabled={deletePlanMutation.isPending}
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>
                       </div>
                     </CardTitle>
@@ -371,17 +475,22 @@ export default function BirthPlan() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => setViewMode('list')}
+                        onClick={() => {
+                          setViewMode('list');
+                          resetForm();
+                        }}
                         className="flex-1"
                       >
                         Cancelar
                       </Button>
                       <Button
                         type="submit"
-                        disabled={createPlanMutation.isPending}
+                        disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
                         className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 shadow-lg"
                       >
-                        {createPlanMutation.isPending ? 'Salvando...' : 'Salvar Plano'}
+                        {(createPlanMutation.isPending || updatePlanMutation.isPending) 
+                          ? 'Salvando...' 
+                          : viewMode === 'edit' ? 'Atualizar Plano' : 'Salvar Plano'}
                       </Button>
                     </div>
                   </form>
