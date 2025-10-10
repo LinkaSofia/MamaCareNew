@@ -15,6 +15,7 @@ import WeightChart from "@/components/weight-chart";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { ArrowLeft, Scale, Plus, TrendingUp, Edit, Trash2, X } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { DatePicker } from "@/components/ui/date-picker";
 
 // Função utilitária para garantir o formato YYYY-MM-DD
 function formatDateToISO(dateStr: string) {
@@ -259,7 +260,7 @@ export default function WeightTracking() {
           // Se for um array direto, converter para objeto com entries
           if (Array.isArray(oldData)) {
             console.log("⚖️ Converting array and filtering");
-            return {
+          return {
               entries: oldData.filter((entry: any) => entry.id !== data.id)
             };
           }
@@ -268,7 +269,7 @@ export default function WeightTracking() {
           if (oldData.entries && Array.isArray(oldData.entries)) {
             console.log("⚖️ Filtering entries property (expected format)");
             const newData = {
-              ...oldData,
+            ...oldData,
               entries: oldData.entries.filter((entry: any) => entry.id !== data.id)
             };
             console.log("⚖️ Data after deletion:", newData);
@@ -285,7 +286,7 @@ export default function WeightTracking() {
       }
       
       // FORÇAR refetch IMEDIATO para garantir atualização instantânea
-      await refetch();
+        await refetch();
       
       toast({
         title: "🗑️ Peso removido",
@@ -398,7 +399,7 @@ export default function WeightTracking() {
   console.log("⚖️ [RENDER] weightData:", weightData);
   console.log("⚖️ [RENDER] weightData type:", typeof weightData);
   console.log("⚖️ [RENDER] Is Array?", Array.isArray(weightData));
-  
+
   const entries = (weightData as any)?.entries || [];
   console.log("⚖️ [RENDER] Extracted entries:", entries);
   console.log("⚖️ [RENDER] Entries count:", entries.length);
@@ -461,8 +462,8 @@ export default function WeightTracking() {
           {/* Título - Centro */}
           <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent" data-testid="text-page-title">
-              Controle de Peso
-            </h2>
+            Controle de Peso
+          </h2>
             <p className="text-xs text-gray-600 mt-0.5">Acompanhe sua evolução</p>
           </div>
           
@@ -647,14 +648,10 @@ export default function WeightTracking() {
                   <Label htmlFor="date" className="text-charcoal font-medium">
                     Data
                   </Label>
-                  <Input
-                    id="date"
-                    type="date"
+                  <DatePicker
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
-                    data-testid="input-date"
-                    required
+                    onChange={setDate}
+                    placeholder="Selecione a data"
                   />
                 </div>
                 
@@ -734,14 +731,10 @@ export default function WeightTracking() {
                   <Label htmlFor="edit-date" className="text-charcoal font-medium">
                     Data
                   </Label>
-                  <Input
-                    id="edit-date"
-                    type="date"
+                  <DatePicker
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
-                    data-testid="input-edit-date"
-                    required
+                    onChange={setDate}
+                    placeholder="Selecione a data"
                   />
                 </div>
                 

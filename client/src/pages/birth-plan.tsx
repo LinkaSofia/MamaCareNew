@@ -15,6 +15,7 @@ import { usePregnancy } from '@/hooks/use-pregnancy';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import logoImage from "@assets/4_1755308511005.png";
 
 interface BirthPlanFormData {
   // Etapa 1: Informações Básicas
@@ -109,6 +110,35 @@ export default function BirthPlan() {
   });
 
   const birthPlan = birthPlanData?.birthPlan;
+
+  // Função para limpar formulário ao criar novo plano
+  const resetForm = () => {
+    setFormData({
+      location: '',
+      companions: '',
+      doctorPreference: '',
+      lighting: 'dimmed',
+      music: false,
+      movement: true,
+      painReliefNatural: true,
+      painReliefEpidural: false,
+      painReliefOther: '',
+      laborPosition: 'free',
+      monitoring: 'intermittent',
+      hydrationFood: true,
+      deliveryType: 'natural',
+      episiotomy: 'if-necessary',
+      umbilicalCord: 'delayed',
+      skinToSkin: true,
+      breastfeeding: 'immediate',
+      babyBath: 'delayed',
+      companionPresence: true,
+      photos: true,
+      religiousCultural: '',
+      specialRequests: ''
+    });
+    setCurrentStep(1);
+  };
 
   const createPlanMutation = useMutation({
     mutationFn: async (planData: any) => {
@@ -296,107 +326,252 @@ export default function BirthPlan() {
   const downloadPDF = async () => {
     if (!birthPlan) return;
     
-    // Criar conteúdo HTML para o PDF
-    const printWindow = window.open('', '', 'width=800,height=600');
-    if (!printWindow) return;
+    // Importar html2pdf dinamicamente
+    const html2pdf = (await import('html2pdf.js')).default;
     
     const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
         <title>Plano de Parto - MamaCare</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
         <style>
-          @page { margin: 2cm; }
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+          @page { 
+            margin: 0; 
+            size: A4;
           }
+          
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.8;
+            color: #4a5568;
+            background: #ffffff;
+            position: relative;
+            overflow: hidden;
+          }
+          
+          /* Fundo com corações decorativos - REMOVIDOS PARA PDF LIMPO */
+          
+          .container {
+            position: relative;
+            z-index: 1;
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 40px;
+            background: #ffffff;
+            min-height: 100vh;
+          }
+          
           .header {
             text-align: center;
-            border-bottom: 3px solid #e91e63;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #ec4899;
           }
+          
+          .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+          }
+          
+          .logo-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #ec4899;
+          }
+          
+          .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          
+          .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 700;
+            color: #ec4899;
+          }
+          
           .header h1 {
-            color: #e91e63;
-            margin: 10px 0;
+            font-family: 'Playfair Display', serif;
+            color: #1f2937;
+            font-size: 32px;
+            margin: 15px 0 10px 0;
+            font-weight: 700;
           }
-          .header p {
-            color: #666;
+          
+          .header-subtitle {
+            color: #9ca3af;
             font-size: 14px;
+            font-weight: 300;
+            font-style: italic;
           }
+          
+          .user-info {
+            background: #fef3f8;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 4px solid #ec4899;
+          }
+          
+          .user-info p {
+            margin: 8px 0;
+            font-size: 15px;
+          }
+          
+          .user-info strong {
+            color: #6b21a8;
+            font-weight: 600;
+          }
+          
           .section {
-            margin-bottom: 25px;
+            margin-bottom: 35px;
             page-break-inside: avoid;
           }
+          
           .section-title {
-            background: linear-gradient(135deg, #e91e63, #9c27b0);
+            background: #ec4899;
             color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
           }
+          
+          .section-title::before {
+            content: '✦';
+            font-size: 20px;
+          }
+          
           .field {
-            margin-bottom: 12px;
-            padding-left: 15px;
+            margin-bottom: 18px;
+            padding-left: 20px;
           }
+          
           .field-label {
-            font-weight: bold;
-            color: #555;
+            font-weight: 600;
+            color: #4b5563;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
+          
           .field-value {
-            color: #333;
-            padding: 8px;
-            background: #f5f5f5;
-            border-radius: 4px;
-            border-left: 3px solid #e91e63;
+            color: #1f2937;
+            padding: 12px 15px;
+            background: #fef3f8;
+            border-radius: 8px;
+            border-left: 4px solid #ec4899;
+            font-size: 15px;
+            border: 1px solid #f3d1e0;
           }
+          
           .checkbox-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            padding-left: 15px;
+            gap: 20px;
+            padding-left: 20px;
           }
+          
           .checkbox-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #f3f4f6;
           }
-          .footer {
-            margin-top: 40px;
-            text-align: center;
-            color: #999;
+          
+          .checkbox-item.checked {
+            border-color: #ec4899;
+            background: #fef3f8;
+          }
+          
+          .checkbox-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ec4899;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 12px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-          }
-          .logo {
-            font-size: 32px;
             font-weight: bold;
-            background: linear-gradient(135deg, #e91e63, #9c27b0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+          }
+          
+          .checkbox-icon.unchecked {
+            background: #e5e7eb;
+          }
+          
+          .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 12px;
+            border-top: 2px solid #f3f4f6;
+            padding-top: 25px;
+            font-style: italic;
+          }
+          
+          .footer-hearts {
+            margin: 15px 0;
+            font-size: 20px;
+            color: #ec4899;
+          }
+          
+          @media print {
+            body {
+              background: white;
+            }
+            .container {
+              box-shadow: none;
+              padding: 20px;
+            }
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="logo">MamaCare</div>
-          <h1>Plano de Parto</h1>
-          <p>Criado em: ${new Date().toLocaleDateString('pt-BR')}</p>
-          <p>Gestante: ${user?.name || 'Nome não informado'}</p>
-        </div>
+        <div class="container">
+          <div class="header">
+            <div class="logo-container">
+              <div class="logo-icon">
+                <img src="${logoImage}" alt="MamaCare Logo" />
+              </div>
+              <div class="logo-text">MamaCare</div>
+            </div>
+            <h1>Meu Plano de Parto</h1>
+            <p class="header-subtitle">Planejando um parto com amor e cuidado</p>
+          </div>
+          
+          <div class="user-info">
+            <p><strong>Nome:</strong> ${user?.name || 'Não informado'}</p>
+            <p><strong>Data de Geração:</strong> ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+          </div>
 
-        <div class="section">
+          <div class="section">
           <div class="section-title">📍 Informações Básicas</div>
           <div class="field">
             <span class="field-label">Local do Parto:</span>
@@ -419,16 +594,28 @@ export default function BirthPlan() {
             <div class="field-value">${birthPlan.lighting === 'dimmed' ? 'Ambiente com luz baixa' : birthPlan.lighting === 'natural' ? 'Luz natural' : 'Luz normal'}</div>
           </div>
           <div class="checkbox-group">
-            <div class="checkbox-item">${birthPlan.music ? '☑' : '☐'} Música ambiente</div>
-            <div class="checkbox-item">${birthPlan.movement ? '☑' : '☐'} Liberdade de movimentação</div>
+            <div class="checkbox-item ${birthPlan.music ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.music ? '' : 'unchecked'}">${birthPlan.music ? '✓' : '○'}</span>
+              Música ambiente
+            </div>
+            <div class="checkbox-item ${birthPlan.movement ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.movement ? '' : 'unchecked'}">${birthPlan.movement ? '✓' : '○'}</span>
+              Liberdade de movimentação
+            </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">💊 Alívio da Dor</div>
           <div class="checkbox-group">
-            <div class="checkbox-item">${birthPlan.pain_relief_natural ? '☑' : '☐'} Métodos naturais (respiração, massagem, água)</div>
-            <div class="checkbox-item">${birthPlan.pain_relief_epidural ? '☑' : '☐'} Anestesia epidural</div>
+            <div class="checkbox-item ${birthPlan.pain_relief_natural ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.pain_relief_natural ? '' : 'unchecked'}">${birthPlan.pain_relief_natural ? '✓' : '○'}</span>
+              Métodos naturais (respiração, massagem, água)
+            </div>
+            <div class="checkbox-item ${birthPlan.pain_relief_epidural ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.pain_relief_epidural ? '' : 'unchecked'}">${birthPlan.pain_relief_epidural ? '✓' : '○'}</span>
+              Anestesia epidural
+            </div>
           </div>
           ${birthPlan.pain_relief_other ? `
           <div class="field">
@@ -449,7 +636,10 @@ export default function BirthPlan() {
             <div class="field-value">${birthPlan.monitoring === 'intermittent' ? 'Intermitente' : 'Contínuo'}</div>
           </div>
           <div class="checkbox-group">
-            <div class="checkbox-item">${birthPlan.hydration_food ? '☑' : '☐'} Hidratação e alimentação leve</div>
+            <div class="checkbox-item ${birthPlan.hydration_food ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.hydration_food ? '' : 'unchecked'}">${birthPlan.hydration_food ? '✓' : '○'}</span>
+              Hidratação e alimentação leve
+            </div>
           </div>
         </div>
 
@@ -468,7 +658,10 @@ export default function BirthPlan() {
             <div class="field-value">${birthPlan.umbilical_cord === 'delayed' ? 'Clampeamento tardio' : birthPlan.umbilical_cord === 'immediate' ? 'Clampeamento imediato' : 'Conforme orientação médica'}</div>
           </div>
           <div class="checkbox-group">
-            <div class="checkbox-item">${birthPlan.skin_to_skin ? '☑' : '☐'} Contato pele a pele imediato</div>
+            <div class="checkbox-item ${birthPlan.skin_to_skin ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.skin_to_skin ? '' : 'unchecked'}">${birthPlan.skin_to_skin ? '✓' : '○'}</span>
+              Contato pele a pele imediato
+            </div>
           </div>
         </div>
 
@@ -483,14 +676,20 @@ export default function BirthPlan() {
             <div class="field-value">${birthPlan.baby_bath === 'delayed' ? 'Adiar por algumas horas' : birthPlan.baby_bath === 'immediate' ? 'Imediatamente' : 'Conforme rotina'}</div>
           </div>
           <div class="checkbox-group">
-            <div class="checkbox-item">${birthPlan.companion_presence ? '☑' : '☐'} Presença de acompanhante</div>
+            <div class="checkbox-item ${birthPlan.companion_presence ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.companion_presence ? '' : 'unchecked'}">${birthPlan.companion_presence ? '✓' : '○'}</span>
+              Presença de acompanhante
+            </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">✨ Solicitações Especiais</div>
           <div class="checkbox-group">
-            <div class="checkbox-item">${birthPlan.photos ? '☑' : '☐'} Fotografias/vídeos permitidos</div>
+            <div class="checkbox-item ${birthPlan.photos ? 'checked' : ''}">
+              <span class="checkbox-icon ${birthPlan.photos ? '' : 'unchecked'}">${birthPlan.photos ? '✓' : '○'}</span>
+              Fotografias/vídeos permitidos
+            </div>
           </div>
           ${birthPlan.religious_cultural ? `
           <div class="field">
@@ -507,20 +706,76 @@ export default function BirthPlan() {
         </div>
 
         <div class="footer">
-          <p>Plano de Parto gerado pelo aplicativo MamaCare</p>
-          <p>Este documento serve como orientação e pode ser ajustado conforme necessário durante o trabalho de parto.</p>
+          <div class="footer-hearts">💕 ✨ 💕</div>
+          <p><strong>Plano de Parto gerado pelo aplicativo MamaCare</strong></p>
+          <p style="margin-top: 10px;">Este documento serve como orientação e pode ser ajustado conforme necessário durante o trabalho de parto.</p>
+          <p style="margin-top: 10px; font-size: 11px; color: #bbb;">Com amor e cuidado para você e seu bebê ❤️</p>
+        </div>
         </div>
       </body>
       </html>
     `;
     
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    // Criar elemento temporário para o PDF
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
     
-    // Aguardar carregamento e imprimir
-    printWindow.onload = () => {
-      printWindow.print();
+    // Mostrar toast imediatamente
+    toast({
+      title: "⏳ Gerando PDF...",
+      description: "Aguarde, seu plano de parto está sendo preparado.",
+    });
+
+    // Configurações do PDF
+    const options = {
+      margin: 0,
+      filename: `Plano-de-Parto-${user?.name || 'MamaCare'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        letterRendering: true,
+        windowWidth: 800
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait',
+        compress: true
+      },
+      pagebreak: { mode: 'avoid-all' }
     };
+    
+    // Gerar e baixar o PDF (SEM ABRIR NOVA JANELA)
+    try {
+      // Adicionar elemento temporariamente ao DOM (necessário para renderização)
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      document.body.appendChild(element);
+      
+      // Gerar PDF e forçar download direto
+      await html2pdf().set(options).from(element).save();
+      
+      // Remover elemento temporário
+      document.body.removeChild(element);
+      
+      toast({
+        title: "✅ PDF Baixado!",
+        description: "Seu plano de parto foi salvo com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      // Limpar elemento se houver erro
+      if (document.body.contains(element)) {
+        document.body.removeChild(element);
+      }
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o PDF. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -898,7 +1153,10 @@ export default function BirthPlan() {
             {/* Botão adicionar - posição absoluta à direita */}
             {viewMode === 'list' && !birthPlan && (
               <Button
-                onClick={() => setViewMode('create')}
+                onClick={() => {
+                  resetForm();
+                  setViewMode('create');
+                }}
                 className="absolute right-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
                 data-testid="button-create-plan"
               >
@@ -999,7 +1257,10 @@ export default function BirthPlan() {
                       Você ainda não criou seu plano de parto.
                     </p>
                     <Button
-                      onClick={() => setViewMode('create')}
+                      onClick={() => {
+                        resetForm();
+                        setViewMode('create');
+                      }}
                       className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
                     >
                       <Plus className="w-4 h-4 mr-2" />

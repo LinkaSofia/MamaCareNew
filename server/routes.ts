@@ -1795,22 +1795,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Shopping items routes
-  app.get("/api/shopping-items/:pregnancyId", requireAuth, async (req, res) => {
+  app.get("/api/shopping-items", requireAuth, async (req, res) => {
     try {
-      const items = await storage.getShoppingItems(req.params.pregnancyId);
+      const pregnancyId = req.query.pregnancyId as string;
+      if (!pregnancyId) {
+        return res.status(400).json({ error: "pregnancyId is required" });
+      }
+      console.log("🛒 Fetching shopping items for pregnancy:", pregnancyId);
+      const items = await storage.getShoppingItems(pregnancyId);
+      console.log("🛒 Found items:", items.length);
       res.json({ items });
     } catch (error) {
+      console.error("❌ Error fetching shopping items:", error);
       res.status(500).json({ error: "Failed to get shopping items" });
     }
   });
 
   app.post("/api/shopping-items", requireAuth, async (req, res) => {
     try {
+      console.log("🛒 Creating shopping item with data:", JSON.stringify(req.body, null, 2));
       const itemData = insertShoppingItemSchema.parse(req.body);
+      console.log("✅ Shopping item data validated:", JSON.stringify(itemData, null, 2));
       const item = await storage.createShoppingItem(itemData);
+      console.log("✅ Shopping item created:", item.id);
       res.json({ item });
-    } catch (error) {
-      res.status(400).json({ error: "Invalid shopping item data" });
+    } catch (error: any) {
+      console.error("❌ Error creating shopping item:", error);
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      if (error.issues) {
+        console.error("❌ Zod validation errors:", JSON.stringify(error.issues, null, 2));
+      }
+      res.status(400).json({ 
+        error: "Invalid shopping item data",
+        details: error.message,
+        issues: error.issues
+      });
     }
   });
 

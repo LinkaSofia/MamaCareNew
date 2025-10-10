@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { DatePicker } from "@/components/ui/date-picker";
 import { 
   ArrowLeft, 
   Calendar, 
@@ -352,15 +353,15 @@ export default function Consultations() {
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-gray-800 text-xl">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
                 {editingId ? 'Editar Consulta' : 'Nova Consulta'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="title" className="text-gray-700 font-medium">
+                  <Label htmlFor="title" className="text-charcoal font-medium">
                     Título da consulta *
                   </Label>
                   <Input
@@ -368,25 +369,24 @@ export default function Consultations() {
                     placeholder="Ex: Consulta pré-natal"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="mt-1"
+                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="date" className="text-gray-700 font-medium">
+                    <Label htmlFor="date" className="text-charcoal font-medium">
                       Data *
                     </Label>
-                    <Input
-                      type="date"
-                      id="date"
+                    <DatePicker
                       value={formData.date}
-                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                      className="mt-1"
+                      onChange={(value) => setFormData({ ...formData, date: value })}
+                      placeholder="Selecione a data"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="time" className="text-gray-700 font-medium">
+                    <Label htmlFor="time" className="text-charcoal font-medium">
                       Horário *
                     </Label>
                     <Input
@@ -394,13 +394,14 @@ export default function Consultations() {
                       id="time"
                       value={formData.time}
                       onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                      className="mt-1"
+                      className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                      required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="doctorName" className="text-gray-700 font-medium">
+                  <Label htmlFor="doctorName" className="text-charcoal font-medium">
                     Nome do médico
                   </Label>
                   <Input
@@ -408,12 +409,12 @@ export default function Consultations() {
                     placeholder="Ex: Dr. Silva"
                     value={formData.doctorName}
                     onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
-                    className="mt-1"
+                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="location" className="text-gray-700 font-medium">
+                  <Label htmlFor="location" className="text-charcoal font-medium">
                     Local da consulta
                   </Label>
                   <Input
@@ -421,12 +422,12 @@ export default function Consultations() {
                     placeholder="Ex: Hospital São Paulo"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="mt-1"
+                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="notes" className="text-gray-700 font-medium">
+                  <Label htmlFor="notes" className="text-charcoal font-medium">
                     Observações
                   </Label>
                   <Textarea
@@ -434,7 +435,7 @@ export default function Consultations() {
                     placeholder="Observações sobre a consulta..."
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="mt-1"
+                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     rows={3}
                   />
                 </div>
@@ -444,13 +445,13 @@ export default function Consultations() {
                     type="button" 
                     variant="outline"
                     onClick={resetForm}
-                    className="flex-1 border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl"
+                    className="flex-1"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     type="submit" 
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90 shadow-lg rounded-xl"
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
                     disabled={addConsultationMutation.isPending || updateConsultationMutation.isPending}
                   >
                     {(addConsultationMutation.isPending || updateConsultationMutation.isPending) ? (

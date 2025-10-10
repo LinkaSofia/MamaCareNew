@@ -40,7 +40,10 @@ import {
   Sparkles,
   Calculator,
   AlertCircle,
-  ChevronRight
+  ChevronRight,
+  Wallet,
+  PiggyBank,
+  Pencil
 } from "lucide-react";
 import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
@@ -119,6 +122,8 @@ const priorityColors = {
 
 export default function ShoppingList() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [budget, setBudget] = useState<number>(2000);
@@ -137,63 +142,15 @@ export default function ShoppingList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: shoppingData, isLoading } = useQuery<ShoppingData>({
+  const { data: shoppingData, isLoading, refetch } = useQuery<ShoppingData>({
     queryKey: ["/api/shopping-items", pregnancy?.id],
     enabled: !!pregnancy,
-    queryFn: () => {
-      // Mock data for demonstration
-      const mockData: ShoppingData = {
-        items: [
-          {
-            id: '1',
-            name: 'Body manga longa RN',
-            price: 25.90,
-            purchased: false,
-            category: 'baby-clothes',
-            priority: 'high',
-            essential: true
-          },
-          {
-            id: '2', 
-            name: 'Berço de madeira',
-            price: 450.00,
-            purchased: false,
-            category: 'nursery',
-            priority: 'high',
-            essential: true
-          },
-          {
-            id: '3',
-            name: 'Fraldas RN (pacote)',
-            price: 35.90,
-            purchased: true,
-            category: 'hygiene',
-            priority: 'high',
-            essential: true,
-            purchaseDate: new Date().toISOString()
-          },
-          {
-            id: '4',
-            name: 'Mamadeira 250ml',
-            price: 18.50,
-            purchased: false,
-            category: 'feeding',
-            priority: 'medium',
-            essential: true
-          },
-          {
-            id: '5',
-            name: 'Sutiã de amamentação',
-            price: 45.00,
-            purchased: true,
-            category: 'mom-care',
-            priority: 'high',
-            essential: true,
-            purchaseDate: new Date().toISOString()
-          }
-        ]
-      };
-      return Promise.resolve(mockData);
+    queryFn: async () => {
+      console.log("🛒 Fetching shopping items from API for pregnancy:", pregnancy?.id);
+      const response = await apiRequest("GET", `/api/shopping-items?pregnancyId=${pregnancy?.id}`);
+      const data = await response.json();
+      console.log("🛒 Shopping items loaded from database:", data);
+      return data;
     },
   });
 
@@ -210,8 +167,14 @@ export default function ShoppingList() {
 
   const pendingItems = filteredItems.filter(item => !item.purchased);
   const purchasedItems = filteredItems.filter(item => item.purchased);
-  const totalSpent = items.filter(item => item.purchased).reduce((sum, item) => sum + (item.price || 0), 0);
-  const totalPending = items.filter(item => !item.purchased).reduce((sum, item) => sum + (item.price || 0), 0);
+  const totalSpent = items.filter(item => item.purchased).reduce((sum, item) => {
+    const price = typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0);
+    return sum + (isNaN(price) ? 0 : price);
+  }, 0);
+  const totalPending = items.filter(item => !item.purchased).reduce((sum, item) => {
+    const price = typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0);
+    return sum + (isNaN(price) ? 0 : price);
+  }, 0);
   const budgetUsed = (totalSpent / budget) * 100;
 
   // Category statistics
@@ -285,7 +248,7 @@ export default function ShoppingList() {
       const response = await apiRequest("POST", "/api/shopping-items", item);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Atualizar o cache IMEDIATAMENTE (otimistic update)
       try {
         queryClient.setQueryData(["/api/shopping-items", pregnancy?.id], (oldData: any) => {
@@ -294,7 +257,7 @@ export default function ShoppingList() {
           // Adicionar novo item na lista
           return {
             ...oldData,
-            items: [...oldData.items, data.item]
+            items: [...(oldData.items || []), data.item]
           };
         });
         console.log("🛒 Cache updated immediately with new item");
@@ -302,8 +265,9 @@ export default function ShoppingList() {
         console.error("🛒 Error updating cache:", error);
       }
       
-      // Invalidar queries em background para sincronizar
-      queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
+      // Invalidar queries e forçar refetch
+      await queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
+      await refetch();
       
       setShowAddForm(false);
       setFormData({ name: "", price: "", category: "", priority: "medium", essential: false });
@@ -327,8 +291,27 @@ export default function ShoppingList() {
       const response = await apiRequest("PUT", `/api/shopping-items/${id}`, updates);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
+    onSuccess: async (_, { id, updates }) => {
+      // Atualizar cache IMEDIATAMENTE
+      try {
+        queryClient.setQueryData(["/api/shopping-items", pregnancy?.id], (oldData: any) => {
+          if (!oldData || !oldData.items) return oldData;
+          
+          return {
+            ...oldData,
+            items: oldData.items.map((item: any) => 
+              item.id === id ? { ...item, ...updates } : item
+            )
+          };
+        });
+        console.log("🛒 Item updated in cache immediately");
+      } catch (error) {
+        console.error("🛒 Error updating cache:", error);
+      }
+      
+      // Refetch em background para sincronizar
+      await queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
+      await refetch();
     },
   });
 
@@ -338,9 +321,28 @@ export default function ShoppingList() {
       const response = await apiRequest("DELETE", `/api/shopping-items/${id}`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (_, id) => {
       console.log("🛒 Item deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
+      
+      // Atualizar cache IMEDIATAMENTE removendo o item
+      try {
+        queryClient.setQueryData(["/api/shopping-items", pregnancy?.id], (oldData: any) => {
+          if (!oldData || !oldData.items) return oldData;
+          
+          return {
+            ...oldData,
+            items: oldData.items.filter((item: any) => item.id !== id)
+          };
+        });
+        console.log("🛒 Item removed from cache immediately");
+      } catch (error) {
+        console.error("🛒 Error updating cache:", error);
+      }
+      
+      // Refetch em background para sincronizar
+      await queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
+      await refetch();
+      
       toast({
         title: "🗑️ Item removido",
         description: "Item foi removido da sua lista.",
@@ -348,6 +350,11 @@ export default function ShoppingList() {
     },
     onError: (error) => {
       console.error("🛒 Error deleting item:", error);
+      toast({
+        title: "❌ Erro ao remover",
+        description: "Não foi possível remover o item. Tente novamente.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -363,19 +370,37 @@ export default function ShoppingList() {
       return;
     }
 
-    addItemMutation.mutate({
-      pregnancyId: pregnancy!.id,
+    if (!pregnancy?.id) {
+      toast({
+        title: "Erro",
+        description: "Nenhuma gravidez ativa encontrada",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const itemData = {
+      pregnancyId: pregnancy.id,
       name: formData.name.trim(),
-      price: formData.price ? parseFloat(formData.price) : null,
+      price: formData.price ? formData.price.toString() : null, // Enviar como STRING
       category: formData.category || null,
       priority: formData.priority,
       essential: formData.essential
-    });
+    };
+
+    console.log("🛒 Submitting shopping item:", JSON.stringify(itemData, null, 2));
+    addItemMutation.mutate(itemData);
   };
 
   const togglePurchased = (id: string, purchased: boolean) => {
-    console.log("🛒 Toggling item:", { id, purchased });
-    updateItemMutation.mutate({ id, updates: { purchased } });
+    console.log("🛒 Toggling item:", { id, purchased, newState: purchased });
+    
+    // Se está marcando como comprado, adicionar purchaseDate
+    const updates = purchased 
+      ? { purchased: true, purchaseDate: new Date().toISOString() }
+      : { purchased: false, purchaseDate: null };
+    
+    updateItemMutation.mutate({ id, updates });
   };
 
   const addSuggestion = (suggestion: any) => {
@@ -387,6 +412,58 @@ export default function ShoppingList() {
       essential: true
     });
     setShowAddForm(true);
+  };
+
+  const handleEdit = (item: ShoppingItem) => {
+    setEditingItem(item);
+    setFormData({
+      name: item.name,
+      price: item.price ? item.price.toString() : "",
+      category: item.category || "",
+      priority: item.priority,
+      essential: item.essential
+    });
+    setShowEditForm(true);
+  };
+
+  const handleUpdateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast({
+        title: "Erro",
+        description: "Nome do item é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!editingItem) return;
+
+    const itemData = {
+      name: formData.name.trim(),
+      price: formData.price ? formData.price.toString() : null,
+      category: formData.category || null,
+      priority: formData.priority,
+      essential: formData.essential
+    };
+
+    console.log("🛒 Updating shopping item:", JSON.stringify(itemData, null, 2));
+    updateItemMutation.mutate({ 
+      id: editingItem.id, 
+      updates: itemData 
+    });
+
+    // Fechar modal e resetar
+    setShowEditForm(false);
+    setEditingItem(null);
+    setFormData({ name: "", price: "", category: "", priority: "medium", essential: false });
+  };
+
+  const resetEditForm = () => {
+    setShowEditForm(false);
+    setEditingItem(null);
+    setFormData({ name: "", price: "", category: "", priority: "medium", essential: false });
   };
 
   if (!user || !pregnancy) {
@@ -454,36 +531,64 @@ export default function ShoppingList() {
           {/* List Tab */}
           <TabsContent value="list" className="space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Package className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-600">{pendingItems.length}</div>
-                  <div className="text-xs text-gray-600">Pendentes</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+              {/* Pendentes Card */}
+              <Card className="bg-gradient-to-br from-blue-200 to-blue-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Package className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Pendentes</span>
+                  </div>
+                  <div className="text-xl md:text-2xl font-bold text-blue-600 text-center">
+                    {pendingItems.length}
+                  </div>
                 </CardContent>
               </Card>
               
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-green-600">{purchasedItems.length}</div>
-                  <div className="text-xs text-gray-600">Comprados</div>
+              {/* Comprados Card */}
+              <Card className="bg-gradient-to-br from-green-200 to-green-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Comprados</span>
+                  </div>
+                  <div className="text-xl md:text-2xl font-bold text-green-600 text-center">
+                    {purchasedItems.length}
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <DollarSign className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-purple-600">R$ {totalSpent.toFixed(2)}</div>
-                  <div className="text-xs text-gray-600">Gastos</div>
+              {/* Gastos Card */}
+              <Card className="bg-gradient-to-br from-purple-200 to-purple-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Wallet className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Gastos</span>
+                  </div>
+                  <div className="text-lg md:text-2xl font-bold text-purple-600 text-center">
+                    R$ {totalSpent.toFixed(2)}
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Target className="h-8 w-8 text-orange-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-orange-600">R$ {totalPending.toFixed(2)}</div>
-                  <div className="text-xs text-gray-600">Restante</div>
+              {/* Restante Card */}
+              <Card className="bg-gradient-to-br from-orange-200 to-orange-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <PiggyBank className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Restante</span>
+                  </div>
+                  <div className="text-lg md:text-2xl font-bold text-orange-600 text-center">
+                    R$ {totalPending.toFixed(2)}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -560,13 +665,16 @@ export default function ShoppingList() {
                       return (
                         <div 
                           key={item.id} 
-                          className="flex items-center justify-between p-4 bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300"
+                          className="flex items-center justify-between p-4 bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
                         >
                           <div className="flex items-center space-x-3 flex-1">
-                            <Checkbox
-                              checked={item.purchased}
-                              onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
-                            />
+                            <div className="flex-shrink-0">
+                              <Checkbox
+                                checked={item.purchased}
+                                onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
+                                className="h-6 w-6 rounded-md border-2 border-gray-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 data-[state=checked]:text-white cursor-pointer"
+                              />
+                            </div>
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">
                                 <span className="font-medium">{item.name}</span>
@@ -594,14 +702,24 @@ export default function ShoppingList() {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteItemMutation.mutate(item.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(item)}
+                              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteItemMutation.mutate(item.id)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       );
                     })}
@@ -626,13 +744,16 @@ export default function ShoppingList() {
                       return (
                         <div 
                           key={item.id} 
-                          className="flex items-center justify-between p-4 bg-green-50/95 backdrop-blur-sm border border-green-200/50 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300"
+                          className="flex items-center justify-between p-4 bg-green-50/95 backdrop-blur-sm border border-green-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
                         >
                           <div className="flex items-center space-x-3 flex-1">
-                            <Checkbox
-                              checked={item.purchased}
-                              onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
-                            />
+                            <div className="flex-shrink-0">
+                              <Checkbox
+                                checked={item.purchased}
+                                onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
+                                className="h-6 w-6 rounded-md border-2 border-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 data-[state=checked]:text-white cursor-pointer"
+                              />
+                            </div>
                             <div className="flex-1">
                               <div className="font-medium text-green-700 line-through">
                                 {item.name}
@@ -654,14 +775,24 @@ export default function ShoppingList() {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteItemMutation.mutate(item.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(item)}
+                              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteItemMutation.mutate(item.id)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       );
                     })}
@@ -1133,6 +1264,126 @@ export default function ShoppingList() {
                       <Plus className="mr-2 h-4 w-4" />
                     )}
                     Adicionar
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit item modal */}
+      {showEditForm && editingItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+                Editar Item
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleUpdateSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-name" className="text-charcoal font-medium">
+                    Nome do item *
+                  </Label>
+                  <Input
+                    id="edit-name"
+                    placeholder="Ex: Body para bebê manga longa"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-price" className="text-charcoal font-medium">
+                    Preço (R$)
+                  </Label>
+                  <Input
+                    id="edit-price"
+                    type="number"
+                    step="0.01"
+                    placeholder="Ex: 25.99"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-category" className="text-charcoal font-medium">
+                    Categoria
+                  </Label>
+                  <Select 
+                    value={formData.category} 
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.icon} {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-priority" className="text-charcoal font-medium">
+                    Prioridade
+                  </Label>
+                  <Select 
+                    value={formData.priority} 
+                    onValueChange={(value) => setFormData({ ...formData, priority: value as 'high' | 'medium' | 'low' })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="low">Baixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="edit-essential"
+                    checked={formData.essential}
+                    onCheckedChange={(checked) => setFormData({ ...formData, essential: checked as boolean })}
+                    className="h-5 w-5"
+                  />
+                  <Label htmlFor="edit-essential" className="text-sm text-charcoal font-medium">
+                    Item essencial
+                  </Label>
+                </div>
+                
+                <div className="flex space-x-3 pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={resetEditForm}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
+                    disabled={updateItemMutation.isPending}
+                  >
+                    {updateItemMutation.isPending ? (
+                      <LoadingSpinner size="sm" className="mr-2" />
+                    ) : (
+                      <Pencil className="mr-2 h-4 w-4" />
+                    )}
+                    Salvar
                   </Button>
                 </div>
               </form>
