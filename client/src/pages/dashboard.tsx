@@ -384,13 +384,6 @@ export default function Dashboard() {
                   <div className="absolute -top-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg z-20">
                     {currentWeek}ª Semana
                   </div>
-
-                  {/* Indicador de tamanho e peso embaixo da imagem */}
-                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg z-20">
-                    <p className="text-xs md:text-sm text-gray-700 font-semibold whitespace-nowrap">
-                      {development.length_cm ? `${development.length_cm} cm` : '1cm'} • {development.weight_grams && Number(development.weight_grams) > 0 ? `${development.weight_grams}g` : '1g'}
-                    </p>
-                  </div>
                 </div>
               </div>
 
