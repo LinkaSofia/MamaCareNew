@@ -117,11 +117,8 @@ export default function WeightTracking() {
         console.error("⚖️ Error updating cache:", error);
       }
       
-      // Invalidar queries em background para sincronizar
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/weight-entries"],
-        exact: false 
-      });
+      // FORÇAR refetch IMEDIATO para garantir atualização instantânea
+      await refetch();
       
       toast({
         title: "⚖️ Peso registrado!",
@@ -198,11 +195,8 @@ export default function WeightTracking() {
         console.error("⚖️ Error updating cache:", error);
       }
       
-      // Invalidar queries em background
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/weight-entries"],
-        exact: false 
-      });
+      // FORÇAR refetch IMEDIATO para garantir atualização instantânea
+      await refetch();
       
       toast({
         title: "⚖️ Peso atualizado!",
@@ -273,11 +267,8 @@ export default function WeightTracking() {
         console.error("⚖️ Error updating cache after delete:", error);
       }
       
-      // Invalidar queries em background
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/weight-entries"],
-        exact: false 
-      });
+      // FORÇAR refetch IMEDIATO para garantir atualização instantânea
+      await refetch();
       
       toast({
         title: "🗑️ Peso removido",
