@@ -1613,7 +1613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/consultations/next/user", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido para usar req.userId
       const nextConsultation = await storage.getNextConsultation(userId);
       res.json({ nextConsultation });
     } catch (error) {
@@ -1623,7 +1623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/consultations", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido para usar req.userId
       console.log("📅 Creating consultation with data:", req.body);
       
       // Buscar gravidez ativa do usuário
@@ -1664,7 +1664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/consultations/:id", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido para usar req.userId
       const sessionId = req.sessionID;
       const consultationId = req.params.id;
       
@@ -1705,7 +1705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/consultations/:id", requireAuth, async (req, res) => {
     try {
-      const userId = req.session.userId!;
+      const userId = req.userId!; // Corrigido para usar req.userId
       const sessionId = req.sessionID;
       const consultationId = req.params.id;
       
