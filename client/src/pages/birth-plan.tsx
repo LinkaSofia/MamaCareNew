@@ -864,45 +864,46 @@ export default function BirthPlan() {
     <AnimatedBackground>
       <div className="min-h-screen pb-20">
         <div className="container mx-auto px-4 py-4">
-          {/* Header com botão voltar e título */}
-          <div className="flex items-center justify-between mb-10 relative">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
-                onClick={() => {
-                  if (viewMode === 'list') {
-                    window.history.back();
-                  } else {
-                    setViewMode('list');
-                    setCurrentStep(1);
-                  }
-                }}
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  Plano de Parto
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {viewMode === 'list' ? 'Gerencie seu plano' : viewMode === 'create' ? 'Criar novo plano' : 'Editar plano'}
-                </p>
-              </div>
+          {/* Header com botão voltar e título centralizado */}
+          <div className="flex items-center justify-center mb-10 relative">
+            {/* Botão voltar - posição absoluta à esquerda */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              onClick={() => {
+                if (viewMode === 'list') {
+                  window.history.back();
+                } else {
+                  setViewMode('list');
+                  setCurrentStep(1);
+                }
+              }}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
+            {/* Título centralizado */}
+            <div className="text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Plano de Parto
+              </h1>
+              <p className="text-sm text-gray-600">
+                {viewMode === 'list' ? 'Gerencie seu plano' : viewMode === 'create' ? 'Criar novo plano' : 'Editar plano'}
+              </p>
             </div>
             
+            {/* Botão adicionar - posição absoluta à direita */}
             {viewMode === 'list' && !birthPlan && (
               <Button
                 onClick={() => setViewMode('create')}
-                className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
+                className="absolute right-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
                 data-testid="button-create-plan"
               >
                 <Plus className="w-5 h-5 text-white" />
               </Button>
             )}
-            {(viewMode === 'list' && birthPlan) || viewMode !== 'list' ? <div className="w-10"></div> : null}
           </div>
 
           {/* Conditional rendering based on viewMode */}
