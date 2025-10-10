@@ -17,6 +17,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 
 export default function BirthPlan() {
   const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit' | 'view'>('list');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formData, setFormData] = useState({
     location: '',
     painReliefNatural: false,
@@ -146,10 +147,13 @@ export default function BirthPlan() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir este plano de parto?')) {
-      if (birthPlan?.id) {
-        deletePlanMutation.mutate(birthPlan.id);
-      }
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (birthPlan?.id) {
+      deletePlanMutation.mutate(birthPlan.id);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -501,6 +505,45 @@ export default function BirthPlan() {
         </div>
         <BottomNavigation />
       </div>
+
+      {/* Dialog de confirmação de exclusão */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+                Confirmar Exclusão
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-700 text-center">
+                Tem certeza que deseja excluir este plano de parto?
+              </p>
+              <p className="text-sm text-gray-500 text-center">
+                Esta ação não pode ser desfeita.
+              </p>
+              
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(false)}
+                  className="flex-1"
+                  disabled={deletePlanMutation.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={confirmDelete}
+                  disabled={deletePlanMutation.isPending}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg"
+                >
+                  {deletePlanMutation.isPending ? 'Excluindo...' : 'Sim, Excluir'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </AnimatedBackground>
   );
 }

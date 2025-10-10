@@ -56,32 +56,34 @@ export default function WeightTracking() {
       const response = await apiRequest("POST", "/api/weight-entries", weightEntry);
       return response.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       console.log("⚖️ Weight entry saved successfully, updating UI...");
+      console.log("⚖️ Saved entry data:", data);
       
-      // Fechar o formulário primeiro
+      // Atualizar o cache IMEDIATAMENTE (optimistic update)
+      try {
+        queryClient.setQueryData(["/api/weight-entries", pregnancy?.id], (oldData: any) => {
+          if (!oldData) return [data.entry];
+          
+          // Adicionar nova entrada na lista
+          return [data.entry, ...oldData];
+        });
+        console.log("⚖️ Cache updated immediately with new entry");
+      } catch (error) {
+        console.error("⚖️ Error updating cache:", error);
+      }
+      
+      // Fechar o formulário
       setShowAddForm(false);
       setWeight("");
       setDate(new Date().toISOString().split('T')[0]);
       setNotes("");
       
-      // Invalidar e refetch imediatamente
-      console.log("⚖️ Invalidating queries and refetching...");
-      await queryClient.invalidateQueries({ 
+      // Invalidar queries em background para sincronizar
+      queryClient.invalidateQueries({ 
         queryKey: ["/api/weight-entries"],
         exact: false 
       });
-      
-      // Forçar refetch imediatamente
-      try {
-        console.log("⚖️ Forcing immediate refetch...");
-        const refetchResult = await refetch();
-        console.log("⚖️ Refetch completed successfully");
-        console.log("⚖️ Refetch result:", refetchResult);
-        console.log("⚖️ New weight entries count:", refetchResult.data?.length);
-      } catch (error) {
-        console.error("⚖️ Error during refetch:", error);
-      }
       
       toast({
         title: "⚖️ Peso registrado!",
