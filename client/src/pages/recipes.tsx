@@ -182,7 +182,7 @@ export default function Recipes() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-baby-pink via-cream to-baby-blue pb-20">
       <div className="p-4 pt-12">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-10">
           <Button 
             variant="ghost" 
             size="icon"

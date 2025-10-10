@@ -94,7 +94,7 @@ export default function BirthPlan() {
       <div className="min-h-screen pb-20">
           <div className="container mx-auto px-4 py-4">
             {/* Header com botão voltar, título centralizado e botão ação */}
-            <div className="flex items-center justify-between mb-6 relative">
+            <div className="flex items-center justify-between mb-10 relative">
               {/* Botão Voltar - Esquerda */}
               <Button
                 variant="ghost"

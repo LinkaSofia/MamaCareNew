@@ -390,7 +390,7 @@ export default function ShoppingList() {
       <div className="min-h-screen pb-20">
         <div className="p-4 pt-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-10">
           <Button 
             variant="ghost" 
             size="icon"

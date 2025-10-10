@@ -342,7 +342,7 @@ export default function WeightTracking() {
       <div className="min-h-screen pb-20">
       <div className="px-4 pt-4 pb-4">
         {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
-        <div className="flex items-center justify-between mb-4 relative">
+        <div className="flex items-center justify-between mb-10 relative">
           {/* Botão Voltar - Esquerda */}
           <Button
             variant="ghost"

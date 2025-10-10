@@ -159,7 +159,7 @@ export default function Symptoms() {
   return (
     <div className="min-h-screen bg-cream pb-20">
       <div className="p-4 pt-12">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-10">
           <Button 
             variant="ghost" 
             size="icon"

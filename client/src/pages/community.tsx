@@ -165,7 +165,7 @@ export default function Community() {
     return (
       <div className="min-h-screen bg-cream pb-20">
         <div className="p-4 pt-12">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-10">
             <Button 
               variant="ghost" 
               size="icon"
@@ -281,7 +281,7 @@ export default function Community() {
   return (
     <div className="min-h-screen bg-cream pb-20">
       <div className="p-4 pt-12">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-10">
           <h2 className="text-2xl font-bold text-charcoal" data-testid="text-page-title">Comunidade</h2>
           <Button 
             variant="ghost" 

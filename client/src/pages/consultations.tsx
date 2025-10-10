@@ -233,7 +233,7 @@ export default function Consultations() {
         <div className="container mx-auto px-4 pt-6 pb-20">
           {/* Botão de Voltar */}
           {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
-          <div className="flex items-center justify-between mb-6 relative">
+          <div className="flex items-center justify-between mb-10 relative">
             {/* Botão Voltar - Esquerda */}
             <Button
               variant="ghost"
