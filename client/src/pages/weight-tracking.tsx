@@ -60,6 +60,11 @@ export default function WeightTracking() {
     enabled: !!pregnancy,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+    onSuccess: (data) => {
+      console.log("⚖️ [useQuery] Data fetched successfully:", data);
+      console.log("⚖️ [useQuery] Is Array?", Array.isArray(data));
+      console.log("⚖️ [useQuery] Has entries?", data?.entries);
+    },
   });
 
   const addWeightMutation = useMutation({
@@ -68,9 +73,11 @@ export default function WeightTracking() {
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log("⚖️ Weight entry saved successfully, updating UI...");
-      console.log("⚖️ Saved entry data:", data);
-      console.log("⚖️ Current cache data:", queryClient.getQueryData(["/api/weight-entries"]));
+      console.log("⚖️ ============ ADD WEIGHT - START ============");
+      console.log("⚖️ Weight entry saved successfully");
+      console.log("⚖️ Response data:", data);
+      console.log("⚖️ Entry from response:", data.entry);
+      console.log("⚖️ Current cache BEFORE update:", queryClient.getQueryData(["/api/weight-entries"]));
       
       // Fechar o formulário primeiro
       setShowAddForm(false);
@@ -81,44 +88,54 @@ export default function WeightTracking() {
       // Atualizar o cache IMEDIATAMENTE (optimistic update)
       try {
         queryClient.setQueryData(["/api/weight-entries"], (oldData: any) => {
-          console.log("⚖️ Old cache data:", oldData);
-          console.log("⚖️ New entry to add:", data.entry);
+          console.log("⚖️ [setQueryData] Old cache data:", oldData);
+          console.log("⚖️ [setQueryData] Old data type:", typeof oldData);
+          console.log("⚖️ [setQueryData] Is Array?", Array.isArray(oldData));
+          console.log("⚖️ [setQueryData] Has entries?", oldData?.entries);
+          console.log("⚖️ [setQueryData] Entry to add:", data.entry);
           
           // Se não houver dados antigos, criar novo objeto com entries
           if (!oldData) {
-            console.log("⚖️ No old data, creating new entries object");
+            console.log("⚖️ [setQueryData] No old data, creating new entries object");
             return { entries: [data.entry] };
           }
           
           // Se oldData for um array direto, converter para objeto com entries
           if (Array.isArray(oldData)) {
-            console.log("⚖️ Converting array to entries object and adding");
+            console.log("⚖️ [setQueryData] Converting array to entries object and adding");
             return { entries: [data.entry, ...oldData] };
           }
           
           // Se oldData tiver uma propriedade entries (formato esperado)
           if (oldData.entries && Array.isArray(oldData.entries)) {
-            console.log("⚖️ Adding to entries array (expected format)");
+            console.log("⚖️ [setQueryData] Adding to entries array (expected format)");
+            console.log("⚖️ [setQueryData] Old entries count:", oldData.entries.length);
             const newData = {
               ...oldData,
               entries: [data.entry, ...oldData.entries]
             };
-            console.log("⚖️ New data structure:", newData);
+            console.log("⚖️ [setQueryData] New entries count:", newData.entries.length);
+            console.log("⚖️ [setQueryData] New data structure:", newData);
             return newData;
           }
           
           // Fallback: criar objeto com entries
-          console.log("⚖️ Fallback: creating entries object");
+          console.log("⚖️ [setQueryData] Fallback: creating entries object");
           return { entries: [data.entry] };
         });
-        console.log("⚖️ Cache updated immediately with new entry");
-        console.log("⚖️ New cache data:", queryClient.getQueryData(["/api/weight-entries"]));
+        console.log("⚖️ Cache updated with setQueryData");
+        console.log("⚖️ Current cache AFTER setQueryData:", queryClient.getQueryData(["/api/weight-entries"]));
       } catch (error) {
         console.error("⚖️ Error updating cache:", error);
       }
       
       // FORÇAR refetch IMEDIATO para garantir atualização instantânea
-      await refetch();
+      console.log("⚖️ Starting refetch...");
+      const refetchResult = await refetch();
+      console.log("⚖️ Refetch completed");
+      console.log("⚖️ Refetch result:", refetchResult);
+      console.log("⚖️ Current cache AFTER refetch:", queryClient.getQueryData(["/api/weight-entries"]));
+      console.log("⚖️ ============ ADD WEIGHT - END ============");
       
       toast({
         title: "⚖️ Peso registrado!",
@@ -378,7 +395,14 @@ export default function WeightTracking() {
     );
   }
 
+  console.log("⚖️ [RENDER] weightData:", weightData);
+  console.log("⚖️ [RENDER] weightData type:", typeof weightData);
+  console.log("⚖️ [RENDER] Is Array?", Array.isArray(weightData));
+  
   const entries = (weightData as any)?.entries || [];
+  console.log("⚖️ [RENDER] Extracted entries:", entries);
+  console.log("⚖️ [RENDER] Entries count:", entries.length);
+  
   const records = entries;
   
   // Ordenar entradas por data para garantir ordem correta

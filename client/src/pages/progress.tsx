@@ -8,6 +8,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import ProgressCircle from '@/components/progress-circle';
 import WeightChart from '@/components/weight-chart';
 import Baby3D from '@/components/Baby3D';
+import { AnimatedBackground } from '@/components/AnimatedBackground';
+import BottomNavigation from '@/components/layout/bottom-navigation';
 import { usePregnancy } from '@/hooks/use-pregnancy';
 import { useBabyDevelopmentLocal, useBabyDevelopmentRange, useBabySizeComparisons } from '@/hooks/use-baby-development';
 import { 
@@ -15,12 +17,11 @@ import {
   Baby, 
   Scale, 
   Ruler,
-  Heart,
   Calendar,
   Target,
   Activity,
   ArrowUp,
-  ArrowDown,
+  ArrowLeft,
   Sparkles,
   ChevronLeft,
   ChevronRight
@@ -105,87 +106,45 @@ export function Progress() {
 
   if (currentBabyLoading || rangeLoading || comparisonsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
+      <AnimatedBackground>
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AnimatedBackground>
     );
   }
 
   const progressPercentage = Math.round((currentWeek / 40) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 p-4 lg:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-3 flex items-center justify-center">
-            <TrendingUp className="w-10 h-10 mr-3 text-pink-500" />
-            Progresso da Gestação
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Acompanhe o desenvolvimento do seu bebê e sua jornada
-          </p>
-          
-          {currentBabyData && (
-            <Badge variant="secondary" className="mt-3 bg-gradient-to-r from-pink-100 to-blue-100 text-gray-700 px-4 py-2 text-base">
-              <Baby className="w-4 h-4 mr-2" />
-              Semana {currentWeek} • {currentBabyData.fruit_comparison}
-            </Badge>
-          )}
-        </div>
-
-        {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="text-center border-pink-200/30 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="relative mb-4">
-                <ProgressCircle percentage={progressPercentage} size={80} strokeWidth={6} />
-              </div>
-              <h3 className="font-semibold text-gray-800">Progresso Total</h3>
-              <p className="text-sm text-gray-600">{currentWeek} de 40 semanas</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200/30 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Ruler className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="font-semibold text-gray-800">Tamanho do Bebê</h3>
-              <p className="text-lg font-bold text-blue-600">{currentBabyData?.length_cm || 0}cm</p>
-              <p className="text-sm text-gray-600">Comprimento</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200/30 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Scale className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-gray-800">Peso do Bebê</h3>
-              <p className="text-lg font-bold text-purple-600">{currentBabyData?.weight_grams || 0}g</p>
-              <p className="text-sm text-gray-600">Peso estimado</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200/30 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Heart className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="font-semibold text-gray-800">Trimestre</h3>
-              <p className="text-lg font-bold text-green-600">
-                {currentWeek <= 12 ? '1º' : currentWeek <= 27 ? '2º' : '3º'}
-              </p>
+    <AnimatedBackground>
+      <div className="min-h-screen pb-20">
+        <div className="container mx-auto px-4 py-4">
+          {/* Header com botão voltar e título centralizado */}
+          <div className="flex items-center justify-center mb-10 relative">
+            {/* Botão voltar - posição absoluta à esquerda */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
+            {/* Título centralizado */}
+            <div className="text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Progresso
+              </h1>
               <p className="text-sm text-gray-600">
-                {currentWeek <= 12 ? 'Formação' : currentWeek <= 27 ? 'Crescimento' : 'Preparação'}
+                Acompanhe seu desenvolvimento
               </p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
 
-        {/* Tabs de Gráficos */}
-        <Tabs defaultValue="timeline" className="w-full">
+          {/* Tabs de Gráficos */}
+          <Tabs defaultValue="timeline" className="w-full">
           <TabsList className="grid w-full grid-cols-1 lg:grid-cols-4 mb-6 h-auto">
             <TabsTrigger value="timeline" className="flex items-center py-3">
               <Calendar className="w-4 h-4 mr-2" />
@@ -467,7 +426,9 @@ export function Progress() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
+        <BottomNavigation />
       </div>
-    </div>
+    </AnimatedBackground>
   );
 }
