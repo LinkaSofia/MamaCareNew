@@ -516,9 +516,11 @@ export default function WeightTracking() {
       {/* Add weight modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
             <CardHeader>
-              <CardTitle className="text-charcoal">Registrar Peso</CardTitle>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+                Registrar Peso
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-add-weight">
@@ -568,7 +570,7 @@ export default function WeightTracking() {
                   />
                 </div>
                 
-                <div className="flex space-x-3">
+                <div className="flex space-x-3 pt-4">
                   <Button
                     type="button"
                     variant="outline"
@@ -580,7 +582,7 @@ export default function WeightTracking() {
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90"
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
                     disabled={addWeightMutation.isPending}
                     data-testid="button-save"
                   >
@@ -601,19 +603,11 @@ export default function WeightTracking() {
       {/* Edit weight modal */}
       {showEditForm && editingRecord && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-charcoal">Editar Peso</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCloseForm}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+                Editar Peso
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdate} className="space-y-4" data-testid="form-edit-weight">
@@ -663,7 +657,7 @@ export default function WeightTracking() {
                   />
                 </div>
                 
-                <div className="flex space-x-3">
+                <div className="flex space-x-3 pt-4">
                   <Button
                     type="button"
                     variant="outline"
@@ -675,7 +669,7 @@ export default function WeightTracking() {
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-baby-pink-dark to-baby-blue-dark hover:opacity-90"
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
                     disabled={updateWeightMutation.isPending}
                     data-testid="button-update"
                   >
