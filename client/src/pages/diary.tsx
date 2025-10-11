@@ -743,67 +743,50 @@ export default function Diary() {
           </Button>
         </div>
 
-        <Tabs defaultValue="entries" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 lg:grid-cols-4 mb-6 h-auto">
-            <TabsTrigger value="entries" className="flex items-center py-3">
-              <Book className="w-4 h-4 mr-2" />
-              Entradas
-            </TabsTrigger>
-            <TabsTrigger value="mood" className="flex items-center py-3">
-              <Activity className="w-4 h-4 mr-2" />
-              Humor
-            </TabsTrigger>
-            <TabsTrigger value="milestones" className="flex items-center py-3">
-              <Star className="w-4 h-4 mr-2" />
-              Marcos
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center py-3">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Análises
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Entries Tab */}
-          <TabsContent value="entries" className="space-y-6">
+        {/* Entries Section - Tabs removidas, mantida apenas visualização de entradas */}
+        <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
+              {/* Total de entradas Card */}
               <Card className="bg-gradient-to-br from-pink-200 to-pink-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
                 <CardContent className="p-3 md:p-6">
-                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-2 md:mb-3">
                     <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
                       <Book className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-gray-800 text-xs md:text-lg text-center md:text-left">Total de entradas</span>
                   </div>
-                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Total de entradas</span>
-                  </div>
-                  <div className="text-xl md:text-2xl font-bold text-pink-600 text-center">
+                  <div className="text-lg md:text-2xl font-bold text-pink-600 text-center md:text-left">
                     {entries.length}
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Esta semana Card */}
               <Card className="bg-gradient-to-br from-blue-200 to-blue-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
                 <CardContent className="p-3 md:p-6">
-                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-2 md:mb-3">
                     <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                       <Zap className="h-5 w-5 md:h-6 md:w-6 text-white" />
                     </div>
-                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Esta semana</span>
+                    <span className="font-bold text-gray-800 text-xs md:text-lg text-center md:text-left">Esta semana</span>
                   </div>
-                  <div className="text-xl md:text-2xl font-bold text-blue-600 text-center">
+                  <div className="text-lg md:text-2xl font-bold text-blue-600 text-center md:text-left">
                     {moodAnalytics.entriesThisWeek}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-red-200 to-red-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+              {/* Dias felizes Card */}
+              <Card className="bg-gradient-to-br from-pink-200 to-rose-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
                 <CardContent className="p-3 md:p-6">
-                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg">
                       <Heart className="h-5 w-5 md:h-6 md:w-6 text-white" />
                     </div>
-                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Dias felizes</span>
+                    <span className="font-bold text-gray-800 text-xs md:text-lg text-center md:text-left">Dias felizes</span>
                   </div>
-                  <div className="text-xl md:text-2xl font-bold text-red-600 text-center">
+                  <div className="text-lg md:text-2xl font-bold text-pink-600 text-center md:text-left">
                     {entries.filter(e => e.mood >= 8).length}
                   </div>
                 </CardContent>
