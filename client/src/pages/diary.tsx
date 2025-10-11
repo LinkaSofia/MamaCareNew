@@ -564,7 +564,7 @@ export default function Diary() {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim(),
       content: formData.content.trim(),
-      mood: formData.mood ? formData.mood.toString() : null,
+      mood: formData.mood,
       emotions: formData.emotions.length > 0 ? JSON.stringify(formData.emotions) : null,
       milestone: milestone || null,
       week: week || null,
@@ -869,13 +869,10 @@ export default function Diary() {
                         background: `linear-gradient(135deg, ${getMoodColor(entry.mood)}10 0%, white 100%)`
                       }}
                     >
-                      {/* Mood Badge no canto superior direito */}
-                      <div 
-                        className="absolute top-4 right-4 w-16 h-16 rounded-full flex items-center justify-center shadow-xl border-4 border-white z-10"
-                                style={{ backgroundColor: getMoodColor(entry.mood) }}
-                              >
-                        <span className="text-3xl">{getMoodEmoji(entry.mood)}</span>
-                              </div>
+                      {/* Mood emoji no canto superior direito */}
+                      <div className="absolute top-4 right-4 z-10">
+                        <span className="text-5xl">{getMoodEmoji(entry.mood)}</span>
+                      </div>
 
                       {/* Action buttons sempre visíveis */}
                       <div className="absolute top-4 left-4 flex space-x-2 z-10">
