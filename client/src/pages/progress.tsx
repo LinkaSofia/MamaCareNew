@@ -208,47 +208,6 @@ export function Progress() {
                     ))}
                   </div>
 
-                  {/* Baby 3D Viewer */}
-                  <Card className="mt-6">
-                    <CardContent className="pt-6">
-                      <div className="text-center mb-6">
-                        <h3 className="text-xl font-semibold mb-2">Seu Bebê na Semana {selectedWeek}</h3>
-                        <div className="flex items-center justify-center space-x-4">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setSelectedWeek(Math.max(1, selectedWeek - 1))}
-                            disabled={selectedWeek <= 1}
-                          >
-                            <ChevronLeft className="w-4 h-4" />
-                          </Button>
-                          <span className="min-w-20 text-center font-medium">
-                            Semana {selectedWeek}
-                          </span>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setSelectedWeek(Math.min(40, selectedWeek + 1))}
-                            disabled={selectedWeek >= 40}
-                          >
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-center">
-                        <Baby3D 
-                          week={selectedWeek} 
-                          size="large" 
-                          interactive={true}
-                          animate={true}
-                          showInfo={true}
-                          className="max-w-md"
-                          babyImageUrl={currentBabyData?.baby_image_url ?? undefined}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </CardContent>
             </Card>

@@ -1004,7 +1004,7 @@ export default function Dashboard() {
               data-testid="button-medical-articles"
             >
               <Stethoscope className="h-6 w-6" />
-              <span className="text-sm font-medium">Guia da Gestação</span>
+              <span className="text-sm font-medium">Guia de Gestação</span>
             </Button>
             </div>
           </div>

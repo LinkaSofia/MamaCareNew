@@ -182,7 +182,10 @@ export default function ShoppingList() {
     const categoryItems = items.filter(item => item.category === category.id);
     const purchased = categoryItems.filter(item => item.purchased).length;
     const total = categoryItems.length;
-    const spent = categoryItems.filter(item => item.purchased).reduce((sum, item) => sum + (item.price || 0), 0);
+    const spent = categoryItems.filter(item => item.purchased).reduce((sum, item) => {
+      const price = typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0);
+      return sum + (isNaN(price) ? 0 : price);
+    }, 0);
     
     return {
       ...category,
@@ -509,21 +512,21 @@ export default function ShoppingList() {
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="list" className="flex items-center text-xs">
-              <ShoppingCart className="w-3 h-3 mr-1" />
+          <TabsList className="grid w-full grid-cols-1 lg:grid-cols-4 mb-6 h-auto">
+            <TabsTrigger value="list" className="flex items-center py-3">
+              <ShoppingCart className="w-4 h-4 mr-2" />
               Lista
             </TabsTrigger>
-            <TabsTrigger value="suggestions" className="flex items-center text-xs">
-              <Lightbulb className="w-3 h-3 mr-1" />
+            <TabsTrigger value="suggestions" className="flex items-center py-3">
+              <Lightbulb className="w-4 h-4 mr-2" />
               Sugestões
             </TabsTrigger>
-            <TabsTrigger value="budget" className="flex items-center text-xs">
-              <PieChart className="w-3 h-3 mr-1" />
+            <TabsTrigger value="budget" className="flex items-center py-3">
+              <PieChart className="w-4 h-4 mr-2" />
               Orçamento
             </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center text-xs">
-              <Package className="w-3 h-3 mr-1" />
+            <TabsTrigger value="categories" className="flex items-center py-3">
+              <Package className="w-4 h-4 mr-2" />
               Categorias
             </TabsTrigger>
           </TabsList>
@@ -635,13 +638,14 @@ export default function ShoppingList() {
                     </Select>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <Checkbox
                       id="essentials"
                       checked={showEssentialsOnly}
                       onCheckedChange={(checked) => setShowEssentialsOnly(checked as boolean)}
+                      className="h-5 w-5 cursor-pointer"
                     />
-                    <Label htmlFor="essentials" className="text-sm text-gray-700">
+                    <Label htmlFor="essentials" className="text-base font-medium text-gray-700 cursor-pointer">
                       Apenas essenciais
                     </Label>
                   </div>
@@ -669,17 +673,17 @@ export default function ShoppingList() {
                         >
                           <div className="flex items-center space-x-3 flex-1">
                             <div className="flex-shrink-0">
-                              <Checkbox
-                                checked={item.purchased}
-                                onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
+                            <Checkbox
+                              checked={item.purchased}
+                              onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
                                 className="h-6 w-6 rounded-md border-2 border-gray-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 data-[state=checked]:text-white cursor-pointer"
-                              />
+                            />
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">
                                 <span className="font-medium">{item.name}</span>
                                 {item.essential && (
-                                  <Badge className="bg-red-100 text-red-700 text-xs">
+                                  <Badge className="bg-red-100 text-red-700 text-sm px-2 py-1">
                                     Essencial
                                   </Badge>
                                 )}
@@ -696,7 +700,7 @@ export default function ShoppingList() {
                                 </Badge>
                                 {item.price && (
                                   <span className="font-semibold text-green-600">
-                                    R$ {item.price.toFixed(2)}
+                                    R$ {(typeof item.price === 'string' ? parseFloat(item.price) : item.price).toFixed(2)}
                                   </span>
                                 )}
                               </div>
@@ -711,14 +715,14 @@ export default function ShoppingList() {
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteItemMutation.mutate(item.id)}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteItemMutation.mutate(item.id)}
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                           </div>
                         </div>
                       );
@@ -748,11 +752,11 @@ export default function ShoppingList() {
                         >
                           <div className="flex items-center space-x-3 flex-1">
                             <div className="flex-shrink-0">
-                              <Checkbox
-                                checked={item.purchased}
-                                onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
+                            <Checkbox
+                              checked={item.purchased}
+                              onCheckedChange={(checked) => togglePurchased(item.id, checked as boolean)}
                                 className="h-6 w-6 rounded-md border-2 border-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 data-[state=checked]:text-white cursor-pointer"
-                              />
+                            />
                             </div>
                             <div className="flex-1">
                               <div className="font-medium text-green-700 line-through">
@@ -764,7 +768,7 @@ export default function ShoppingList() {
                                 )}
                                 {item.price && (
                                   <span className="font-semibold">
-                                    R$ {item.price.toFixed(2)}
+                                    R$ {(typeof item.price === 'string' ? parseFloat(item.price) : item.price).toFixed(2)}
                                   </span>
                                 )}
                                 {item.purchaseDate && (
@@ -784,14 +788,14 @@ export default function ShoppingList() {
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteItemMutation.mutate(item.id)}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteItemMutation.mutate(item.id)}
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                           </div>
                         </div>
                       );
@@ -838,7 +842,7 @@ export default function ShoppingList() {
               </Card>
             )}
 
-            {suggestions.length > 0 ? (
+            {suggestions.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -873,18 +877,6 @@ export default function ShoppingList() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-500 mb-2">
-                    Você está bem preparada!
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Continue acompanhando suas compras na aba Lista.
-                  </p>
                 </CardContent>
               </Card>
             )}
@@ -1062,7 +1054,7 @@ export default function ShoppingList() {
                           R$ {stat.spent.toFixed(2)}
                         </div>
                         <div className="text-xs text-gray-600">
-                          {((stat.spent / totalSpent) * 100).toFixed(1)}%
+                          {totalSpent > 0 ? ((stat.spent / totalSpent) * 100).toFixed(1) : '0.0'}%
                         </div>
                       </div>
                     </div>

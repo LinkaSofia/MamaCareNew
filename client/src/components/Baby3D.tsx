@@ -306,18 +306,6 @@ export default function Baby3D({
         )}
       </div>
 
-      {/* Informações estendidas para componentes maiores */}
-      {size === 'large' && showInfo && (
-        <div className="mt-4 text-center">
-          <div className={`text-lg font-semibold mb-1 ${pregnancyPhase.color}`}>
-            {pregnancyPhase.phase}
-          </div>
-          <div className="text-gray-600 text-sm">
-            {pregnancyPhase.description}
-          </div>
-        </div>
-      )}
-
       {/* Comparação de tamanho com imagens reais */}
       {showSizeComparison && developmentData && (
         <div className="mt-4">

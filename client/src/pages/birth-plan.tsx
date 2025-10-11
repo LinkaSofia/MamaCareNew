@@ -802,6 +802,7 @@ export default function BirthPlan() {
                 value={formData.location}
                 onChange={(e) => handleInputChange('location', e.target.value)}
                 placeholder="Ex: Hospital Santa Casa"
+                className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                 required
               />
             </div>
@@ -813,6 +814,7 @@ export default function BirthPlan() {
                 value={formData.companions}
                 onChange={(e) => handleInputChange('companions', e.target.value)}
                 placeholder="Ex: Esposo, Mãe"
+                className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
               />
             </div>
 
@@ -823,6 +825,7 @@ export default function BirthPlan() {
                 value={formData.doctorPreference}
                 onChange={(e) => handleInputChange('doctorPreference', e.target.value)}
                 placeholder="Nome do médico obstetra"
+                className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
               />
             </div>
           </div>
@@ -901,6 +904,7 @@ export default function BirthPlan() {
                 value={formData.painReliefOther}
                 onChange={(e) => handleInputChange('painReliefOther', e.target.value)}
                 placeholder="Descreva outros métodos que deseja usar..."
+                className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                 rows={3}
               />
             </div>
@@ -1094,6 +1098,7 @@ export default function BirthPlan() {
                 value={formData.religiousCultural}
                 onChange={(e) => handleInputChange('religiousCultural', e.target.value)}
                 placeholder="Descreva práticas religiosas ou culturais que deseja incluir..."
+                className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                 rows={3}
               />
             </div>
@@ -1105,6 +1110,7 @@ export default function BirthPlan() {
                 value={formData.specialRequests}
                 onChange={(e) => handleInputChange('specialRequests', e.target.value)}
                 placeholder="Qualquer outra informação importante para sua equipe médica..."
+                className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                 rows={4}
               />
             </div>

@@ -42,7 +42,9 @@ import {
   Sun,
   CloudRain,
   Cloud,
-  CloudSnow
+  CloudSnow,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, subDays } from 'date-fns';
@@ -220,6 +222,13 @@ export default function Diary() {
       count: entries.filter(entry => entry.mood === mood.value).length,
       color: mood.color
     })).filter(item => item.count > 0);
+    
+    console.log('📊 Mood Distribution Debug:', {
+      totalEntries: entries.length,
+      allMoods: moods.map(m => ({ value: m.value, label: m.label })),
+      entriesMoods: entries.map(e => e.mood),
+      distribution: moodDistribution
+    });
 
     const emotionFrequency = emotionTags.map(emotion => ({
       emotion: emotion.label,
@@ -463,7 +472,7 @@ export default function Diary() {
     setFormData({
       title: entry.title || "",
       content: entry.content || "",
-      mood: entry.mood || 5,
+      mood: entry.mood ?? 5,  // Usa ?? em vez de || para preservar valores falsy mas válidos
       emotions: entry.emotions || [],
       milestone: entry.milestone || "",
       week: entry.week?.toString() || "",
@@ -675,6 +684,7 @@ export default function Diary() {
 
   const getMoodEmoji = (moodValue: number) => {
     const mood = moods.find(m => m.value === moodValue);
+    console.log(`🎭 getMoodEmoji called with value: ${moodValue}, found mood:`, mood);
     return mood?.emoji || '😐';
   };
 
@@ -713,12 +723,12 @@ export default function Diary() {
           {/* Título - Centro */}
           <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              Diário da Gestação
-            </h1>
+                Diário de Gestação
+              </h1>
             <p className="text-xs text-gray-600 mt-0.5 flex items-center justify-center">
-              <Heart className="h-3 w-3 mr-1 text-pink-500" />
+                <Heart className="h-3 w-3 mr-1 text-pink-500" />
               {weekInfo ? `Semana ${weekInfo.week}` : "Registre seus momentos"}
-            </p>
+              </p>
           </div>
           
           {/* Botão Adicionar - Direita */}
@@ -734,21 +744,21 @@ export default function Diary() {
         </div>
 
         <Tabs defaultValue="entries" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="entries" className="flex items-center text-xs">
-              <Book className="w-3 h-3 mr-1" />
+          <TabsList className="grid w-full grid-cols-1 lg:grid-cols-4 mb-6 h-auto">
+            <TabsTrigger value="entries" className="flex items-center py-3">
+              <Book className="w-4 h-4 mr-2" />
               Entradas
             </TabsTrigger>
-            <TabsTrigger value="mood" className="flex items-center text-xs">
-              <Activity className="w-3 h-3 mr-1" />
+            <TabsTrigger value="mood" className="flex items-center py-3">
+              <Activity className="w-4 h-4 mr-2" />
               Humor
             </TabsTrigger>
-            <TabsTrigger value="milestones" className="flex items-center text-xs">
-              <Star className="w-3 h-3 mr-1" />
+            <TabsTrigger value="milestones" className="flex items-center py-3">
+              <Star className="w-4 h-4 mr-2" />
               Marcos
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center text-xs">
-              <TrendingUp className="w-3 h-3 mr-1" />
+            <TabsTrigger value="insights" className="flex items-center py-3">
+              <TrendingUp className="w-4 h-4 mr-2" />
               Análises
             </TabsTrigger>
           </TabsList>
@@ -756,42 +766,46 @@ export default function Diary() {
           {/* Entries Tab */}
           <TabsContent value="entries" className="space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Book className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-purple-600">{entries.length}</div>
-                  <div className="text-xs text-gray-600">Total de entradas</div>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Activity className="h-8 w-8 text-pink-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-pink-600">
-                    {moodAnalytics.averageMood.toFixed(1)}
+            <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6">
+              <Card className="bg-gradient-to-br from-pink-200 to-pink-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Book className="h-5 w-5 md:h-6 md:w-6 text-white" />
                   </div>
-                  <div className="text-xs text-gray-600">Humor médio</div>
+                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Total de entradas</span>
+                  </div>
+                  <div className="text-xl md:text-2xl font-bold text-pink-600 text-center">
+                    {entries.length}
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Zap className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-600">
+              <Card className="bg-gradient-to-br from-blue-200 to-blue-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Zap className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Esta semana</span>
+                  </div>
+                  <div className="text-xl md:text-2xl font-bold text-blue-600 text-center">
                     {moodAnalytics.entriesThisWeek}
                   </div>
-                  <div className="text-xs text-gray-600">Esta semana</div>
                 </CardContent>
               </Card>
 
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Heart className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-red-600">
+              <Card className="bg-gradient-to-br from-red-200 to-red-300 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center gap-2 mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Heart className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-gray-800 text-xs md:text-base text-center">Dias felizes</span>
+                  </div>
+                  <div className="text-xl md:text-2xl font-bold text-red-600 text-center">
                     {entries.filter(e => e.mood >= 8).length}
                   </div>
-                  <div className="text-xs text-gray-600">Dias felizes</div>
                 </CardContent>
               </Card>
             </div>
@@ -799,32 +813,42 @@ export default function Diary() {
 
             {/* Writing Prompts */}
             {currentPrompts.length > 0 && (
-              <Card className="bg-gradient-to-r from-pink-100/90 to-purple-100/90 border-pink-300/50 shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center text-pink-800 text-lg">
-                    <Lightbulb className="mr-2 h-5 w-5 text-pink-600" />
+              <Card className="mb-6 bg-gradient-to-br from-pink-50/90 to-purple-50/90 backdrop-blur-sm border border-pink-200/50 rounded-3xl shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg mb-3">
+                      <Lightbulb className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
                     Inspiração para Escrever
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-pink-600 mb-3">
-                    Baseado na sua semana atual ({weekInfo?.week}ª), aqui estão algumas perguntas para inspirar sua escrita:
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    </h3>
+                    <p className="text-sm text-gray-600 text-center mt-1">
+                      Baseado na sua semana atual ({weekInfo?.week}ª)
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {currentPrompts.map((prompt, index) => (
-                      <Button
+                      <Card
                         key={index}
-                        variant="ghost"
-                        size="sm"
                         onClick={() => {
                           setSelectedPrompt(prompt);
                           setShowAddForm(true);
                         }}
-                        className="text-left justify-start h-auto p-3 bg-white/80 hover:bg-pink-100/80 border border-pink-200/50 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                        className="cursor-pointer bg-white/95 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 rounded-2xl overflow-hidden group"
                       >
-                        <MessageCircle className="w-4 h-4 mr-2 flex-shrink-0 text-pink-500" />
-                        <span className="text-sm text-pink-800">{prompt}</span>
-                      </Button>
+                        <CardContent className="p-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                              <MessageCircle className="w-5 h-5 text-pink-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-700 leading-relaxed group-hover:text-pink-700 transition-colors">
+                                {prompt}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </CardContent>
@@ -855,71 +879,32 @@ export default function Diary() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {entries
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((entry) => (
-                    <Card key={entry.id} className="bg-gradient-to-br from-white/90 to-pink-50/90 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300 border border-pink-200/50 hover:border-pink-300/70 rounded-2xl overflow-hidden">
-                      <CardHeader className="pb-3 bg-gradient-to-r from-pink-100/70 to-purple-100/70">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <span className="text-2xl">{getMoodEmoji(entry.mood)}</span>
-                              <CardTitle className="text-lg font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                                {entry.title || "Entrada do diário"}
-                              </CardTitle>
-                            </div>
-                            <div className="flex items-center space-x-3 text-sm text-gray-600 mb-2">
-                              <div className="flex items-center">
-                                <CalendarIcon className="h-3 w-3 mr-1" />
-                                {format(new Date(entry.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                              </div>
-                              {entry.week && (
-                              <Badge className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 text-xs border border-blue-200/50 shadow-sm">
-                                {entry.week}ª semana
-                              </Badge>
-                              )}
-                              <div 
-                                className="px-3 py-1 rounded-full text-xs text-white font-medium shadow-sm"
+                    <Card 
+                      key={entry.id} 
+                      className="relative bg-white/95 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 border-0 rounded-3xl overflow-hidden flex flex-col h-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${getMoodColor(entry.mood)}10 0%, white 100%)`
+                      }}
+                    >
+                      {/* Mood Badge no canto superior direito */}
+                      <div 
+                        className="absolute top-4 right-4 w-16 h-16 rounded-full flex items-center justify-center shadow-xl border-4 border-white z-10"
                                 style={{ backgroundColor: getMoodColor(entry.mood) }}
                               >
-                                {moods.find(m => m.value === entry.mood)?.label}
+                        <span className="text-3xl">{getMoodEmoji(entry.mood)}</span>
                               </div>
-                            </div>
-                            {entry.milestone && (
-                              <Badge className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs mb-2 border border-purple-200/50 shadow-sm">
-                                <Sparkles className="w-3 h-3 mr-1" />
-                                {entry.milestone}
-                              </Badge>
-                            )}
-                            {entry.emotions && entry.emotions.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mb-2">
-                                {entry.emotions.map(emotion => {
-                                  const emotionData = emotionTags.find(e => e.value === emotion);
-                                  return emotionData ? (
-                                    <Badge 
-                                      key={emotion} 
-                                      className="text-xs"
-                                      style={{ 
-                                        backgroundColor: emotionData.color + '20',
-                                        color: emotionData.color,
-                                        borderColor: emotionData.color + '40'
-                                      }}
-                                    >
-                                      <Tag className="w-3 h-3 mr-1" />
-                                      {emotionData.label}
-                                    </Badge>
-                                  ) : null;
-                                })}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex space-x-1">
+
+                      {/* Action buttons sempre visíveis */}
+                      <div className="absolute top-4 left-4 flex space-x-2 z-10">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEdit(entry)}
-                              className="text-purple-500 hover:text-purple-700 h-8 w-8"
+                          className="bg-white/90 backdrop-blur-sm text-purple-600 hover:text-purple-700 hover:bg-white h-9 w-9 rounded-full shadow-lg"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -927,25 +912,79 @@ export default function Diary() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(entry)}
-                              className="text-red-500 hover:text-red-700 h-8 w-8"
+                          className="bg-white/90 backdrop-blur-sm text-red-600 hover:text-red-700 hover:bg-white h-9 w-9 rounded-full shadow-lg"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+
+                      <CardContent className="p-6 pt-20 flex-1 flex flex-col">
+                        {/* Header */}
+                        <div className="mb-4">
+                          <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2 pr-8">
+                            {entry.title || "Entrada do diário"}
+                          </h3>
+                          
+                          <div className="flex items-center text-sm text-gray-500 mb-3">
+                            <CalendarIcon className="h-4 w-4 mr-1.5" />
+                            {format(new Date(entry.date), "dd MMM yyyy", { locale: ptBR })}
+                            {entry.week && (
+                              <>
+                                <span className="mx-2">•</span>
+                                <span className="text-blue-600 font-medium">{entry.week}ª semana</span>
+                              </>
+                            )}
                         </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        </div>
+
+                        {/* Content Preview */}
+                        <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-4">
                           {entry.content}
                         </p>
-                        {entry.prompts && entry.prompts.length > 0 && (
-                          <div className="mt-3 p-2 bg-amber-50 rounded border-l-4 border-amber-300">
-                            <p className="text-xs text-amber-600 italic">
-                              Inspirado por: "{entry.prompts[0]}"
-                            </p>
+
+                        {/* Milestone Badge */}
+                        {entry.milestone && (
+                          <div className="mb-3 inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs font-medium rounded-full border border-purple-200">
+                            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                            {entry.milestone}
+                          </div>
+                        )}
+
+                        {/* Emotions */}
+                        {entry.emotions && entry.emotions.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-auto pt-3 border-t border-gray-100">
+                            {entry.emotions.slice(0, 3).map(emotion => {
+                              const emotionData = emotionTags.find(e => e.value === emotion);
+                              return emotionData ? (
+                                <span 
+                                  key={emotion} 
+                                  className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border"
+                                  style={{ 
+                                    backgroundColor: emotionData.color + '15',
+                                    color: emotionData.color,
+                                    borderColor: emotionData.color + '30'
+                                  }}
+                                >
+                                  {emotionData.label}
+                                </span>
+                              ) : null;
+                            })}
+                            {entry.emotions.length > 3 && (
+                              <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                                +{entry.emotions.length - 3}
+                              </span>
+                            )}
                           </div>
                         )}
                       </CardContent>
+
+                      {/* Mood Label no rodapé */}
+                      <div 
+                        className="px-6 py-3 text-center text-sm font-semibold text-white mt-auto"
+                        style={{ backgroundColor: getMoodColor(entry.mood) }}
+                      >
+                        {moods.find(m => m.value === entry.mood)?.label}
+                      </div>
                     </Card>
                   ))}
               </div>
@@ -955,13 +994,16 @@ export default function Diary() {
           {/* Mood Analysis Tab */}
           <TabsContent value="mood" className="space-y-6">
             {/* Mood Trend Chart */}
-            {moodAnalytics.moodTrendData.length > 0 && (
+            {moodAnalytics.moodTrendData.length > 0 ? (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <TrendingUp className="mr-2 h-5 w-5 text-blue-500" />
-                    Evolução do Humor (Últimos 30 dias)
+                    Evolução de Humor (Últimos 30 dias)
                   </CardTitle>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {moodAnalytics.moodTrendData.length} entrada{moodAnalytics.moodTrendData.length !== 1 ? 's' : ''} nos últimos 30 dias
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64">
@@ -971,10 +1013,10 @@ export default function Diary() {
                         <XAxis dataKey="date" />
                         <YAxis domain={[1, 10]} />
                         <Tooltip 
-                          formatter={(value: number, name: string) => [
-                            `${value} - ${moods.find(m => m.value === value)?.label}`, 
-                            'Humor'
-                          ]}
+                          formatter={(value: number) => {
+                            const mood = moods.find(m => m.value === value);
+                            return [`${value} - ${mood?.label || 'Desconhecido'}`, 'Humor'];
+                          }}
                           labelFormatter={(label) => `Data: ${label}`}
                         />
                         <Line 
@@ -989,6 +1031,18 @@ export default function Diary() {
                   </div>
                 </CardContent>
               </Card>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <TrendingUp className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    Sem dados de humor
+                  </h3>
+                  <p className="text-gray-600">
+                    Adicione entradas ao diário para ver a evolução do seu humor
+                  </p>
+                </CardContent>
+              </Card>
             )}
 
             {/* Mood Distribution */}
@@ -1001,6 +1055,7 @@ export default function Diary() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {moodAnalytics.moodDistribution.length > 0 ? (
                   <div className="space-y-3">
                     {moodAnalytics.moodDistribution.map((item, index) => {
                       const maxCount = Math.max(...moodAnalytics.moodDistribution.map(d => d.count));
@@ -1030,6 +1085,14 @@ export default function Diary() {
                       );
                     })}
                   </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm text-gray-500">
+                        Nenhum dado para exibir
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1041,6 +1104,7 @@ export default function Diary() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {moodAnalytics.emotionFrequency.length > 0 ? (
                   <div className="space-y-3">
                     {moodAnalytics.emotionFrequency.map((emotion, index) => {
                       const maxCount = Math.max(...moodAnalytics.emotionFrequency.map(e => e.count));
@@ -1071,50 +1135,78 @@ export default function Diary() {
                       );
                     })}
                   </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Tag className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm text-gray-500">
+                        Nenhum dado para exibir
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
 
             {/* Calendar View */}
-            <Card>
+            <Card className="max-w-4xl mx-auto">
               <CardHeader>
+                <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center">
                   <CalendarIcon className="mr-2 h-5 w-5 text-pink-500" />
                   Calendário de Humor
                 </CardTitle>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedDate(subDays(selectedDate, 30))}
+                      className="h-8 px-3"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium min-w-32 text-center">
+                      {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const nextMonth = new Date(selectedDate);
+                        nextMonth.setMonth(nextMonth.getMonth() + 1);
+                        setSelectedDate(nextMonth);
+                      }}
+                      className="h-8 px-3"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-7 gap-2 mb-4">
-                  <div className="text-center text-sm font-medium text-gray-500">Dom</div>
-                  <div className="text-center text-sm font-medium text-gray-500">Seg</div>
-                  <div className="text-center text-sm font-medium text-gray-500">Ter</div>
-                  <div className="text-center text-sm font-medium text-gray-500">Qua</div>
-                  <div className="text-center text-sm font-medium text-gray-500">Qui</div>
-                  <div className="text-center text-sm font-medium text-gray-500">Sex</div>
-                  <div className="text-center text-sm font-medium text-gray-500">Sáb</div>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-7 gap-2 mb-3">
+                  <div className="text-center text-xs font-medium text-gray-500">Dom</div>
+                  <div className="text-center text-xs font-medium text-gray-500">Seg</div>
+                  <div className="text-center text-xs font-medium text-gray-500">Ter</div>
+                  <div className="text-center text-xs font-medium text-gray-500">Qua</div>
+                  <div className="text-center text-xs font-medium text-gray-500">Qui</div>
+                  <div className="text-center text-xs font-medium text-gray-500">Sex</div>
+                  <div className="text-center text-xs font-medium text-gray-500">Sáb</div>
                 </div>
                 
                 <div className="grid grid-cols-7 gap-2">
                   {calendarData.map((day, index) => (
                     <div 
                       key={index}
-                      className="aspect-square flex items-center justify-center text-xs relative rounded cursor-pointer hover:bg-gray-100"
-                      style={{
-                        backgroundColor: day.hasEntries && day.averageMood 
-                          ? getMoodColor(Math.round(day.averageMood)) + '20' 
-                          : 'transparent'
-                      }}
+                      className="aspect-square flex flex-col items-center justify-center text-sm relative rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      <span className="text-gray-700">
+                      <span className="text-gray-700 font-medium">
                         {format(day.date, 'd')}
                       </span>
-                      {day.hasEntries && (
+                      {day.hasEntries && day.averageMood && (
                         <div 
-                          className="absolute top-1 right-1 w-2 h-2 rounded-full"
+                          className="w-1.5 h-1.5 rounded-full mt-1"
                           style={{ 
-                            backgroundColor: day.averageMood 
-                              ? getMoodColor(Math.round(day.averageMood))
-                              : '#6B7280'
+                            backgroundColor: getMoodColor(Math.round(day.averageMood))
                           }}
                         />
                       )}
@@ -1122,18 +1214,22 @@ export default function Diary() {
                   ))}
                 </div>
                 
-                <div className="flex items-center justify-center mt-4 space-x-4 text-xs">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                    <span>Humor baixo</span>
+                <div className="flex items-center justify-center mt-6 gap-6 text-xs flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                    <span className="text-gray-600">Humor baixo (1-3)</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    <span>Humor neutro</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                    <span className="text-gray-600">Humor neutro (4-6)</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>Humor alto</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                    <span className="text-gray-600">Humor bom (7-8)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+                    <span className="text-gray-600">Humor ótimo (9-10)</span>
                   </div>
                 </div>
               </CardContent>
@@ -1146,7 +1242,7 @@ export default function Diary() {
               <CardHeader>
                 <CardTitle className="flex items-center text-purple-700">
                   <Star className="mr-2 h-5 w-5" />
-                  Marcos da Sua Gestação
+                  Marcos de Gestação
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1528,15 +1624,11 @@ export default function Diary() {
       {/* Add/Edit Entry Modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-          <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-pink-50/95 to-purple-50/95 backdrop-blur-md border border-pink-200/50 shadow-2xl rounded-2xl">
-            <CardHeader className="bg-gradient-to-r from-pink-100/80 to-purple-100/80 border-b border-pink-200/50 pb-4 pt-6">
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent flex items-center">
-                <Book className="mr-2 h-6 w-6 text-pink-500" />
+          <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
                 {editingEntry ? "Editar Entrada" : "Nova Entrada"}
               </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
-                {editingEntry ? "Atualize sua entrada do diário" : "Registre um momento especial da sua gestação"}
-              </p>
             </CardHeader>
             <CardContent className="bg-white/70 backdrop-blur-sm pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -1603,10 +1695,10 @@ export default function Diary() {
                         onChange={(e) => setFormData(prev => ({ ...prev, mood: parseInt(e.target.value) }))}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mood-slider-pink"
                       />
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>😭</span>
-                        <span>😐</span>
-                        <span>🤩</span>
+                      <div className="flex justify-between text-base">
+                        <span>{moods[0].emoji}</span>
+                        <span>{moods[4].emoji}</span>
+                        <span>{moods[9].emoji}</span>
                       </div>
                     </div>
                   </div>

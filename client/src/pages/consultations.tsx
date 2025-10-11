@@ -369,7 +369,7 @@ export default function Consultations() {
                     placeholder="Ex: Consulta pré-natal"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     required
                   />
                 </div>
@@ -394,7 +394,7 @@ export default function Consultations() {
                       id="time"
                       value={formData.time}
                       onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                      className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                      className="mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                       required
                     />
                   </div>
@@ -409,7 +409,7 @@ export default function Consultations() {
                     placeholder="Ex: Dr. Silva"
                     value={formData.doctorName}
                     onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
-                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                   />
                 </div>
 
@@ -422,7 +422,7 @@ export default function Consultations() {
                     placeholder="Ex: Hospital São Paulo"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                   />
                 </div>
 
@@ -435,7 +435,7 @@ export default function Consultations() {
                     placeholder="Observações sobre a consulta..."
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="mt-1 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     rows={3}
                   />
                 </div>

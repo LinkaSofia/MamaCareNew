@@ -638,7 +638,7 @@ export default function WeightTracking() {
                     placeholder="Ex: 65.5"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     data-testid="input-weight"
                     required
                   />
@@ -664,7 +664,7 @@ export default function WeightTracking() {
                     placeholder="Ex: Após o almoço"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     data-testid="input-notes"
                   />
                 </div>
@@ -721,7 +721,7 @@ export default function WeightTracking() {
                     placeholder="Ex: 65.5"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     data-testid="input-edit-weight"
                     required
                   />
@@ -747,7 +747,7 @@ export default function WeightTracking() {
                     placeholder="Ex: Após o almoço"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                     data-testid="input-edit-notes"
                   />
                 </div>

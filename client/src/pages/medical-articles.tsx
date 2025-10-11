@@ -390,7 +390,7 @@ export default function MedicalArticles() {
           <div className="flex items-center justify-center mb-6 pt-12">
             <div className="text-center">
               <h1 className="text-3xl font-bold text-pink-600 dark:text-pink-400 mb-2" data-testid="text-page-title">
-                Guia da Gestação
+                Guia de Gestação
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
                 Informações médicas especializadas para a sua semana gestacional
