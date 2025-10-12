@@ -387,34 +387,11 @@ export default function MedicalArticles() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
-          <div className="flex items-center justify-center mb-6 pt-12">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-pink-600 dark:text-pink-400 mb-2" data-testid="text-page-title">
-                Guia de Gestação
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Informações médicas especializadas para a sua semana gestacional
-              </p>
-            </div>
+          <div className="flex items-center justify-center mb-8 pt-12">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center" data-testid="text-page-title">
+              Guia de Gestação
+            </h1>
           </div>
-
-      <div className="mb-6">
-        <Card className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950 dark:to-purple-950 border-pink-200 dark:border-pink-800">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <Stethoscope className="h-6 w-6 text-pink-600 dark:text-pink-400" />
-              <div>
-                <h2 className="font-semibold text-pink-700 dark:text-pink-300">
-                  Guia Completo da Gestação
-                </h2>
-                <p className="text-sm text-pink-600 dark:text-pink-400">
-                  Informações organizadas por categoria para todas as fases da sua gravidez
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {categoriesLoading ? (
         <div className="space-y-4">
@@ -430,80 +407,63 @@ export default function MedicalArticles() {
       ) : categoriesData?.categories && categoriesData.categories.length > 0 ? (
         <div className="space-y-6">
           {categoriesData.categories.map((category) => (
-            <Card key={category.name} className="overflow-hidden">
+            <Card key={category.name} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader 
-                className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950 dark:to-purple-950 cursor-pointer"
+                className="bg-gradient-to-r from-pink-500 to-purple-600 cursor-pointer"
                 onClick={() => toggleCategory(category.name)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{category.icon}</span>
+                  <div className="flex items-center gap-4">
+                    <div className="bg-white/20 backdrop-blur-sm p-3 rounded-full">
+                      <span className="text-3xl">{category.icon}</span>
+                    </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                      <h2 className="text-xl font-bold text-white">
                         {category.name}
                       </h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-white/90">
                         {category.articles.length} artigos disponíveis
                       </p>
                     </div>
                   </div>
                   {expandedCategories.has(category.name) ? (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                    <ChevronDown className="h-6 w-6 text-white" />
                   ) : (
-                    <ChevronRight className="h-5 w-5 text-gray-500" />
+                    <ChevronRight className="h-6 w-6 text-white" />
                   )}
                 </div>
               </CardHeader>
               
               {expandedCategories.has(category.name) && (
-                <CardContent className="p-0">
-                  <div className="border-t">
+                <CardContent className="p-6">
+                  <div className="space-y-6">
                     {/* Subcategorias */}
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900">
-                      <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-3">
-                        Subcategorias:
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-pink-500" />
+                        Subcategorias
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {Object.entries(category.subcategories).map(([key, name]) => (
-                          <div key={key} className="text-sm text-gray-600 dark:text-gray-400">
-                            • {name}
+                          <div key={key} className="flex items-center gap-2 text-sm text-gray-700 bg-gradient-to-r from-pink-50 to-purple-50 p-3 rounded-lg">
+                            <div className="w-2 h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
+                            {name}
                           </div>
                         ))}
                       </div>
                     </div>
                     
                     {/* Artigos */}
-                    <div className="p-4">
-                      <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-3">
-                        Artigos:
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-purple-500" />
+                        Artigos
                       </h3>
-                      <div className="relative">
-                        {/* Carrossel de artigos */}
-                        <div 
-                          ref={carouselRef}
-                          className="flex gap-4 overflow-x-auto carousel-container"
-                          style={{ 
-                            scrollSnapType: 'x mandatory',
-                            scrollbarWidth: 'none',
-                            msOverflowStyle: 'none'
-                          }}
-                          onMouseDown={handleMouseDown}
-                          onMouseMove={handleMouseMove}
-                          onMouseUp={handleMouseUp}
-                          onMouseLeave={handleMouseUp}
-                          onTouchStart={handleTouchStart}
-                          onTouchMove={handleTouchMove}
-                          onTouchEnd={handleTouchEnd}
-                        >
-                          {category.articles.map((article, index) => (
-                            <div 
-                              key={article.id}
-                              className="flex-none w-full md:w-1/2"
-                              style={{ scrollSnapAlign: 'start' }}
-                            >
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {category.articles.map((article, index) => (
                           <Card 
                             key={article.id} 
-                            className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border-0 overflow-hidden hover:scale-105 rounded-2xl"
+                            className="hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white border-2 border-pink-100 overflow-hidden hover:scale-105 hover:border-pink-300 rounded-2xl group"
                             onClick={(e) => {
                               console.log("🖱️ Card clicked:", article.title);
                               e.preventDefault();
@@ -511,9 +471,9 @@ export default function MedicalArticles() {
                             }}
                           >
                             <CardContent className="p-0">
-                              <div className="relative">
+                              <div className="relative flex flex-col h-full">
                                 {/* Article Image - Full Width */}
-                                <div className="w-full h-56 bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center overflow-hidden relative rounded-t-2xl">
+                                <div className="w-full h-48 bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center overflow-hidden relative">
                                   {article.image ? (
                                     <img 
                                       src={article.image.startsWith('@assets/') 
@@ -523,7 +483,7 @@ export default function MedicalArticles() {
                                         : `/src/assets/imagem_artigos/${article.image}`
                                       } 
                                       alt={article.title}
-                                      className="w-full h-full object-cover"
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                       onLoad={() => console.log('✅ Imagem carregada:', article.image)}
                                       onError={(e) => {
                                         console.log('❌ Erro ao carregar imagem:', article.image);
@@ -531,107 +491,42 @@ export default function MedicalArticles() {
                                         target.style.display = 'none';
                                         const parent = target.parentElement;
                                         if (parent) {
-                                          parent.innerHTML = '<div class="flex items-center justify-center h-full bg-gradient-to-br from-pink-100 to-purple-100"><span class="text-6xl">📖</span></div>';
+                                          parent.innerHTML = '<div class="flex items-center justify-center h-full bg-gradient-to-br from-pink-200 to-purple-200"><span class="text-6xl">📖</span></div>';
                                         }
                                       }}
                                     />
                                   ) : (
-                                    <div className="flex items-center justify-center h-full bg-gradient-to-br from-pink-100 to-purple-100">
+                                    <div className="flex items-center justify-center h-full bg-gradient-to-br from-pink-200 to-purple-200">
                                       <span className="text-6xl">
                                         {article.type === 'pdf' || article.video_url?.includes('.pdf') ? '📄' : '🎥'}
                                       </span>
                                     </div>
                                   )}
                                   
-                                  {/* Video Badge */}
-                                  <div className="absolute top-4 left-4 bg-gray-800 bg-opacity-80 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
-                                    <span>🎥</span>
-                                    <span>Vídeo</span>
+                                  {/* Type Badge */}
+                                  <div className="absolute top-3 right-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg">
+                                    <span>{article.type === 'pdf' || article.video_url?.includes('.pdf') ? '📄' : '🎥'}</span>
                                   </div>
                                 </div>
                                 
                                 {/* Article Info - Clean Bottom */}
-                                <div className="p-6 bg-white">
-                                  <h4 className="font-bold text-gray-800 text-lg mb-2 line-clamp-2 leading-tight">
+                                <div className="p-5 bg-white flex-1 flex flex-col">
+                                  <h4 className="font-bold text-gray-800 text-base mb-3 line-clamp-2 leading-tight group-hover:text-pink-600 transition-colors">
                                     {article.title}
                                   </h4>
                                   {article.source && (
-                                    <p className="text-sm text-gray-600">
-                                      Fonte: {article.source}
-                                    </p>
+                                    <div className="mt-auto pt-3 border-t border-gray-100">
+                                      <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                                        <Stethoscope className="h-3.5 w-3.5 text-pink-400" />
+                                        {article.source}
+                                      </p>
+                                    </div>
                                   )}
                                 </div>
                               </div>
                             </CardContent>
                           </Card>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {/* Controles de navegação */}
-                        {category.articles.length > 2 && (
-                          <div className="flex items-center justify-between mt-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                if (carouselRef.current) {
-                                  carouselRef.current.scrollBy({
-                                    left: -carouselRef.current.offsetWidth / 2,
-                                    behavior: 'smooth'
-                                  });
-                                }
-                              }}
-                              className="flex items-center gap-2"
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                              Anterior
-                            </Button>
-                            
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-600">
-                                {Math.floor((carouselRef.current?.scrollLeft || 0) / (carouselRef.current?.offsetWidth || 1)) + 1} de {Math.ceil(category.articles.length / 2)}
-                              </span>
-                              <div className="flex gap-1">
-                                {Array.from({ length: Math.ceil(category.articles.length / 2) }).map((_, index) => (
-                                  <button
-                                    key={index}
-                                    onClick={() => {
-                                      if (carouselRef.current) {
-                                        carouselRef.current.scrollTo({
-                                          left: index * (carouselRef.current.offsetWidth / 2),
-                                          behavior: 'smooth'
-                                        });
-                                      }
-                                    }}
-                                    className={`w-2 h-2 rounded-full transition-colors ${
-                                      Math.floor((carouselRef.current?.scrollLeft || 0) / (carouselRef.current?.offsetWidth || 1)) === index
-                                        ? 'bg-pink-500' 
-                                        : 'bg-pink-200 hover:bg-pink-300'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                if (carouselRef.current) {
-                                  carouselRef.current.scrollBy({
-                                    left: carouselRef.current.offsetWidth / 2,
-                                    behavior: 'smooth'
-                                  });
-                                }
-                              }}
-                              className="flex items-center gap-2"
-                            >
-                              Próximo
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
+                        ))}
                       </div>
                     </div>
                   </div>
