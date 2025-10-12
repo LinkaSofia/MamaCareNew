@@ -468,10 +468,11 @@ export default function Diary() {
 
   const handleEdit = (entry: DiaryEntry) => {
     setEditingEntry(entry);
+    const moodValue = entry.mood ? (typeof entry.mood === 'string' ? parseInt(entry.mood) : entry.mood) : 5;
     setFormData({
       title: entry.title || "",
       content: entry.content || "",
-      mood: entry.mood ?? 5,  // Usa ?? em vez de || para preservar valores falsy mas válidos
+      mood: moodValue,
       emotions: entry.emotions || [],
       milestone: entry.milestone || "",
       week: entry.week?.toString() || "",
@@ -666,14 +667,16 @@ export default function Diary() {
     setFormData(prev => ({ ...prev, emotions: newEmotions }));
   };
 
-  const getMoodColor = (moodValue: number) => {
-    const mood = moods.find(m => m.value === moodValue);
+  const getMoodColor = (moodValue: number | string) => {
+    const numValue = typeof moodValue === 'string' ? parseInt(moodValue) : moodValue;
+    const mood = moods.find(m => m.value === numValue);
     return mood?.color || '#6B7280';
   };
 
-  const getMoodEmoji = (moodValue: number) => {
-    const mood = moods.find(m => m.value === moodValue);
-    console.log(`🎭 getMoodEmoji called with value: ${moodValue}, found mood:`, mood);
+  const getMoodEmoji = (moodValue: number | string) => {
+    const numValue = typeof moodValue === 'string' ? parseInt(moodValue) : moodValue;
+    const mood = moods.find(m => m.value === numValue);
+    console.log(`🎭 getMoodEmoji - Input: ${moodValue} (${typeof moodValue}), Converted: ${numValue}, Found:`, mood?.label);
     return mood?.emoji || '😐';
   };
 
