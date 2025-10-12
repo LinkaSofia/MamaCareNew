@@ -185,11 +185,40 @@ export default function Diary() {
       console.log("📝 Raw API response:", data);
       
       // Parse emotions e prompts de volta para arrays
-      const entries = data.entries.map((entry: any) => ({
-        ...entry,
-        emotions: typeof entry.emotions === 'string' ? JSON.parse(entry.emotions) : entry.emotions || [],
-        prompts: typeof entry.prompts === 'string' ? JSON.parse(entry.prompts) : entry.prompts || []
-      }));
+      const entries = data.entries.map((entry: any) => {
+        let emotions = [];
+        let prompts = [];
+        
+        // Parse emotions
+        try {
+          if (typeof entry.emotions === 'string' && entry.emotions) {
+            emotions = JSON.parse(entry.emotions);
+          } else if (Array.isArray(entry.emotions)) {
+            emotions = entry.emotions;
+          }
+        } catch (e) {
+          console.error("Error parsing emotions:", e);
+          emotions = [];
+        }
+        
+        // Parse prompts
+        try {
+          if (typeof entry.prompts === 'string' && entry.prompts) {
+            prompts = JSON.parse(entry.prompts);
+          } else if (Array.isArray(entry.prompts)) {
+            prompts = entry.prompts;
+          }
+        } catch (e) {
+          console.error("Error parsing prompts:", e);
+          prompts = [];
+        }
+        
+        return {
+          ...entry,
+          emotions,
+          prompts
+        };
+      });
       
       console.log("📝 Processed entries:", entries);
       console.log("📝 Number of entries:", entries.length);
@@ -1035,7 +1064,7 @@ export default function Diary() {
                         )}
 
                         {/* Emotions */}
-                        {entry.emotions && entry.emotions.length > 0 && (
+                        {entry.emotions && Array.isArray(entry.emotions) && entry.emotions.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-auto pt-3 border-t border-gray-100">
                             {entry.emotions.slice(0, 3).map(emotion => {
                               const emotionData = emotionTags.find(e => e.value === emotion);
