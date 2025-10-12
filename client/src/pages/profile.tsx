@@ -48,6 +48,7 @@ export default function Profile() {
   // Atualizar formData e profilePhoto quando user ou pregnancy mudarem
   React.useEffect(() => {
     if (user) {
+      console.log("👤 User data changed, updating profilePhoto:", user.profilePhotoUrl?.substring(0, 100));
       setProfilePhoto(user.profilePhotoUrl || "");
       setFormData(prev => ({
         ...prev,
@@ -55,7 +56,6 @@ export default function Profile() {
         email: user.email || "",
         birthDate: user.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : ""
       }));
-      setProfilePhoto(user.profilePhotoUrl || "");
     }
   }, [user]);
 
@@ -67,6 +67,11 @@ export default function Profile() {
       }));
     }
   }, [pregnancy]);
+
+  // Log quando profilePhoto mudar
+  React.useEffect(() => {
+    console.log("📸 ProfilePhoto state changed:", profilePhoto?.substring(0, 100));
+  }, [profilePhoto]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -214,16 +219,21 @@ export default function Profile() {
       const base64Image = await compressImage(file, 400);
       console.log("✅ Foto comprimida:", (base64Image.length / 1024).toFixed(2), "KB");
 
+      // Atualizar preview imediatamente
+      console.log("🖼️ Atualizando preview da foto...");
+      setProfilePhoto(base64Image);
+
       // Salvar no banco de dados
       console.log("💾 Salvando foto no perfil...");
-      await apiRequest("PATCH", "/api/auth/profile", {
+      const response = await apiRequest("PATCH", "/api/auth/profile", {
         profilePhotoUrl: base64Image,
       });
-      console.log("✅ Foto salva no banco de dados!");
+      console.log("✅ Foto salva no banco de dados!", response);
 
       // Recarregar dados do usuário do authManager
       await refreshUser();
       console.log("🔄 Dados do usuário recarregados!");
+      console.log("📸 Nova foto do usuário:", user?.profilePhotoUrl?.substring(0, 100));
 
       toast({
         title: "Foto atualizada!",
@@ -265,7 +275,7 @@ export default function Profile() {
           <CardContent className="p-6">
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
-                <Avatar className="w-24 h-24 bg-gradient-to-br from-pink-300 to-purple-400 ring-4 ring-white shadow-lg">
+                <Avatar key={profilePhoto} className="w-24 h-24 bg-gradient-to-br from-pink-300 to-purple-400 ring-4 ring-white shadow-lg">
                   <AvatarImage 
                     src={profilePhoto} 
                     alt={user.name}
