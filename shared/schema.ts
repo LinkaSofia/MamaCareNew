@@ -182,6 +182,17 @@ export const diaryEntries = pgTable("diary_entries", {
   image: text("image"), // Imagem em base64
 });
 
+// Tabela para múltiplos anexos do diário (imagens, PDFs, etc)
+export const diaryAttachments = pgTable("diary_attachments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  diaryEntryId: varchar("diary_entry_id").references(() => diaryEntries.id, { onDelete: "cascade" }).notNull(),
+  fileData: text("file_data").notNull(), // Arquivo em base64
+  fileType: varchar("file_type", { length: 50 }).notNull(), // 'image/jpeg', 'application/pdf', etc
+  fileName: varchar("file_name", { length: 255 }), // Nome original do arquivo
+  fileSize: integer("file_size"), // Tamanho em bytes
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const symptoms = pgTable("symptoms", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
@@ -337,6 +348,17 @@ export const insertDiaryEntrySchema = baseDiaryEntrySchema
 
 // Schema para atualização (parcial e sem transformações)
 export const updateDiaryEntrySchema = baseDiaryEntrySchema.partial();
+
+// Schemas para anexos do diário
+export const insertDiaryAttachmentSchema = createInsertSchema(diaryAttachments).omit({ id: true, createdAt: true })
+  .extend({
+    diaryEntryId: z.string().min(1, "ID da entrada do diário é obrigatório"),
+    fileData: z.string().min(1, "Dados do arquivo são obrigatórios"),
+    fileType: z.string().min(1, "Tipo do arquivo é obrigatório"),
+    fileName: z.string().nullable().optional(),
+    fileSize: z.number().nullable().optional(),
+  });
+
 export const insertSymptomSchema = createInsertSchema(symptoms).omit({ id: true });
 export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
 export const insertCommunityPostSchema = createInsertSchema(communityPosts).omit({ id: true, likes: true, commentsCount: true, createdAt: true });
@@ -368,6 +390,8 @@ export type Photo = typeof photos.$inferSelect;
 export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
 export type DiaryEntry = typeof diaryEntries.$inferSelect;
 export type InsertDiaryEntry = z.infer<typeof insertDiaryEntrySchema>;
+export type DiaryAttachment = typeof diaryAttachments.$inferSelect;
+export type InsertDiaryAttachment = z.infer<typeof insertDiaryAttachmentSchema>;
 export type Symptom = typeof symptoms.$inferSelect;
 export type InsertSymptom = z.infer<typeof insertSymptomSchema>;
 export type Medication = typeof medications.$inferSelect;

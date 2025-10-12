@@ -66,6 +66,7 @@ interface DiaryEntry {
   date: string;
   prompts?: string[];
   image?: string | null;
+  attachments?: Array<{ id: string; data: string; type: string; name: string | null; size: number | null; createdAt: string }>;
 }
 
 interface DiaryData {
@@ -514,6 +515,15 @@ export default function Diary() {
   const handleEdit = (entry: DiaryEntry) => {
     setEditingEntry(entry);
     const moodValue = entry.mood ? (typeof entry.mood === 'string' ? parseInt(entry.mood) : entry.mood) : 5;
+    
+    // Carregar anexos da entrada se existirem
+    const attachments = entry.attachments?.map(att => ({
+      data: att.data,
+      type: att.type,
+      name: att.name || "",
+      size: att.size || 0
+    })) || [];
+    
     setFormData({
       title: entry.title || "",
       content: entry.content || "",
@@ -522,7 +532,7 @@ export default function Diary() {
       milestone: entry.milestone || "",
       week: entry.week?.toString() || "",
       image: entry.image || null,
-      attachments: [] // Por enquanto, até implementar carregamento do banco
+      attachments: attachments
     });
     setShowAddForm(true);
   };
@@ -736,7 +746,7 @@ export default function Diary() {
 
     // Para backward compatibility: pegar a primeira imagem dos attachments (se houver)
     const firstImage = formData.attachments.find(a => a.type.startsWith('image/'));
-
+    
     const entryData = {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim(),
@@ -748,8 +758,8 @@ export default function Diary() {
       date: new Date(),
       prompts: selectedPrompt ? JSON.stringify([selectedPrompt]) : null,
       image: firstImage ? firstImage.data : (formData.image || null),
-      // TODO: Implementar no backend para suportar múltiplos anexos
-      // attachments: formData.attachments
+      // Enviar múltiplos anexos para o backend
+      attachments: formData.attachments
     };
     
     // Garantir que campos opcionais não sejam undefined
@@ -1090,14 +1100,36 @@ export default function Diary() {
                           </div>
                           </div>
 
-                        {/* Imagem */}
-                        {entry.image && (
+                        {/* Anexos (imagens e PDFs) */}
+                        {entry.attachments && entry.attachments.length > 0 && (
                           <div className="mb-4">
-                            <img 
-                              src={entry.image} 
-                              alt={entry.title}
-                              className="w-full h-40 object-cover rounded-xl border border-gray-200"
-                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              {entry.attachments.slice(0, 4).map((attachment, idx) => (
+                                <div key={attachment.id || idx} className="relative">
+                                  {attachment.type.startsWith('image/') ? (
+                                    <img 
+                                      src={attachment.data} 
+                                      alt={attachment.name || `Anexo ${idx + 1}`}
+                                      className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-24 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg border border-gray-200 flex flex-col items-center justify-center p-2">
+                                      <FileText className="h-8 w-8 text-red-600 mb-1" />
+                                      <span className="text-xs text-gray-700 text-center truncate max-w-full px-1">
+                                        {attachment.name}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {idx === 3 && entry.attachments && entry.attachments.length > 4 && (
+                                    <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+                                      <span className="text-white text-sm font-bold">
+                                        +{entry.attachments.length - 4}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                 

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertDiaryAttachmentSchema, diaryAttachments, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 // FileStore removido - usando MemoryStore (in-memory) para compatibilidade com Render
@@ -1964,8 +1964,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/diary-entries/:pregnancyId", requireAuth, async (req, res) => {
     try {
       const entries = await storage.getDiaryEntries(req.params.pregnancyId);
-      res.json({ entries });
+      
+      // Carregar anexos para cada entrada
+      const entriesWithAttachments = await Promise.all(
+        entries.map(async (entry) => {
+          const attachments = await db
+            .select()
+            .from(diaryAttachments)
+            .where(eq(diaryAttachments.diaryEntryId, entry.id));
+          
+          return {
+            ...entry,
+            attachments: attachments.map(att => ({
+              id: att.id,
+              data: att.fileData,
+              type: att.fileType,
+              name: att.fileName,
+              size: att.fileSize,
+              createdAt: att.createdAt
+            }))
+          };
+        })
+      );
+      
+      console.log(`📎 Loaded ${entriesWithAttachments.length} entries with attachments`);
+      res.json({ entries: entriesWithAttachments });
     } catch (error) {
+      console.error("❌ Error getting diary entries:", error);
       res.status(500).json({ error: "Failed to get diary entries" });
     }
   });
@@ -1973,6 +1998,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 app.post("/api/diary-entries", requireAuth, async (req, res) => {
   try {
     console.log("📝 Diary entry data received:", JSON.stringify(req.body, null, 2));
+    
+    // Extrair attachments antes de processar
+    const attachments = req.body.attachments || [];
+    console.log("📎 Attachments received:", attachments.length);
     
     // Log each field individually
     console.log("📝 Field validation:");
@@ -2012,6 +2041,39 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     console.log("📝 Parsed entry data:", entryData);
     const entry = await storage.createDiaryEntry(entryData);
     console.log("📝 Entry created successfully:", entry);
+    
+    // Salvar anexos na tabela diary_attachments
+    if (attachments.length > 0) {
+      console.log(`📎 Saving ${attachments.length} attachments...`);
+      for (const attachment of attachments) {
+        try {
+          const attachmentData = {
+            diaryEntryId: entry.id,
+            fileData: attachment.data,
+            fileType: attachment.type,
+            fileName: attachment.name || null,
+            fileSize: attachment.size || null,
+          };
+          
+          console.log("📎 Validating attachment:", {
+            diaryEntryId: attachmentData.diaryEntryId,
+            fileType: attachmentData.fileType,
+            fileName: attachmentData.fileName,
+            fileSize: attachmentData.fileSize,
+            dataSize: `${(attachmentData.fileData.length / 1024).toFixed(2)} KB`
+          });
+          
+          const validatedAttachment = insertDiaryAttachmentSchema.parse(attachmentData);
+          await db.insert(diaryAttachments).values(validatedAttachment);
+          console.log("✅ Attachment saved:", attachmentData.fileName);
+        } catch (attachmentError) {
+          console.error("❌ Error saving attachment:", attachmentError);
+          // Continuar salvando outros anexos mesmo se um falhar
+        }
+      }
+      console.log(`✅ All attachments processed for entry ${entry.id}`);
+    }
+    
     res.json({ entry });
   } catch (error) {
     console.error("❌ Diary entry creation error:", error);
