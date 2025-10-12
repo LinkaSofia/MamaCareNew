@@ -564,7 +564,7 @@ export default function Diary() {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim(),
       content: formData.content.trim(),
-      mood: formData.mood,
+      mood: formData.mood.toString(),
       emotions: formData.emotions.length > 0 ? JSON.stringify(formData.emotions) : null,
       milestone: milestone || null,
       week: week || null,
@@ -647,16 +647,6 @@ export default function Diary() {
       return;
     }
     
-    // Verificar se o mood é válido (string)
-    if (entryData.mood && typeof entryData.mood !== 'string') {
-      console.error("❌ Invalid mood type:", typeof entryData.mood);
-      toast({
-        title: "Erro",
-        description: "Humor deve ser uma string.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     console.log("✅ All validations passed, sending to API...");
 
@@ -871,7 +861,7 @@ export default function Diary() {
                     >
                       {/* Mood emoji no canto superior direito */}
                       <div className="absolute top-4 right-4 z-10">
-                        <span className="text-5xl">{getMoodEmoji(entry.mood)}</span>
+                        <span className="text-3xl">{getMoodEmoji(entry.mood)}</span>
                       </div>
 
                       {/* Action buttons sempre visíveis */}
