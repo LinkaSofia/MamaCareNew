@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,7 +43,10 @@ import {
   Cloud,
   CloudSnow,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Camera,
+  Image as ImageIcon,
+  X
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, subDays } from 'date-fns';
@@ -152,8 +155,12 @@ export default function Diary() {
     mood: 5,
     emotions: [] as string[],
     milestone: "",
-    week: ""
+    week: "",
+    image: "" as string | null
   });
+  
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const { user } = useAuth();
   const { pregnancy, weekInfo } = usePregnancy();
@@ -461,9 +468,13 @@ export default function Diary() {
       mood: 5, 
       emotions: [], 
       milestone: "", 
-      week: "" 
+      week: "",
+      image: null
     });
     setSelectedPrompt('');
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
   };
 
   const handleEdit = (entry: DiaryEntry) => {
@@ -476,6 +487,7 @@ export default function Diary() {
       emotions: entry.emotions || [],
       milestone: entry.milestone || "",
       week: entry.week?.toString() || "",
+      image: entry.image || null,
     });
     setShowAddForm(true);
   };
@@ -496,6 +508,91 @@ export default function Diary() {
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setEntryToDelete(null);
+  };
+
+  // Função para comprimir imagem
+  const compressImage = (file: File, maxWidth: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Redimensionar mantendo proporção
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Converter para base64 com qualidade 0.7
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedBase64);
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  };
+
+  // Handler para upload de imagem
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tamanho (5MB)
+    if (file.size > 5242880) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "A foto deve ter no máximo 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Formato inválido",
+        description: "Por favor, selecione uma imagem.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const compressedImage = await compressImage(file, 800);
+      console.log("✅ Imagem comprimida:", (compressedImage.length / 1024).toFixed(2), "KB");
+      setFormData(prev => ({ ...prev, image: compressedImage }));
+    } catch (error) {
+      console.error("❌ Erro ao comprimir imagem:", error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível processar a imagem.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // Remover imagem
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: null }));
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -858,14 +955,14 @@ export default function Diary() {
                     <Card 
                       key={entry.id} 
                       className="relative bg-white/95 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 border-0 rounded-3xl overflow-hidden flex flex-col h-full"
-                      style={{
+                                      style={{ 
                         background: `linear-gradient(135deg, ${getMoodColor(entry.mood)}10 0%, white 100%)`
                       }}
                     >
                       {/* Mood emoji no canto superior direito */}
                       <div className="absolute top-4 right-4 z-10">
                         <span className="text-3xl">{getMoodEmoji(entry.mood)}</span>
-                      </div>
+                              </div>
 
                       {/* Action buttons sempre visíveis */}
                       <div className="absolute top-4 left-4 flex space-x-2 z-10">
@@ -902,10 +999,21 @@ export default function Diary() {
                                 <span className="mx-2">•</span>
                                 <span className="text-blue-600 font-medium">{entry.week}ª semana</span>
                               </>
-                            )}
-                        </div>
-                        </div>
+                      )}
+                    </div>
+                </div>
 
+                        {/* Imagem */}
+                        {entry.image && (
+                          <div className="mb-4">
+                            <img 
+                              src={entry.image} 
+                              alt={entry.title}
+                              className="w-full h-40 object-cover rounded-xl border border-gray-200"
+                            />
+                          </div>
+                        )}
+                
                         {/* Content Preview */}
                         <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-4">
                           {entry.content}
@@ -942,10 +1050,10 @@ export default function Diary() {
                               <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200">
                                 +{entry.emotions.length - 3}
                               </span>
-                            )}
-                          </div>
+                          )}
+                        </div>
                         )}
-                      </CardContent>
+                    </CardContent>
 
                       {/* Mood Label no rodapé */}
                       <div 
@@ -956,9 +1064,9 @@ export default function Diary() {
                       </div>
                     </Card>
                   ))}
-              </div>
-            )}
-          </div>
+                    </div>
+                  )}
+                </div>
       </div>
 
       {/* Add/Edit Entry Modal */}
@@ -1121,6 +1229,59 @@ export default function Diary() {
                     value={formData.milestone}
                     onChange={(e) => setFormData(prev => ({ ...prev, milestone: e.target.value }))}
                   />
+                </div>
+
+                {/* Upload de Imagem */}
+                <div>
+                  <Label className="text-gray-700 font-medium flex items-center mb-3">
+                    <ImageIcon className="mr-2 h-4 w-4 text-pink-500" />
+                    Adicionar Foto (opcional)
+                  </Label>
+                  
+                  {formData.image ? (
+                    <div className="relative">
+                      <img 
+                        src={formData.image} 
+                        alt="Preview" 
+                        className="w-full h-48 object-cover rounded-2xl border-2 border-pink-200"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 rounded-full shadow-lg"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={isUploadingImage}
+                        className="w-full border-2 border-dashed border-pink-300 hover:border-pink-400 hover:bg-pink-50 h-32 rounded-2xl transition-all"
+                      >
+                        {isUploadingImage ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <Camera className="h-8 w-8 text-pink-500 mb-2" />
+                            <span className="text-sm text-gray-600">Clique para adicionar uma foto</span>
+                          </div>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex space-x-3 pt-4">

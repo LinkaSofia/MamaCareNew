@@ -179,6 +179,7 @@ export const diaryEntries = pgTable("diary_entries", {
   milestone: text("milestone"),
   prompts: text("prompts"), // JSON string array
   date: timestamp("date").notNull(),
+  image: text("image"), // Imagem em base64
 });
 
 export const symptoms = pgTable("symptoms", {
@@ -318,6 +319,7 @@ const baseDiaryEntrySchema = createInsertSchema(diaryEntries).omit({ id: true })
     emotions: z.string().nullable().optional(),
     milestone: z.string().nullable().optional(),
     prompts: z.string().nullable().optional(),
+    image: z.string().nullable().optional(), // Imagem em base64
   });
 
 // Schema para inserção com transformações
