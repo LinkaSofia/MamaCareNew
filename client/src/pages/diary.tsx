@@ -273,7 +273,7 @@ export default function Diary() {
     const emotionFrequency = emotionTags.map(emotion => ({
       emotion: emotion.label,
       count: entries.reduce((sum, entry) => 
-        sum + (entry.emotions.includes(emotion.value) ? 1 : 0), 0
+        sum + (entry.emotions && Array.isArray(entry.emotions) && entry.emotions.includes(emotion.value) ? 1 : 0), 0
       ),
       color: emotion.color
     })).filter(item => item.count > 0)
@@ -1254,7 +1254,7 @@ export default function Diary() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-2 px-2">
+                      <div className="flex items-center justify-between gap-2 px-2 overflow-x-auto scrollbar-hide">
                         {moods.map((mood) => (
                           <button
                             key={mood.value}
