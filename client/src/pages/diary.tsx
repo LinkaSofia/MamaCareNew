@@ -522,6 +522,7 @@ export default function Diary() {
       milestone: entry.milestone || "",
       week: entry.week?.toString() || "",
       image: entry.image || null,
+      attachments: [] // Por enquanto, até implementar carregamento do banco
     });
     setShowAddForm(true);
   };
