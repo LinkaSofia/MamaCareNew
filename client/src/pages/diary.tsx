@@ -46,7 +46,9 @@ import {
   ChevronRight,
   Camera,
   Image as ImageIcon,
-  X
+  X,
+  FileText,
+  Paperclip
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, subDays } from 'date-fns';
@@ -157,7 +159,8 @@ export default function Diary() {
     emotions: [] as string[],
     milestone: "",
     week: "",
-    image: "" as string | null
+    image: "" as string | null,
+    attachments: [] as Array<{ data: string; type: string; name: string; size: number }>
   });
   
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -214,7 +217,7 @@ export default function Diary() {
         }
         
         return {
-          ...entry,
+        ...entry,
           emotions,
           prompts
         };
@@ -499,7 +502,8 @@ export default function Diary() {
       emotions: [], 
       milestone: "", 
       week: "",
-      image: null
+      image: null,
+      attachments: []
     });
     setSelectedPrompt('');
     if (imageInputRef.current) {
@@ -575,54 +579,95 @@ export default function Diary() {
     });
   };
 
-  // Handler para upload de imagem
+  // Handler para upload de múltiplos arquivos
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validar tamanho (5MB)
-    if (file.size > 5242880) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "A foto deve ter no máximo 5MB.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validar tipo
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Formato inválido",
-        description: "Por favor, selecione uma imagem.",
-        variant: "destructive"
-      });
-      return;
-    }
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     setIsUploadingImage(true);
+    const newAttachments: Array<{ data: string; type: string; name: string; size: number }> = [];
+
     try {
-      const compressedImage = await compressImage(file, 800);
-      console.log("✅ Imagem comprimida:", (compressedImage.length / 1024).toFixed(2), "KB");
-      setFormData(prev => ({ ...prev, image: compressedImage }));
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        // Validar tamanho (5MB por arquivo)
+        if (file.size > 5242880) {
+          toast({
+            title: "Arquivo muito grande",
+            description: `${file.name} excede 5MB. Ignorando...`,
+            variant: "destructive"
+          });
+          continue;
+        }
+
+        // Validar tipo (imagens e PDFs)
+        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+          toast({
+            title: "Formato não suportado",
+            description: `${file.name} não é imagem ou PDF. Ignorando...`,
+            variant: "destructive"
+          });
+          continue;
+        }
+
+        let fileData: string;
+        
+        // Se for imagem, comprimir
+        if (file.type.startsWith('image/')) {
+          fileData = await compressImage(file, 800);
+          console.log("✅ Imagem comprimida:", file.name, (fileData.length / 1024).toFixed(2), "KB");
+        } else {
+          // Se for PDF, converter direto para base64
+          fileData = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          console.log("✅ PDF carregado:", file.name, (fileData.length / 1024).toFixed(2), "KB");
+        }
+
+        newAttachments.push({
+          data: fileData,
+          type: file.type,
+          name: file.name,
+          size: file.size
+        });
+      }
+
+      // Adicionar novos anexos aos existentes
+      setFormData(prev => ({ 
+        ...prev, 
+        attachments: [...prev.attachments, ...newAttachments]
+      }));
+
+      toast({
+        title: "Arquivos adicionados!",
+        description: `${newAttachments.length} arquivo(s) adicionado(s).`,
+      });
+
     } catch (error) {
-      console.error("❌ Erro ao comprimir imagem:", error);
+      console.error("❌ Erro ao processar arquivos:", error);
       toast({
         title: "Erro no upload",
-        description: "Não foi possível processar a imagem.",
+        description: "Não foi possível processar os arquivos.",
         variant: "destructive"
       });
     } finally {
       setIsUploadingImage(false);
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
     }
   };
 
-  // Remover imagem
-  const handleRemoveImage = () => {
-    setFormData(prev => ({ ...prev, image: null }));
-    if (imageInputRef.current) {
-      imageInputRef.current.value = '';
-    }
+  // Remover anexo específico
+  const handleRemoveAttachment = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -688,6 +733,9 @@ export default function Diary() {
       ? milestones[week as keyof typeof milestones] 
       : formData.milestone;
 
+    // Para backward compatibility: pegar a primeira imagem dos attachments (se houver)
+    const firstImage = formData.attachments.find(a => a.type.startsWith('image/'));
+
     const entryData = {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim(),
@@ -698,7 +746,9 @@ export default function Diary() {
       week: week || null,
       date: new Date(),
       prompts: selectedPrompt ? JSON.stringify([selectedPrompt]) : null,
-      image: formData.image || null
+      image: firstImage ? firstImage.data : (formData.image || null),
+      // TODO: Implementar no backend para suportar múltiplos anexos
+      // attachments: formData.attachments
     };
     
     // Garantir que campos opcionais não sejam undefined
@@ -1036,8 +1086,8 @@ export default function Diary() {
                                 <span className="text-blue-600 font-medium">{entry.week}ª semana</span>
                               </>
                       )}
-                    </div>
-                </div>
+                          </div>
+                          </div>
 
                         {/* Imagem */}
                         {entry.image && (
@@ -1270,54 +1320,85 @@ export default function Diary() {
                 {/* Upload de Imagem */}
                 <div>
                   <Label className="text-gray-700 font-medium flex items-center mb-3">
-                    <ImageIcon className="mr-2 h-4 w-4 text-pink-500" />
-                    Adicionar Foto (opcional)
+                    <Paperclip className="mr-2 h-4 w-4 text-pink-500" />
+                    Adicionar Anexos (opcional)
+                    <span className="text-xs text-gray-500 ml-2">Fotos ou PDFs</span>
                   </Label>
                   
-                  {formData.image ? (
-                    <div className="relative">
-                      <img 
-                        src={formData.image} 
-                        alt="Preview" 
-                        className="w-full h-48 object-cover rounded-2xl border-2 border-pink-200"
-                      />
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        onClick={handleRemoveImage}
-                        className="absolute top-2 right-2 rounded-full shadow-lg"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div>
-                      <input
-                        ref={imageInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => imageInputRef.current?.click()}
-                        disabled={isUploadingImage}
-                        className="w-full border-2 border-dashed border-pink-300 hover:border-pink-400 hover:bg-pink-50 h-32 rounded-2xl transition-all"
-                      >
-                        {isUploadingImage ? (
-                          <LoadingSpinner size="sm" />
-                        ) : (
-                          <div className="flex flex-col items-center">
-                            <Camera className="h-8 w-8 text-pink-500 mb-2" />
-                            <span className="text-sm text-gray-600">Clique para adicionar uma foto</span>
-                          </div>
-                        )}
-                      </Button>
+                  {/* Preview dos anexos existentes */}
+                  {formData.attachments.length > 0 && (
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      {formData.attachments.map((attachment, index) => (
+                        <div key={index} className="relative group">
+                          {attachment.type.startsWith('image/') ? (
+                            <img 
+                              src={attachment.data} 
+                              alt={attachment.name} 
+                              className="w-full h-32 object-cover rounded-xl border-2 border-pink-200"
+                            />
+                          ) : (
+                            <div className="w-full h-32 bg-gradient-to-br from-red-100 to-orange-100 rounded-xl border-2 border-pink-200 flex flex-col items-center justify-center">
+                              <FileText className="h-10 w-10 text-red-600 mb-2" />
+                              <span className="text-xs text-gray-700 px-2 text-center truncate max-w-full">
+                                {attachment.name}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {(attachment.size / 1024).toFixed(0)} KB
+                              </span>
+                            </div>
+                          )}
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => handleRemoveAttachment(index)}
+                            className="absolute top-1 right-1 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg h-7 w-7"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   )}
+                  
+                  {/* Botão para adicionar mais anexos */}
+                  <div>
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*,application/pdf"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={isUploadingImage}
+                      className="w-full border-2 border-dashed border-pink-300 hover:border-pink-400 hover:bg-pink-50 h-24 rounded-2xl transition-all"
+                    >
+                      {isUploadingImage ? (
+                        <div className="flex flex-col items-center">
+                          <LoadingSpinner size="sm" />
+                          <span className="text-xs text-gray-600 mt-2">Processando...</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <div className="flex gap-3 mb-2">
+                            <Camera className="h-6 w-6 text-pink-500" />
+                            <FileText className="h-6 w-6 text-purple-500" />
+                          </div>
+                          <span className="text-sm text-gray-600 font-medium">
+                            {formData.attachments.length > 0 ? 'Adicionar mais arquivos' : 'Clique para adicionar fotos ou PDFs'}
+                          </span>
+                          <span className="text-xs text-gray-400 mt-1">
+                            Pode selecionar vários de uma vez
+                          </span>
+                        </div>
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="flex space-x-3 pt-4">
