@@ -10,7 +10,7 @@ const tabs = [
   { id: "weight", path: "/weight-tracking", icon: Weight, label: "Peso" },
   { id: "birth-plan", path: "/birth-plan", icon: FileText, label: "Plano" },
   { id: "shopping", path: "/shopping-list", icon: ShoppingCart, label: "Compras" },
-  { id: "guide", path: "/guide", icon: BookOpen, label: "Guia" },
+  { id: "guide", path: "/medical-articles", icon: BookOpen, label: "Guia" },
   { id: "progress", path: "/progress", icon: TrendingUp, label: "Progresso" },
 ];
 

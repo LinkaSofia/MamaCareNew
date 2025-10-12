@@ -12,6 +12,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useArticlesCategories } from "@/hooks/use-articles-categories";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import BottomNavigation from "@/components/layout/bottom-navigation";
 // import ReactMarkdown from "react-markdown"; // Removido temporariamente
 
 interface MedicalArticle {
@@ -641,6 +642,9 @@ export default function MedicalArticles() {
           </div>
         </div>
       )}
+      
+      {/* Bottom Navigation */}
+      <BottomNavigation />
     </AnimatedBackground>
   );
 }
