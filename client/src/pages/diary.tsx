@@ -747,6 +747,20 @@ export default function Diary() {
     // Para backward compatibility: pegar a primeira imagem dos attachments (se houver)
     const firstImage = formData.attachments.find(a => a.type.startsWith('image/'));
     
+    // 🔍 DEBUG: Verificar anexos ANTES de enviar
+    console.log("🔍 DEBUG: formData.attachments:", formData.attachments);
+    console.log("🔍 DEBUG: Número de anexos:", formData.attachments.length);
+    if (formData.attachments.length > 0) {
+      console.log("🔍 DEBUG: Primeiro anexo:", {
+        type: formData.attachments[0].type,
+        name: formData.attachments[0].name,
+        size: `${(formData.attachments[0].size / 1024).toFixed(2)} KB`,
+        dataLength: `${(formData.attachments[0].data.length / 1024).toFixed(2)} KB`
+      });
+    } else {
+      console.warn("⚠️ AVISO: Nenhum anexo para enviar! O usuário NÃO adicionou imagens/PDFs!");
+    }
+    
     const entryData = {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim(),
