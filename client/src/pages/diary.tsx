@@ -1033,14 +1033,15 @@ export default function Diary() {
                             key={mood.value}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
-                            className={`w-11 h-11 rounded-full flex items-center justify-center text-base font-bold transition-all ${
+                            className={`w-12 h-12 min-w-[3rem] rounded-full flex items-center justify-center text-base font-bold transition-all flex-shrink-0 ${
                               formData.mood === mood.value
                                 ? 'ring-4 ring-pink-400 scale-125 shadow-lg'
                                 : 'hover:scale-110'
                             }`}
                             style={{
                               backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}30`,
-                              color: formData.mood === mood.value ? 'white' : mood.color
+                              color: formData.mood === mood.value ? 'white' : mood.color,
+                              aspectRatio: '1'
                             }}
                           >
                             {mood.value}
