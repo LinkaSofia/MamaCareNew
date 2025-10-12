@@ -1254,25 +1254,27 @@ export default function Diary() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-1 px-1">
-                        {moods.map((mood) => (
-                          <button
-                            key={mood.value}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all flex-shrink-0 ${
-                              formData.mood === mood.value
-                                ? 'ring-3 ring-pink-400 scale-110 shadow-lg'
-                                : 'hover:scale-105'
-                            }`}
-                            style={{
-                              backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}30`,
-                              color: formData.mood === mood.value ? 'white' : mood.color
-                            }}
-                          >
-                            {mood.value}
-                          </button>
-                        ))}
+                      <div className="overflow-x-auto pb-2 -mx-2 px-2">
+                        <div className="flex items-center gap-2 min-w-max">
+                          {moods.map((mood) => (
+                            <button
+                              key={mood.value}
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
+                              className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold transition-all flex-shrink-0 ${
+                                formData.mood === mood.value
+                                  ? 'ring-4 ring-pink-400 scale-110 shadow-lg'
+                                  : 'hover:scale-105'
+                              }`}
+                              style={{
+                                backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}30`,
+                                color: formData.mood === mood.value ? 'white' : mood.color
+                              }}
+                            >
+                              {mood.value}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>

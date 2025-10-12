@@ -4,9 +4,10 @@
 -- RODE ISSO NO SUPABASE SQL EDITOR AGORA!
 -- ============================================
 
+-- ATENÇÃO: diary_entries.id é VARCHAR, não UUID!
 CREATE TABLE IF NOT EXISTS diary_attachments (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  diary_entry_id UUID NOT NULL REFERENCES diary_entries(id) ON DELETE CASCADE,
+  id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  diary_entry_id VARCHAR NOT NULL REFERENCES diary_entries(id) ON DELETE CASCADE,
   file_data TEXT NOT NULL,
   file_type VARCHAR(50) NOT NULL,
   file_name VARCHAR(255),
