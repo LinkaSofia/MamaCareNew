@@ -2068,10 +2068,26 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
           console.log("✅ Attachment saved:", attachmentData.fileName);
         } catch (attachmentError) {
           console.error("❌ Error saving attachment:", attachmentError);
+          console.error("❌ Error details:", attachmentError instanceof Error ? attachmentError.message : attachmentError);
           // Continuar salvando outros anexos mesmo se um falhar
         }
       }
       console.log(`✅ All attachments processed for entry ${entry.id}`);
+      
+      // 🔍 DEBUG: Verificar se os anexos foram realmente salvos
+      try {
+        const savedAttachments = await db
+          .select()
+          .from(diaryAttachments)
+          .where(eq(diaryAttachments.diaryEntryId, entry.id));
+        
+        console.log(`🔍 DEBUG: Anexos encontrados no banco para entry ${entry.id}:`, savedAttachments.length);
+        if (savedAttachments.length === 0 && attachments.length > 0) {
+          console.error("🚨 PROBLEMA: Tentamos salvar anexos mas não encontramos no banco!");
+        }
+      } catch (debugError) {
+        console.error("❌ Erro ao verificar anexos salvos:", debugError);
+      }
     }
     
     res.json({ entry });
