@@ -1236,73 +1236,71 @@ export default function Diary() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-gray-700 font-medium mb-2 block flex items-center">
-                      <Sparkles className="mr-2 h-4 w-4 text-pink-500" />
-                      Como você se sente? (1-10)
-                    </Label>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center space-x-2 mb-3">
-                        <span className="text-3xl">{getMoodEmoji(formData.mood)}</span>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold" style={{ color: getMoodColor(formData.mood) }}>
-                            {formData.mood}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {moods.find(m => m.value === formData.mood)?.label}
-                          </div>
+                <div>
+                  <Label className="text-gray-700 font-medium">
+                    Semana da gestação
+                  </Label>
+                  <Select 
+                    value={formData.week} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, week: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={weekInfo ? `${weekInfo.week}ª semana (atual)` : "Selecione a semana"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 40 }, (_, i) => i + 1).map(week => (
+                        <SelectItem key={week} value={week.toString()}>
+                          {week}ª semana
+                          {milestones[week as keyof typeof milestones] && (
+                            <span className="ml-2 text-purple-600">
+                              • {milestones[week as keyof typeof milestones]}
+                            </span>
+                          )}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700 font-medium mb-2 block flex items-center">
+                    <Sparkles className="mr-2 h-4 w-4 text-pink-500" />
+                    Como você se sente? (1-10)
+                  </Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center space-x-2 mb-3">
+                      <span className="text-3xl">{getMoodEmoji(formData.mood)}</span>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold" style={{ color: getMoodColor(formData.mood) }}>
+                          {formData.mood}
                         </div>
-                      </div>
-                      <div className="overflow-x-auto pb-2 -mx-2 px-2">
-                        <div className="flex items-center gap-2 min-w-max">
-                          {moods.map((mood) => (
-                            <button
-                              key={mood.value}
-                              type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
-                              className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold transition-all flex-shrink-0 ${
-                                formData.mood === mood.value
-                                  ? 'ring-4 ring-pink-400 scale-110 shadow-lg'
-                                  : 'hover:scale-105'
-                              }`}
-                              style={{
-                                backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}30`,
-                                color: formData.mood === mood.value ? 'white' : mood.color
-                              }}
-                            >
-                              {mood.value}
-                            </button>
-                          ))}
+                        <div className="text-sm text-gray-600">
+                          {moods.find(m => m.value === formData.mood)?.label}
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-gray-700 font-medium">
-                      Semana da gestação
-                    </Label>
-                    <Select 
-                      value={formData.week} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, week: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={weekInfo ? `${weekInfo.week}ª semana (atual)` : "Selecione a semana"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 40 }, (_, i) => i + 1).map(week => (
-                          <SelectItem key={week} value={week.toString()}>
-                            {week}ª semana
-                            {milestones[week as keyof typeof milestones] && (
-                              <span className="ml-2 text-purple-600">
-                                • {milestones[week as keyof typeof milestones]}
-                              </span>
-                            )}
-                          </SelectItem>
+                    <div className="overflow-x-auto pb-2 -mx-2 px-2">
+                      <div className="flex items-center gap-2 min-w-max">
+                        {moods.map((mood) => (
+                          <button
+                            key={mood.value}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
+                            className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold transition-all flex-shrink-0 ${
+                              formData.mood === mood.value
+                                ? 'ring-4 ring-pink-400 scale-110 shadow-lg'
+                                : 'hover:scale-105'
+                            }`}
+                            style={{
+                              backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}30`,
+                              color: formData.mood === mood.value ? 'white' : mood.color
+                            }}
+                          >
+                            {mood.value}
+                          </button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
