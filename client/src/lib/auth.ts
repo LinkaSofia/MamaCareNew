@@ -166,6 +166,41 @@ class AuthManager {
   private notifyListeners() {
     this.listeners.forEach(listener => listener());
   }
+
+  // Método para recarregar os dados do usuário
+  async refreshUser(): Promise<void> {
+    try {
+      console.log("🔄 Refreshing user data...");
+      
+      const authToken = localStorage.getItem('authToken');
+      const headers: HeadersInit = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      };
+      
+      if (authToken) {
+        headers['X-Auth-Token'] = authToken;
+      }
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/me`, {
+        credentials: "include",
+        cache: "no-cache",
+        headers
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("✅ User data refreshed:", data);
+        this.user = data;
+        this.notifyListeners();
+      } else {
+        console.log("❌ Failed to refresh user data");
+      }
+    } catch (error) {
+      console.error("❌ Error refreshing user:", error);
+    }
+  }
 }
 
 export const authManager = new AuthManager();

@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 export default function Profile() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, refreshUser } = useAuth();
   const { pregnancy, isLoading: pregnancyLoading } = usePregnancy();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -45,9 +45,10 @@ export default function Profile() {
       new Date(pregnancy.lastMenstrualPeriod).toISOString().split('T')[0] : ""
   });
 
-  // Atualizar formData quando user ou pregnancy mudarem
+  // Atualizar formData e profilePhoto quando user ou pregnancy mudarem
   React.useEffect(() => {
     if (user) {
+      setProfilePhoto(user.profilePhotoUrl || "");
       setFormData(prev => ({
         ...prev,
         name: user.name || "",
@@ -213,9 +214,6 @@ export default function Profile() {
       const base64Image = await compressImage(file, 400);
       console.log("✅ Foto comprimida:", (base64Image.length / 1024).toFixed(2), "KB");
 
-      // Atualizar preview imediatamente
-      setProfilePhoto(base64Image);
-
       // Salvar no banco de dados
       console.log("💾 Salvando foto no perfil...");
       await apiRequest("PATCH", "/api/auth/profile", {
@@ -223,8 +221,9 @@ export default function Profile() {
       });
       console.log("✅ Foto salva no banco de dados!");
 
-      // Recarregar dados do usuário
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Recarregar dados do usuário do authManager
+      await refreshUser();
+      console.log("🔄 Dados do usuário recarregados!");
 
       toast({
         title: "Foto atualizada!",
@@ -295,7 +294,7 @@ export default function Profile() {
                   {isUploadingPhoto ? (
                     <LoadingSpinner size="sm" />
                   ) : (
-                    <Camera className="h-4 w-4 text-white" />
+                  <Camera className="h-4 w-4 text-white" />
                   )}
                 </Button>
               </div>

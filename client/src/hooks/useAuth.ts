@@ -21,5 +21,6 @@ export function useAuth() {
     login: authManager.login.bind(authManager),
     register: authManager.register.bind(authManager),
     logout: authManager.logout.bind(authManager),
+    refreshUser: authManager.refreshUser.bind(authManager),
   };
 }
