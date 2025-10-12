@@ -1254,15 +1254,15 @@ export default function Diary() {
                           </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-5 gap-3 px-2">
+                      <div className="flex items-center justify-between gap-1 px-1">
                         {moods.map((mood) => (
                           <button
                             key={mood.value}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
-                            className={`w-full aspect-square rounded-full flex items-center justify-center text-base font-bold transition-all ${
+                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all flex-shrink-0 ${
                               formData.mood === mood.value
-                                ? 'ring-4 ring-pink-400 scale-110 shadow-lg'
+                                ? 'ring-3 ring-pink-400 scale-110 shadow-lg'
                                 : 'hover:scale-105'
                             }`}
                             style={{
