@@ -367,10 +367,10 @@ export default function MedicalArticles() {
   return (
     <AnimatedBackground>
       <style>{`
-        .carousel-container::-webkit-scrollbar {
+        .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
-        .carousel-container {
+        .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
@@ -457,19 +457,28 @@ export default function MedicalArticles() {
                     <div>
                       <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
                         <Activity className="h-5 w-5 text-purple-500" />
-                        Artigos
+                        Artigos ({category.articles.length})
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {category.articles.map((article, index) => (
-                          <Card 
-                            key={article.id} 
-                            className="hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white border-2 border-pink-100 overflow-hidden hover:scale-105 hover:border-pink-300 rounded-2xl group"
-                            onClick={(e) => {
-                              console.log("🖱️ Card clicked:", article.title);
-                              e.preventDefault();
-                              openContent(article);
-                            }}
-                          >
+                      {/* Carrossel horizontal com swipe */}
+                      <div className="relative -mx-6 px-6">
+                        <div 
+                          className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+                          style={{
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            WebkitOverflowScrolling: 'touch'
+                          }}
+                        >
+                          {category.articles.map((article, index) => (
+                            <Card 
+                              key={article.id} 
+                              className="flex-none w-[280px] sm:w-[320px] snap-start hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white border-2 border-pink-100 overflow-hidden hover:scale-105 hover:border-pink-300 rounded-2xl group"
+                              onClick={(e) => {
+                                console.log("🖱️ Card clicked:", article.title);
+                                e.preventDefault();
+                                openContent(article);
+                              }}
+                            >
                             <CardContent className="p-0">
                               <div className="relative flex flex-col h-full">
                                 {/* Article Image - Full Width */}
@@ -526,7 +535,17 @@ export default function MedicalArticles() {
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                          ))}
+                        </div>
+                        {/* Indicador de scroll */}
+                        <div className="flex justify-center gap-1.5 mt-2">
+                          {category.articles.map((_, index) => (
+                            <div 
+                              key={index}
+                              className="w-1.5 h-1.5 rounded-full bg-pink-300"
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
