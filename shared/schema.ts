@@ -332,6 +332,7 @@ export const insertDiaryEntrySchema = baseDiaryEntrySchema
     mood: data.mood === undefined ? null : data.mood,
     emotions: data.emotions === undefined ? null : data.emotions,
     prompts: data.prompts === undefined ? null : data.prompts,
+    image: data.image === undefined ? null : data.image,
   }));
 
 // Schema para atualização (parcial e sem transformações)

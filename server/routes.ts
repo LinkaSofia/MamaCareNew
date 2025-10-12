@@ -1985,6 +1985,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     console.log("  - week:", req.body.week, typeof req.body.week);
     console.log("  - date:", req.body.date, typeof req.body.date);
     console.log("  - prompts:", req.body.prompts, typeof req.body.prompts);
+    console.log("  - image:", req.body.image ? `Present (${(req.body.image.length / 1024).toFixed(2)} KB)` : 'null', typeof req.body.image);
     
     // Converter string date para Date object e undefined para null antes da validação
     const processedBody = {
@@ -1996,7 +1997,12 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
       mood: req.body.mood === undefined || req.body.mood === "" ? null : req.body.mood,
       emotions: req.body.emotions === undefined || req.body.emotions === "" ? null : req.body.emotions,
       prompts: req.body.prompts === undefined || req.body.prompts === "" ? null : req.body.prompts,
+      image: req.body.image === undefined || req.body.image === "" ? null : req.body.image,
     };
+    
+    if (processedBody.image) {
+      console.log("📸 Image received, size:", (processedBody.image.length / 1024).toFixed(2), "KB");
+    }
     
     console.log("📝 Processed body with converted date:", processedBody);
     console.log("📝 Date type after conversion:", typeof processedBody.date);
@@ -2038,7 +2044,12 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
         mood: req.body.mood === undefined || req.body.mood === "" ? null : req.body.mood,
         emotions: req.body.emotions === undefined || req.body.emotions === "" ? null : req.body.emotions,
         prompts: req.body.prompts === undefined || req.body.prompts === "" ? null : req.body.prompts,
+        image: req.body.image === undefined || req.body.image === "" ? null : req.body.image,
       };
+      
+      if (processedBody.image) {
+        console.log("📸 Image received in update, size:", (processedBody.image.length / 1024).toFixed(2), "KB");
+      }
       
       console.log("📝 Processed update data:", processedBody);
       
