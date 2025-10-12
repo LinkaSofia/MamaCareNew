@@ -63,6 +63,7 @@ interface DiaryEntry {
   week?: number;
   date: string;
   prompts?: string[];
+  image?: string | null;
 }
 
 interface DiaryData {
@@ -667,7 +668,8 @@ export default function Diary() {
       milestone: milestone || null,
       week: week || null,
       date: new Date(),
-      prompts: selectedPrompt ? JSON.stringify([selectedPrompt]) : null
+      prompts: selectedPrompt ? JSON.stringify([selectedPrompt]) : null,
+      image: formData.image || null
     };
     
     // Garantir que campos opcionais não sejam undefined
@@ -687,8 +689,13 @@ export default function Diary() {
       milestone: typeof entryData.milestone,
       week: typeof entryData.week,
       date: typeof entryData.date,
-      prompts: typeof entryData.prompts
+      prompts: typeof entryData.prompts,
+      image: typeof entryData.image
     });
+    
+    if (entryData.image) {
+      console.log("📸 Image size:", (entryData.image.length / 1024).toFixed(2), "KB");
+    }
     
     // Verificar se todos os campos obrigatórios estão presentes
     if (!entryData.pregnancyId || !entryData.pregnancyId.trim()) {
