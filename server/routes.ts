@@ -693,19 +693,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email e senha são obrigatórios" });
       }
       
-      console.log("🔄 Starting login validation for:", email);
-      const user = await storage.validatePassword(email, password);
-      console.log("🔄 Validation result:", user ? "SUCCESS" : "FAILED");
+      // Verificar primeiro se o email existe
+      console.log("🔄 Checking if email exists:", email);
+      const existingUser = await storage.getUserByEmail(email);
       
-      if (!user) {
-        // Log login failure
+      if (!existingUser) {
+        // Email não cadastrado
         await storage.logAccessEvent({
           email,
           action: 'login',
           ipAddress: req.ip,
           userAgent: req.get('User-Agent'),
           success: false,
-          errorMessage: 'Invalid credentials',
+          errorMessage: 'Email não cadastrado',
+          sessionId: req.sessionID
+        });
+        return res.status(401).json({ error: "Email não cadastrado" });
+      }
+      
+      // Email existe, validar senha
+      console.log("🔄 Email found, validating password");
+      const user = await storage.validatePassword(email, password);
+      console.log("🔄 Validation result:", user ? "SUCCESS" : "FAILED");
+      
+      if (!user) {
+        // Senha incorreta
+        await storage.logAccessEvent({
+          email,
+          action: 'login',
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
+          success: false,
+          errorMessage: 'Senha incorreta',
           sessionId: req.sessionID
         });
         return res.status(401).json({ error: "Senha incorreta" });
