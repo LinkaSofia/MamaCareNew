@@ -619,9 +619,9 @@ export default function WeightTracking() {
       {/* Add weight modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+              <CardTitle className="text-2xl font-bold text-center">
                 Registrar Peso
               </CardTitle>
             </CardHeader>
@@ -702,9 +702,9 @@ export default function WeightTracking() {
       {/* Edit weight modal */}
       {showEditForm && editingRecord && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+              <CardTitle className="text-2xl font-bold text-center">
                 Editar Peso
               </CardTitle>
             </CardHeader>

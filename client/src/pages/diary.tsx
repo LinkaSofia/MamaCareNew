@@ -963,14 +963,14 @@ export default function Diary() {
 
       {/* Add/Edit Entry Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-          <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 pb-24 z-50">
+          <Card className="w-full max-w-2xl max-h-[75vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+              <CardTitle className="text-2xl font-bold text-center">
                 {editingEntry ? "Editar Entrada" : "Nova Entrada"}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-white/70 backdrop-blur-sm pt-6">
+            <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {selectedPrompt && (
                   <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1016,29 +1016,36 @@ export default function Diary() {
                       Como você se sente? (1-10)
                     </Label>
                     <div className="space-y-3">
-                      <div className="flex items-center justify-center space-x-2">
+                      <div className="flex items-center justify-center space-x-2 mb-3">
                         <span className="text-3xl">{getMoodEmoji(formData.mood)}</span>
                         <div className="text-center">
-                          <div className="text-lg font-bold" style={{ color: getMoodColor(formData.mood) }}>
+                          <div className="text-2xl font-bold" style={{ color: getMoodColor(formData.mood) }}>
                             {formData.mood}
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-sm text-gray-600">
                             {moods.find(m => m.value === formData.mood)?.label}
                           </div>
                         </div>
                       </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        value={formData.mood}
-                        onChange={(e) => setFormData(prev => ({ ...prev, mood: parseInt(e.target.value) }))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mood-slider-pink"
-                      />
-                      <div className="flex justify-between text-base">
-                        <span>{moods[0].emoji}</span>
-                        <span>{moods[4].emoji}</span>
-                        <span>{moods[9].emoji}</span>
+                      <div className="grid grid-cols-10 gap-1.5">
+                        {moods.map((mood) => (
+                          <button
+                            key={mood.value}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
+                            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                              formData.mood === mood.value
+                                ? 'ring-3 ring-pink-400 scale-110'
+                                : 'hover:scale-105'
+                            }`}
+                            style={{
+                              backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}40`,
+                              color: formData.mood === mood.value ? 'white' : mood.color
+                            }}
+                          >
+                            {mood.value}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>

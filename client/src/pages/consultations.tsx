@@ -268,7 +268,7 @@ export default function Consultations() {
           </div>
 
         {/* Upcoming Consultations */}
-        <Card className="mb-6 bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl">
+        <Card className="mb-6 bg-white rounded-2xl shadow-xl">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center text-gray-800">
               <Calendar className="mr-2 h-5 w-5 text-pink-500" />
@@ -352,9 +352,9 @@ export default function Consultations() {
       {/* Add consultation modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+              <CardTitle className="text-2xl font-bold text-center">
                 {editingId ? 'Editar Consulta' : 'Nova Consulta'}
               </CardTitle>
             </CardHeader>
