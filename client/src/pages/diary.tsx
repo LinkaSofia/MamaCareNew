@@ -1254,21 +1254,20 @@ export default function Diary() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-2 px-2 overflow-x-auto scrollbar-hide">
+                      <div className="grid grid-cols-5 gap-3 px-2">
                         {moods.map((mood) => (
                           <button
                             key={mood.value}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
-                            className={`w-12 h-12 min-w-[3rem] rounded-full flex items-center justify-center text-base font-bold transition-all flex-shrink-0 ${
+                            className={`w-full aspect-square rounded-full flex items-center justify-center text-base font-bold transition-all ${
                               formData.mood === mood.value
-                                ? 'ring-4 ring-pink-400 scale-125 shadow-lg'
-                                : 'hover:scale-110'
+                                ? 'ring-4 ring-pink-400 scale-110 shadow-lg'
+                                : 'hover:scale-105'
                             }`}
                             style={{
                               backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}30`,
-                              color: formData.mood === mood.value ? 'white' : mood.color,
-                              aspectRatio: '1'
+                              color: formData.mood === mood.value ? 'white' : mood.color
                             }}
                           >
                             {mood.value}
