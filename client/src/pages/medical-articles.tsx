@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, ExternalLink, RefreshCw, Stethoscope, BookOpen, Heart, Activity, Utensils, Dumbbell, ChevronDown, ChevronRight, ChevronLeft, Play, Pause, X, Download } from "lucide-react";
+import { ArrowLeft, Clock, ExternalLink, RefreshCw, Stethoscope, BookOpen, Heart, Activity, Utensils, Dumbbell, ChevronDown, ChevronRight, ChevronLeft, Play, Pause, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserTracking } from "@/hooks/useUserTracking";
@@ -231,18 +231,6 @@ export default function MedicalArticles() {
   const closeContentModal = () => {
     setShowContentModal(false);
     setCurrentContent(null);
-  };
-
-  const downloadContent = () => {
-    if (currentContent) {
-      const link = document.createElement('a');
-      link.href = currentContent.url;
-      link.download = `${currentContent.title}.${currentContent.type === 'video' ? 'mp4' : 'pdf'}`;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
   };
 
   // Mutation para popular artigos médicos (para admin/desenvolvimento)
@@ -595,25 +583,14 @@ export default function MedicalArticles() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={downloadContent}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Baixar
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={closeContentModal}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={closeContentModal}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
 
             {/* Conteúdo do Modal */}
