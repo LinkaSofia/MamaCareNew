@@ -970,7 +970,7 @@ export default function Diary() {
                 {editingEntry ? "Editar Entrada" : "Nova Entrada"}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-8 px-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {selectedPrompt && (
                   <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1027,19 +1027,19 @@ export default function Diary() {
                           </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-10 gap-1.5">
+                      <div className="flex items-center justify-between gap-2 px-2">
                         {moods.map((mood) => (
                           <button
                             key={mood.value}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, mood: mood.value }))}
-                            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                            className={`w-11 h-11 rounded-full flex items-center justify-center text-base font-bold transition-all ${
                               formData.mood === mood.value
-                                ? 'ring-3 ring-pink-400 scale-110'
-                                : 'hover:scale-105'
+                                ? 'ring-4 ring-pink-400 scale-125 shadow-lg'
+                                : 'hover:scale-110'
                             }`}
                             style={{
-                              backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}40`,
+                              backgroundColor: formData.mood === mood.value ? mood.color : `${mood.color}30`,
                               color: formData.mood === mood.value ? 'white' : mood.color
                             }}
                           >
