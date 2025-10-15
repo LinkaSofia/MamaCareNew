@@ -50,6 +50,40 @@
         console.log('🔧 Modo desenvolvimento');
       }
       
+      // FORÇAR LIMPEZA DE CACHE EM PRODUÇÃO
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        console.log('🧹 Limpando cache em produção...');
+        
+        // Desregistrar service workers
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              console.log('🗑️ Desregistrando SW:', registration);
+              registration.unregister();
+            }
+          });
+        }
+        
+        // Limpar todos os caches
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) {
+              console.log('🗑️ Removendo cache:', name);
+              caches.delete(name);
+            }
+          });
+        }
+        
+        // Limpar localStorage e sessionStorage
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          console.log('🗑️ Storage limpo');
+        } catch (e) {
+          console.log('⚠️ Erro ao limpar storage:', e);
+        }
+      }
+      
       // Log any errors
       window.addEventListener('error', (e) => {
         console.error('❌ JavaScript Error:', e.error);

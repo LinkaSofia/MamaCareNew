@@ -261,14 +261,7 @@ export default function Baby3D({
         
         {/* Partículas flutuantes removidas para evitar distração */}
         
-        {/* Informações do bebê */}
-        {showInfo && babyData && (
-          <div className="absolute bottom-2 left-2 right-2 text-center">
-            <div className="text-xs font-medium text-gray-800 bg-white/90 rounded-full px-2 py-1 backdrop-blur-sm shadow-lg">
-              {babyData.size} • {babyData.weight}
-            </div>
-          </div>
-        )}
+        {/* Informações do bebê - removido tamanho e peso */}
 
         {/* Indicador de fase da gravidez */}
         <div 
