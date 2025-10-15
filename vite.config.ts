@@ -35,6 +35,11 @@ export default defineConfig({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
       'Expires': '0'
+    },
+    hmr: false,
+    watch: {
+      usePolling: false,
+      interval: 1000
     }
   },
   build: {
