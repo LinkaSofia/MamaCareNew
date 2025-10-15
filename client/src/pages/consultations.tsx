@@ -351,14 +351,14 @@ export default function Consultations() {
 
       {/* Add consultation modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <Card className="w-full sm:max-w-lg h-[95vh] sm:max-h-[90vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl">
             <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
               <CardTitle className="text-2xl font-bold text-center">
                 {editingId ? 'Editar Consulta' : 'Nova Consulta'}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="title" className="text-charcoal font-medium">
