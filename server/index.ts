@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import fs from "fs";
+import path from "path";
 
 const app = express();
 app.use(express.json({ limit: '10mb' })); // Aumentar limite para fotos em base64
@@ -88,7 +90,20 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // Em produção (Render), servir arquivos estáticos do diretório dist
+    const distPath = path.resolve(import.meta.dirname, "..", "dist");
+    if (fs.existsSync(distPath)) {
+      console.log("📁 Servindo arquivos estáticos de:", distPath);
+      app.use(express.static(distPath));
+      
+      // fall through to index.html if the file doesn't exist (SPA routing)
+      app.use("*", (_req, res) => {
+        res.sendFile(path.resolve(distPath, "index.html"));
+      });
+    } else {
+      console.error("❌ Build directory not found:", distPath);
+      console.log("💡 Execute 'npm run build' antes do deploy");
+    }
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT

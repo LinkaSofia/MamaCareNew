@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: mamacare
+    env: node
+    plan: free
+    buildCommand: npm install && npm run render-build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mamacare-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SUPABASE_URL
+        value: https://yrpbjxhtsnaxlfsazall.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlycGJqeGh0c25heGxmc2F6YWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0MDE0MDUsImV4cCI6MjA2ODk3NzQwNX0.YH2n5rOCPfFItwWrQF9inO0gUfKRsYhj5zhVhRV07EQ
+      - key: GMAIL_USER
+        value: mamacaresup@gmail.com
+      - key: GMAIL_APP_PASSWORD
+        value: fref srra undd wvdt
+
+databases:
+  - name: mamacare-db
+    plan: free

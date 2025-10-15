@@ -30,6 +30,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   NotificationScheduler.start();
   
   // Configurar CORS para permitir cookies
+  // COMENTADO: CORS não é necessário quando frontend e backend estão no mesmo domínio (Render)
+  // Se precisar voltar para múltiplos domínios, descomente abaixo:
+  /*
   app.use(cors({
     origin: [
       'http://localhost:3000', 
@@ -38,13 +41,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       'https://friendly-alpaca-bf0d68.netlify.app',
       'https://splendorous-rabanadas-6fe8f2.netlify.app',
       'https://joyful-bavarois-e44cbe.netlify.app',
+      'https://mamacare-seven.vercel.app', // Domínio específico do Vercel
       /^https:\/\/.*\.vercel\.app$/, // Permitir todos os domínios do Vercel
-      /^https:\/\/.*\.vercel\.com$/  // Permitir domínios personalizados do Vercel
+      /^https:\/\/.*\.vercel\.com$/,  // Permitir domínios personalizados do Vercel
+      /^https:\/\/.*\.onrender\.com$/  // Permitir todos os domínios do Render
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Cache-Control', 'Pragma', 'Expires', 'X-Auth-Token']
   }));
+  */
+  
+  // Para desenvolvimento local, manter CORS básico
+  if (process.env.NODE_ENV === 'development') {
+    app.use(cors({
+      origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5000'],
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Cache-Control', 'Pragma', 'Expires', 'X-Auth-Token']
+    }));
+  }
 
   // Configurar Multer para upload de imagens
   const upload = multer({
