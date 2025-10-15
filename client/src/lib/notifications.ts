@@ -77,6 +77,9 @@ export class NotificationManager {
   // Configurar notificações no Service Worker
   static async setupServiceWorker(): Promise<void> {
     if ('serviceWorker' in navigator) {
+      // Service Worker DESABILITADO para evitar atualizações constantes
+      console.log('⚠️ Service Worker registration DESABILITADO');
+      /*
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
         console.log('✅ Service Worker registered:', registration);
@@ -88,6 +91,7 @@ export class NotificationManager {
       } catch (error) {
         console.error('❌ Service Worker registration failed:', error);
       }
+      */
     }
   }
 
