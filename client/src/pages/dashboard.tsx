@@ -242,7 +242,7 @@ export default function Dashboard() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen relative overflow-hidden">
+      <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-20">
       {/* Background decorative elements sofisticados */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Elementos flutuantes sofisticados */}
@@ -433,12 +433,19 @@ export default function Dashboard() {
             style={{ touchAction: 'pan-y' }}
           />
 
-          {/* Indicador de swipe para mobile */}
-          <div className="flex justify-center gap-1 mt-4 md:hidden">
-            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-            <div className="text-xs text-gray-500">Deslize para navegar</div>
-            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-          </div>
+
+          {/* Botão Voltar para Semana Atual - Fora dos cards */}
+          {viewingWeek && viewingWeek !== weekInfo?.week && (
+            <div className="flex justify-center mb-4">
+              <button 
+                onClick={backToCurrentWeek}
+                className="btn-soft text-sm px-4 py-2 rounded-full shadow-lg hover:scale-105 transition-all duration-200"
+                data-testid="button-back-to-current-week"
+              >
+                Voltar para semana atual ({weekInfo?.week})
+              </button>
+            </div>
+          )}
 
           {/* Informações do Bebê - Agora embaixo da imagem */}
           {development && (
@@ -499,18 +506,7 @@ export default function Dashboard() {
                           {currentWeek}ª semana
                         </p>
                         <p className="text-xs md:text-sm text-gray-600">
-                          {viewingWeek && viewingWeek !== weekInfo.week ? (
-                            <div className="flex flex-col gap-2">
-                              <span>de desenvolvimento</span>
-                              <button 
-                                onClick={backToCurrentWeek}
-                                className="btn-soft text-xs px-3 py-1"
-                                data-testid="button-back-to-current-week"
-                              >
-                                Voltar para semana atual ({weekInfo.week})
-                              </button>
-                            </div>
-                          ) : 'da sua gestação'}
+                          {viewingWeek && viewingWeek !== weekInfo.week ? 'de desenvolvimento' : 'da sua gestação'}
                         </p>
                       </div>
                       

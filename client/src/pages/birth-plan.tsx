@@ -325,9 +325,10 @@ export default function BirthPlan() {
 
   const downloadPDF = async () => {
     if (!birthPlan) return;
-    
-    // Importar html2pdf dinamicamente
-    const html2pdf = (await import('html2pdf.js')).default;
+
+    try {
+      // Importar html2pdf dinamicamente com fallback
+      const html2pdf = (await import('html2pdf.js')).default;
     
     const htmlContent = `
       <!DOCTYPE html>
@@ -747,12 +748,17 @@ export default function BirthPlan() {
       pagebreak: { mode: 'avoid-all' }
     };
     
-    // Gerar e baixar o PDF (SEM ABRIR NOVA JANELA)
-    try {
+      // Gerar e baixar o PDF (SEM ABRIR NOVA JANELA)
       // Adicionar elemento temporariamente ao DOM (necessário para renderização)
       element.style.position = 'absolute';
       element.style.left = '-9999px';
+      element.style.top = '-9999px';
+      element.style.width = '210mm'; // A4 width
+      element.style.height = 'auto';
       document.body.appendChild(element);
+      
+      // Aguardar um pouco para garantir que o elemento foi renderizado
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Gerar PDF e forçar download direto
       await html2pdf().set(options).from(element).save();
@@ -770,11 +776,36 @@ export default function BirthPlan() {
       if (document.body.contains(element)) {
         document.body.removeChild(element);
       }
-      toast({
-        title: "Erro",
-        description: "Não foi possível gerar o PDF. Tente novamente.",
-        variant: "destructive",
-      });
+      
+      // Fallback para mobile: tentar abrir em nova janela para impressão
+      try {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(htmlContent);
+          printWindow.document.close();
+          printWindow.focus();
+          
+          // Aguardar carregamento e imprimir
+          setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+          }, 1000);
+          
+          toast({
+            title: "📄 Abrindo para Impressão",
+            description: "Seu plano de parto foi aberto em uma nova janela para impressão.",
+          });
+        } else {
+          throw new Error('Não foi possível abrir nova janela');
+        }
+      } catch (fallbackError) {
+        console.error('Erro no fallback:', fallbackError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível gerar o PDF. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -1124,7 +1155,7 @@ export default function BirthPlan() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20">
+      <div className="min-h-screen pb-24 sm:pb-20">
         <div className="container mx-auto px-4 py-4">
           {/* Header com botão voltar e título centralizado */}
           <div className="flex items-center justify-center mb-10 relative">

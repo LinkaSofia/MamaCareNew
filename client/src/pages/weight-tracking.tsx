@@ -444,7 +444,7 @@ export default function WeightTracking() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20">
+      <div className="min-h-screen pb-24 sm:pb-20">
       <div className="px-4 pt-4 pb-4">
         {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
         <div className="flex items-center justify-between mb-10 relative">

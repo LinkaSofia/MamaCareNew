@@ -54,7 +54,7 @@ export default function Consultations() {
   const [consultationToDelete, setConsultationToDelete] = useState<Consultation | null>(null);
   const [formData, setFormData] = useState({
     title: "",
-    date: "",
+    date: new Date().toISOString().split('T')[0], // Data atual como padrão
     time: "",
     location: "",
     doctorName: "",
@@ -82,7 +82,7 @@ export default function Consultations() {
   const resetForm = () => {
     setFormData({
       title: "",
-      date: "",
+      date: new Date().toISOString().split('T')[0], // Data atual como padrão
       time: "",
       location: "",
       doctorName: "",
@@ -118,7 +118,13 @@ export default function Consultations() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
+      queryClient.refetchQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
+      
+      // Também invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["/api/consultations"] });
+      
       resetForm();
       toast({
         title: "✅ Consulta agendada!",
@@ -140,7 +146,13 @@ export default function Consultations() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
+      queryClient.refetchQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
+      
+      // Também invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["/api/consultations"] });
+      
       resetForm();
       toast({
         title: "✅ Consulta atualizada!",
@@ -162,7 +174,13 @@ export default function Consultations() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
+      queryClient.refetchQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
+      
+      // Também invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["/api/consultations"] });
+      
       setShowDeleteModal(false);
       setConsultationToDelete(null);
       toast({
@@ -235,8 +253,8 @@ export default function Consultations() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20">
-        <div className="container mx-auto px-4 pt-6 pb-20">
+      <div className="min-h-screen pb-24 sm:pb-20">
+        <div className="container mx-auto px-4 pt-6 pb-24 sm:pb-20">
           {/* Botão de Voltar */}
           {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
           <div className="flex items-center justify-between mb-10 relative">

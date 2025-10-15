@@ -62,12 +62,14 @@ export function DatePicker({
           )}
           disabled={disabled}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-pink-500" />
-          {date ? (
-            format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-          ) : (
-            <span>{placeholder}</span>
-          )}
+          <CalendarIcon className="mr-2 h-4 w-4 text-pink-500 flex-shrink-0" />
+          <span className="truncate">
+            {date ? (
+              format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+            ) : (
+              placeholder
+            )}
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 bg-white/95 backdrop-blur-sm border-2 border-pink-200 shadow-2xl rounded-2xl" align="start">

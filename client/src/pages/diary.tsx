@@ -361,11 +361,12 @@ export default function Diary() {
       // Fechar o formulário
       handleCloseForm();
       
-      // Invalidar queries em background para sincronizar
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/diary-entries"],
-        exact: false 
-      });
+      // Invalidar e refetch imediatamente
+      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+      queryClient.refetchQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+      
+      // Também invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries"] });
       
       toast({
         title: "📝 Entrada salva!",
@@ -402,11 +403,11 @@ export default function Diary() {
       handleCloseForm();
       
       // Invalidar e refetch imediatamente
-      console.log("📝 Invalidating queries and refetching...");
-      await queryClient.invalidateQueries({ 
-        queryKey: ["/api/diary-entries"],
-        exact: false 
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+      queryClient.refetchQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+      
+      // Também invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries"] });
       
       // Forçar refetch imediatamente
       try {
@@ -463,16 +464,16 @@ export default function Diary() {
         console.error("📝 Error updating cache after delete:", error);
       }
       
-      // Invalidar e refetch em background para sincronizar
-      console.log("📝 Invalidating queries and refetching in background...");
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/diary-entries"],
-        exact: false 
-      });
+      // Invalidar e refetch imediatamente
+      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
+      queryClient.refetchQueries({ queryKey: ["/api/diary-entries", pregnancy?.id] });
       
-      // Refetch em background
+      // Também invalidar todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries"] });
+      
+      // Refetch imediatamente
       try {
-        console.log("📝 Background refetch after delete...");
+        console.log("📝 Immediate refetch after delete...");
         await refetch();
         console.log("📝 Background refetch completed");
       } catch (error) {
@@ -904,7 +905,7 @@ export default function Diary() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen pb-20">
+      <div className="min-h-screen pb-24 sm:pb-20">
       <div className="px-4 pt-4 pb-4 relative">
         {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
         <div className="flex items-center justify-between mb-10 relative">
@@ -992,20 +993,20 @@ export default function Diary() {
 
             {/* Writing Prompts */}
             {currentPrompts.length > 0 && (
-              <Card className="mb-6 bg-gradient-to-br from-pink-50/90 to-purple-50/90 backdrop-blur-sm border border-pink-200/50 rounded-3xl shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg mb-3">
-                      <Lightbulb className="h-6 w-6 text-white" />
+              <Card className="mb-4 md:mb-6 bg-gradient-to-br from-pink-50/90 to-purple-50/90 backdrop-blur-sm border border-pink-200/50 rounded-3xl shadow-lg">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex flex-col items-center mb-3 md:mb-6">
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg mb-2 md:mb-3">
+                      <Lightbulb className="h-4 w-4 md:h-6 md:w-6 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+                    <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
                     Inspiração para Escrever
                     </h3>
-                    <p className="text-sm text-gray-600 text-center mt-1">
+                    <p className="text-xs md:text-sm text-gray-600 text-center mt-1">
                       Baseado na sua semana atual ({weekInfo?.week}ª)
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                     {currentPrompts.map((prompt, index) => (
                       <Card
                         key={index}
@@ -1015,13 +1016,13 @@ export default function Diary() {
                         }}
                         className="cursor-pointer bg-white/95 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 rounded-2xl overflow-hidden group"
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                              <MessageCircle className="w-5 h-5 text-pink-600" />
+                        <CardContent className="p-3 md:p-4">
+                          <div className="flex items-start space-x-2 md:space-x-3">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 text-pink-600" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-sm text-gray-700 leading-relaxed group-hover:text-pink-700 transition-colors">
+                              <p className="text-xs md:text-sm text-gray-700 leading-relaxed group-hover:text-pink-700 transition-colors">
                                 {prompt}
                               </p>
                             </div>

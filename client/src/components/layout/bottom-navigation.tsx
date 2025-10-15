@@ -15,8 +15,12 @@ export default function BottomNavigation() {
   const [location, setLocation] = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-around px-2 py-1">
+    <>
+      {/* Espaçador para evitar sobreposição do conteúdo */}
+      <div className="h-16 sm:h-0"></div>
+      
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-area-pb">
+        <div className="flex items-center justify-around px-2 py-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = location === tab.path;
@@ -35,12 +39,13 @@ export default function BottomNavigation() {
               onClick={() => setLocation(tab.path)}
               data-testid={`tab-${tab.id}`}
             >
-              <Icon className="h-5 w-5 mb-1" />
-              <span className="text-[10px] leading-tight text-center truncate">{tab.label}</span>
+              <Icon className="h-5 w-5 mb-0.5" />
+              <span className="text-[9px] leading-tight text-center truncate font-medium">{tab.label}</span>
             </Button>
           );
         })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

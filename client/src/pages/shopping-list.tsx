@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { apiRequest } from "@/lib/queryClient";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
@@ -124,6 +125,8 @@ export default function ShoppingList() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<ShoppingItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [budget, setBudget] = useState<number>(2000);
@@ -346,6 +349,9 @@ export default function ShoppingList() {
       await queryClient.invalidateQueries({ queryKey: ["/api/shopping-items", pregnancy?.id] });
       await refetch();
       
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+      
       toast({
         title: "🗑️ Item removido",
         description: "Item foi removido da sua lista.",
@@ -360,6 +366,22 @@ export default function ShoppingList() {
       });
     },
   });
+
+  const handleDeleteClick = (item: ShoppingItem) => {
+    setItemToDelete(item);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (itemToDelete?.id) {
+      deleteItemMutation.mutate(itemToDelete.id);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -512,22 +534,22 @@ export default function ShoppingList() {
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 lg:grid-cols-4 mb-6 h-auto">
-            <TabsTrigger value="list" className="flex items-center py-3">
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Lista
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto bg-white/80 backdrop-blur-sm">
+            <TabsTrigger value="list" className="flex items-center py-2 px-3 text-xs md:text-sm">
+              <ShoppingCart className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Lista</span>
             </TabsTrigger>
-            <TabsTrigger value="suggestions" className="flex items-center py-3">
-              <Lightbulb className="w-4 h-4 mr-2" />
-              Sugestões
+            <TabsTrigger value="suggestions" className="flex items-center py-2 px-3 text-xs md:text-sm">
+              <Lightbulb className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Sugestões</span>
             </TabsTrigger>
-            <TabsTrigger value="budget" className="flex items-center py-3">
-              <PieChart className="w-4 h-4 mr-2" />
-              Orçamento
+            <TabsTrigger value="budget" className="flex items-center py-2 px-3 text-xs md:text-sm">
+              <PieChart className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Orçamento</span>
             </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center py-3">
-              <Package className="w-4 h-4 mr-2" />
-              Categorias
+            <TabsTrigger value="categories" className="flex items-center py-2 px-3 text-xs md:text-sm">
+              <Package className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Categorias</span>
             </TabsTrigger>
           </TabsList>
 
@@ -718,7 +740,7 @@ export default function ShoppingList() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteItemMutation.mutate(item.id)}
+                            onClick={() => handleDeleteClick(item)}
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -791,7 +813,7 @@ export default function ShoppingList() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteItemMutation.mutate(item.id)}
+                            onClick={() => handleDeleteClick(item)}
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1383,6 +1405,24 @@ export default function ShoppingList() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente "{itemToDelete?.name}" da sua lista de compras.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNavigation />
       </div>
