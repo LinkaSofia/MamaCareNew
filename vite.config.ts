@@ -28,8 +28,8 @@ export default defineConfig({
     port: 3000,
     host: 'localhost',
     fs: {
-      strict: true,
-      deny: ["**/.*"],
+      strict: false,
+      deny: [],
     },
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -37,10 +37,7 @@ export default defineConfig({
       'Expires': '0'
     },
     hmr: false,
-    watch: {
-      usePolling: false,
-      interval: 1000
-    }
+    watch: null
   },
   build: {
     outDir: path.resolve(import.meta.dirname, "dist"),
