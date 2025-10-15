@@ -1,5 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import path from "path";
+import fs from "fs";
 import { 
   users, pregnancies, kickCounts, weightRecords, weightEntries, birthPlans, consultations, 
   shoppingItems, photos, diaryEntries, symptoms, medications, communityPosts, 
@@ -304,7 +306,7 @@ export class DatabaseStorage implements IStorage {
             
             // Inserir dados de gravidez
             await db.execute(sql`
-              INSERT INTO pregnancies (id, user_id, last_menstruation_date, due_date, is_active, created_at)
+              INSERT INTO pregnancies (id, user_id, last_menstrual_period, due_date, is_active, created_at)
               VALUES (${randomUUID()}, ${newUser.id}, ${lastMenstruationDate}, ${dueDate}, true, NOW())
             `);
             
