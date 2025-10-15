@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { uploadFileToSupabase, deleteFileFromSupabase } from "@/lib/supabase";
 import { 
   ArrowLeft, 
   Plus, 
@@ -66,7 +67,7 @@ interface DiaryEntry {
   date: string;
   prompts?: string[];
   image?: string | null;
-  attachments?: Array<{ id: string; data: string; type: string; name: string | null; size: number | null; createdAt: string }>;
+  attachments?: Array<{ id: string; url: string; type: string; name: string | null; size: number | null; createdAt: string }>;
 }
 
 interface DiaryData {
@@ -161,7 +162,7 @@ export default function Diary() {
     milestone: "",
     week: "",
     image: "" as string | null,
-    attachments: [] as Array<{ data: string; type: string; name: string; size: number }>
+    attachments: [] as Array<{ url: string; type: string; name: string; size: number }>
   });
   
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -513,16 +514,24 @@ export default function Diary() {
   };
 
   const handleEdit = (entry: DiaryEntry) => {
+    console.log('🔍 Editando entrada:', entry);
+    console.log('🔍 Anexos da entrada:', entry.attachments);
+    
     setEditingEntry(entry);
     const moodValue = entry.mood ? (typeof entry.mood === 'string' ? parseInt(entry.mood) : entry.mood) : 5;
     
     // Carregar anexos da entrada se existirem
-    const attachments = entry.attachments?.map(att => ({
-      data: att.data,
-      type: att.type,
-      name: att.name || "",
-      size: att.size || 0
-    })) || [];
+    const attachments = entry.attachments?.map(att => {
+      console.log('🔍 Processando anexo:', att);
+      return {
+        url: att.url || '',
+        type: att.type || 'image/jpeg',
+        name: att.name || "",
+        size: att.size || 0
+      };
+    }) || [];
+    
+    console.log('🔍 Anexos processados:', attachments);
     
     setFormData({
       title: entry.title || "",
@@ -596,14 +605,14 @@ export default function Diary() {
     if (!files || files.length === 0) return;
 
     setIsUploadingImage(true);
-    const newAttachments: Array<{ data: string; type: string; name: string; size: number }> = [];
+    const newAttachments: Array<{ url: string; type: string; name: string; size: number }> = [];
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        // Validar tamanho (5MB por arquivo)
-        if (file.size > 5242880) {
+        // Validar tamanho (10MB por arquivo - mais generoso sem base64)
+        if (file.size > 10485760) {
           toast({
             title: "Arquivo muito grande",
             description: `${file.name} excede 5MB. Ignorando...`,
@@ -622,25 +631,15 @@ export default function Diary() {
           continue;
         }
 
-        let fileData: string;
+        console.log("📤 Processando arquivo:", file.name, (file.size / 1024).toFixed(2), "KB");
         
-        // Se for imagem, comprimir
-        if (file.type.startsWith('image/')) {
-          fileData = await compressImage(file, 800);
-          console.log("✅ Imagem comprimida:", file.name, (fileData.length / 1024).toFixed(2), "KB");
-        } else {
-          // Se for PDF, converter direto para base64
-          fileData = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-          console.log("✅ PDF carregado:", file.name, (fileData.length / 1024).toFixed(2), "KB");
-        }
+        // Upload inteligente: tenta Supabase Storage, se falhar usa base64 otimizado
+        const { url } = await uploadFileToSupabase(file, 'diary-attachments');
+        
+        console.log("✅ Arquivo processado:", file.name);
 
         newAttachments.push({
-          data: fileData,
+          url: url,
           type: file.type,
           name: file.name,
           size: file.size
@@ -662,7 +661,7 @@ export default function Diary() {
       console.error("❌ Erro ao processar arquivos:", error);
       toast({
         title: "Erro no upload",
-        description: "Não foi possível processar os arquivos.",
+        description: "Não foi possível fazer upload dos arquivos.",
         variant: "destructive"
       });
     } finally {
@@ -755,7 +754,7 @@ export default function Diary() {
         type: formData.attachments[0].type,
         name: formData.attachments[0].name,
         size: `${(formData.attachments[0].size / 1024).toFixed(2)} KB`,
-        dataLength: `${(formData.attachments[0].data.length / 1024).toFixed(2)} KB`
+        urlLength: `URL: ${formData.attachments[0].url.substring(0, 50)}...`
       });
     } else {
       console.warn("⚠️ AVISO: Nenhum anexo para enviar! O usuário NÃO adicionou imagens/PDFs!");
@@ -771,7 +770,7 @@ export default function Diary() {
       week: week || null,
       date: new Date(),
       prompts: selectedPrompt ? JSON.stringify([selectedPrompt]) : null,
-      image: firstImage ? firstImage.data : (formData.image || null),
+      image: firstImage ? firstImage.url : (formData.image || null),
       // Enviar múltiplos anexos para o backend
       attachments: formData.attachments
     };
@@ -1118,13 +1117,32 @@ export default function Diary() {
                         {entry.attachments && entry.attachments.length > 0 && (
                           <div className="mb-4">
                             <div className="grid grid-cols-2 gap-2">
-                              {entry.attachments.slice(0, 4).map((attachment, idx) => (
+                              {entry.attachments.slice(0, 4).map((attachment, idx) => {
+                                // 🔍 DEBUG: Log do anexo para verificar dados
+                                console.log(`🔍 DEBUG Anexo ${idx}:`, {
+                                  id: attachment.id,
+                                  url: attachment.url,
+                                  type: attachment.type,
+                                  name: attachment.name,
+                                  size: attachment.size,
+                                  isImage: attachment.type && attachment.type.startsWith('image/')
+                                });
+                                
+                                return (
                                 <div key={attachment.id || idx} className="relative">
-                                  {attachment.type.startsWith('image/') ? (
+                                  {(attachment.type && attachment.type.startsWith('image/')) || 
+                                   (attachment.name && /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(attachment.name)) ? (
                                     <img 
-                                      src={attachment.data} 
+                                      src={attachment.url || ''} 
                                       alt={attachment.name || `Anexo ${idx + 1}`}
                                       className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                      onError={(e) => {
+                                        console.error(`❌ Erro ao carregar imagem ${idx}:`, attachment.url);
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                      onLoad={() => {
+                                        console.log(`✅ Imagem ${idx} carregada com sucesso:`, attachment.url);
+                                      }}
                                     />
                                   ) : (
                                     <div className="w-full h-24 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg border border-gray-200 flex flex-col items-center justify-center p-2">
@@ -1138,11 +1156,12 @@ export default function Diary() {
                                     <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
                                       <span className="text-white text-sm font-bold">
                                         +{entry.attachments.length - 4}
-                      </span>
+                                      </span>
                                     </div>
-                      )}
-                    </div>
-                  ))}
+                                  )}
+                                </div>
+                                );
+                              })}
                 </div>
                   </div>
                         )}
@@ -1376,10 +1395,11 @@ export default function Diary() {
                     <div className="grid grid-cols-2 gap-3 mb-3">
                       {formData.attachments.map((attachment, index) => (
                         <div key={index} className="relative group">
-                          {attachment.type.startsWith('image/') ? (
+                          {(attachment.type && attachment.type.startsWith('image/')) || 
+                           (attachment.name && /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(attachment.name)) ? (
                             <img 
-                              src={attachment.data} 
-                              alt={attachment.name} 
+                              src={attachment.url || ''} 
+                              alt={attachment.name || 'Imagem'} 
                               className="w-full h-32 object-cover rounded-xl border-2 border-pink-200"
                             />
                           ) : (

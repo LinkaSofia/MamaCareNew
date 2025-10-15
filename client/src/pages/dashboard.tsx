@@ -189,8 +189,18 @@ export default function Dashboard() {
   }
 
   if (!pregnancy) {
-    setLocation("/pregnancy-setup");
-    return null;
+    // Se não há dados de gravidez, mostrar mensagem ou redirecionar para configuração
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Configuração necessária</h2>
+          <p className="text-gray-600 mb-6">Complete seus dados de gravidez para continuar.</p>
+          <Button onClick={() => setLocation("/profile")} className="bg-pink-500 hover:bg-pink-600">
+            Ir para Perfil
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   if (!weekInfo) {

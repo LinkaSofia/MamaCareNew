@@ -210,8 +210,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createUser(user: InsertUser): Promise<User> {
-    console.log("📝 Creating user:", { email: user.email, name: user.name });
+  async createUser(user: InsertUser & { profileImage?: any; pregnancyDate?: string; pregnancyType?: string }): Promise<User> {
+    console.log("📝 Creating user:", { email: user.email, name: user.name, hasImage: !!user.profileImage });
     
     try {
       // Garantir que a coluna created_at existe na tabela
@@ -237,22 +237,91 @@ export class DatabaseStorage implements IStorage {
       // Converter birthDate para string se existir
       const birthDateStr = user.birthDate ? user.birthDate.toISOString().split('T')[0] : null;
       
+      // Processar imagem de perfil se existir
+      let profilePhotoUrl = null;
+      if (user.profileImage) {
+        try {
+          // Salvar imagem no diretório de uploads
+          const uploadsDir = path.join(process.cwd(), 'client/public/uploads');
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          
+          const fileName = `profile_${userId}_${Date.now()}.${user.profileImage.mimetype.split('/')[1]}`;
+          const filePath = path.join(uploadsDir, fileName);
+          
+          fs.writeFileSync(filePath, user.profileImage.buffer);
+          profilePhotoUrl = `/uploads/${fileName}`;
+          
+          console.log("✅ Profile image saved:", profilePhotoUrl);
+        } catch (imageError) {
+          console.error("❌ Error saving profile image:", imageError);
+          // Continuar sem a imagem se houver erro
+        }
+      }
+      
       const result = await db.execute(sql`
-        INSERT INTO users (id, email, password, name, birth_date, created_at) 
-        VALUES (${userId}, ${user.email.toLowerCase().trim()}, ${hashedPassword}, ${user.name}, ${birthDateStr}, NOW())
-        RETURNING id, email, name, birth_date, created_at
+        INSERT INTO users (id, email, password, name, birth_date, profile_photo_url, created_at) 
+        VALUES (${userId}, ${user.email.toLowerCase().trim()}, ${hashedPassword}, ${user.name}, ${birthDateStr}, ${profilePhotoUrl}, NOW())
+        RETURNING id, email, name, birth_date, profile_photo_url, created_at
       `);
       
       if (result.length > 0) {
         const newUser = result[0] as any;
-        console.log("✅ User successfully created:", { id: newUser.id, email: newUser.email });
+        console.log("✅ User successfully created:", { id: newUser.id, email: newUser.email, hasPhoto: !!newUser.profile_photo_url });
+        
+        // Criar dados de gravidez se fornecidos
+        console.log("🔍 Checking pregnancy data:", { 
+          hasPregnancyDate: !!user.pregnancyDate, 
+          hasPregnancyType: !!user.pregnancyType,
+          pregnancyDate: user.pregnancyDate,
+          pregnancyType: user.pregnancyType
+        });
+        
+        if (user.pregnancyDate && user.pregnancyType) {
+          try {
+            console.log("📝 Creating pregnancy data:", { pregnancyDate: user.pregnancyDate, pregnancyType: user.pregnancyType });
+            
+            // Calcular datas baseado no tipo
+            let lastMenstruationDate: string;
+            let dueDate: string;
+            
+            if (user.pregnancyType === 'lastMenstruation') {
+              lastMenstruationDate = user.pregnancyDate;
+              // Calcular data prevista (40 semanas depois)
+              const lastMenstruation = new Date(user.pregnancyDate);
+              const dueDateObj = new Date(lastMenstruation);
+              dueDateObj.setDate(dueDateObj.getDate() + (40 * 7)); // 40 semanas
+              dueDate = dueDateObj.toISOString().split('T')[0];
+            } else {
+              dueDate = user.pregnancyDate;
+              // Calcular última menstruação (40 semanas antes)
+              const dueDateObj = new Date(user.pregnancyDate);
+              const lastMenstruationObj = new Date(dueDateObj);
+              lastMenstruationObj.setDate(lastMenstruationObj.getDate() - (40 * 7)); // 40 semanas antes
+              lastMenstruationDate = lastMenstruationObj.toISOString().split('T')[0];
+            }
+            
+            // Inserir dados de gravidez
+            await db.execute(sql`
+              INSERT INTO pregnancies (id, user_id, last_menstruation_date, due_date, is_active, created_at)
+              VALUES (${randomUUID()}, ${newUser.id}, ${lastMenstruationDate}, ${dueDate}, true, NOW())
+            `);
+            
+            console.log("✅ Pregnancy data created successfully");
+          } catch (pregnancyError) {
+            console.error("❌ Error creating pregnancy data:", pregnancyError);
+            // Continuar mesmo se houver erro na criação dos dados de gravidez
+          }
+        }
+        
         return {
           id: newUser.id,
           email: newUser.email,
           password: hashedPassword,
           name: newUser.name,
           birthDate: newUser.birth_date,
-          profilePhotoUrl: null,
+          profilePhotoUrl: newUser.profile_photo_url,
           createdAt: newUser.created_at || new Date()
         } as User;
       } else {

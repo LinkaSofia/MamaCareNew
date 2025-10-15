@@ -98,12 +98,56 @@ class AuthManager {
     window.location.href = "/";
   }
 
-  async register(email: string, password: string, name: string): Promise<void> {
+  async register(email: string, password: string, name: string, profileImage?: File | null, pregnancyData?: { pregnancyDate: string; pregnancyType: string }): Promise<void> {
+    // Teste do FormData primeiro
+    if (profileImage) {
+      console.log("🧪 Testing FormData with image...");
+      const testFormData = new FormData();
+      testFormData.append('email', email);
+      testFormData.append('password', password);
+      testFormData.append('name', name);
+      testFormData.append('profileImage', profileImage);
+      
+      try {
+        const testResponse = await fetch(`${API_CONFIG.BASE_URL}/api/test-formdata`, {
+          method: "POST",
+          credentials: "include",
+          body: testFormData,
+        });
+        
+        if (testResponse.ok) {
+          const testResult = await testResponse.json();
+          console.log("🧪 FormData test result:", testResult);
+        }
+      } catch (testError) {
+        console.error("🧪 FormData test failed:", testError);
+      }
+    }
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+    formData.append('name', name);
+    
+    if (profileImage) {
+      formData.append('profileImage', profileImage);
+    }
+    
+    if (pregnancyData) {
+      formData.append('pregnancyDate', pregnancyData.pregnancyDate);
+      formData.append('pregnancyType', pregnancyData.pregnancyType);
+    }
+
+    console.log("📝 Sending register request with FormData");
+    console.log("📝 FormData entries:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`📝 ${key}:`, value);
+    }
+
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ email, password, name }),
+      body: formData,
     });
 
     if (!response.ok) {
@@ -114,7 +158,34 @@ class AuthManager {
     const data = await response.json();
     this.user = data.user;
     this.notifyListeners();
-    window.location.href = "/pregnancy-setup";
+    
+    // Aguardar um pouco para garantir que a sessão foi salva
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Verificar se a sessão está funcionando antes de redirecionar
+    try {
+      const meResponse = await fetch(`${API_CONFIG.BASE_URL}/api/auth/me`, {
+        credentials: "include"
+      });
+      
+      if (meResponse.ok) {
+        const userData = await meResponse.json();
+        console.log("✅ Session established, user data:", userData);
+        this.user = userData;
+        this.notifyListeners();
+        window.location.href = "/";
+      } else {
+        console.error("❌ Session not established after registration");
+        // Tentar novamente após mais tempo
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("❌ Error checking session:", error);
+      // Redirecionar mesmo assim
+      window.location.href = "/";
+    }
   }
 
   async logout(): Promise<void> {

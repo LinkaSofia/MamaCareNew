@@ -186,7 +186,7 @@ export const diaryEntries = pgTable("diary_entries", {
 export const diaryAttachments = pgTable("diary_attachments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   diaryEntryId: varchar("diary_entry_id").references(() => diaryEntries.id, { onDelete: "cascade" }).notNull(),
-  fileData: text("file_data").notNull(), // Arquivo em base64
+  fileUrl: text("file_url").notNull(), // URL do arquivo no Supabase Storage
   fileType: varchar("file_type", { length: 50 }).notNull(), // 'image/jpeg', 'application/pdf', etc
   fileName: varchar("file_name", { length: 255 }), // Nome original do arquivo
   fileSize: integer("file_size"), // Tamanho em bytes
@@ -353,7 +353,7 @@ export const updateDiaryEntrySchema = baseDiaryEntrySchema.partial();
 export const insertDiaryAttachmentSchema = createInsertSchema(diaryAttachments).omit({ id: true, createdAt: true })
   .extend({
     diaryEntryId: z.string().min(1, "ID da entrada do diário é obrigatório"),
-    fileData: z.string().min(1, "Dados do arquivo são obrigatórios"),
+    fileUrl: z.string().url("URL do arquivo deve ser válida"),
     fileType: z.string().min(1, "Tipo do arquivo é obrigatório"),
     fileName: z.string().nullable().optional(),
     fileSize: z.number().nullable().optional(),

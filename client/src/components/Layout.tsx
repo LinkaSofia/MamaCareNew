@@ -16,7 +16,7 @@ export function Layout({ children, className }: LayoutProps) {
   console.log("🔍 Layout render:", { location, user: !!user, isLoading });
   
   // Páginas que não devem ter layout (login, setup, etc.)
-  const noLayoutPages = ['/login', '/reset-password', '/forgot-password', '/setup', '/pregnancy-setup'];
+  const noLayoutPages = ['/login', '/reset-password', '/forgot-password', '/setup'];
   const shouldHideLayout = noLayoutPages.some(page => location.startsWith(page));
   
   console.log("🔍 Layout check:", { shouldHideLayout, noLayoutPages, location });
@@ -35,7 +35,7 @@ export function Layout({ children, className }: LayoutProps) {
   }
   
   // Se não está logado e não está em página pública, redirecionar para login
-  if (!user && !shouldHideLayout) {
+  if (!user && !shouldHideLayout && !isLoading) {
     console.log("🔄 Redirecting to login - user not authenticated");
     // Redirecionamento imediato
     window.location.href = '/login';

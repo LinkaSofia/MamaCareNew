@@ -14,6 +14,8 @@ import { sql, eq } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
 import cors from "cors";
+import multer from "multer";
+import { NotificationScheduler } from "./notificationScheduler";
 
 // Simple session store for user authentication
 declare module "express-session" {
@@ -24,19 +26,45 @@ declare module "express-session" {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Inicializar agendador de notificações
+  NotificationScheduler.start();
+  
   // Configurar CORS para permitir cookies
   app.use(cors({
     origin: [
       'http://localhost:3000', 
       'http://localhost:5173',
+      'http://localhost:5000', // Adicionar localhost:5000 para desenvolvimento
       'https://friendly-alpaca-bf0d68.netlify.app',
       'https://splendorous-rabanadas-6fe8f2.netlify.app',
-      'https://joyful-bavarois-e44cbe.netlify.app'
+      'https://joyful-bavarois-e44cbe.netlify.app',
+      /^https:\/\/.*\.vercel\.app$/, // Permitir todos os domínios do Vercel
+      /^https:\/\/.*\.vercel\.com$/  // Permitir domínios personalizados do Vercel
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Cache-Control', 'Pragma', 'Expires', 'X-Auth-Token']
   }));
+
+  // Configurar Multer para upload de imagens
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB
+      fieldSize: 10 * 1024 * 1024, // 10MB para campos de texto
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Apenas imagens são permitidas'));
+      }
+    }
+  });
+
+  // Middleware para processar FormData corretamente
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(express.json({ limit: '10mb' }));
 
   // Servir arquivos estáticos do diretório public
   app.use(express.static(path.join(process.cwd(), 'client/public')));
@@ -595,10 +623,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false, 
     saveUninitialized: false,
     cookie: { 
-      secure: true, // SEMPRE true para HTTPS (Render sempre usa HTTPS)
+      secure: process.env.NODE_ENV === 'production', // true apenas em produção
       httpOnly: true, 
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'none', // SEMPRE 'none' para cross-domain HTTPS
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' apenas em produção
       domain: undefined // Deixar o navegador decidir
     },
     name: 'mama-care-session-v2', // Force new session cookie
@@ -607,6 +635,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware - aceita session OU token
   const requireAuth = (req: any, res: any, next: any) => {
+    console.log("🔍 Auth check - Session ID:", req.sessionID);
+    console.log("🔍 Auth check - Session exists:", !!req.session);
+    console.log("🔍 Auth check - Session userId:", req.session?.userId);
+    console.log("🔍 Auth check - Cookies:", req.headers.cookie);
+    
     // Tentar session primeiro
     if (req.session && req.session.userId) {
       console.log("🔐 Auth via session:", { userId: req.session.userId });
@@ -636,10 +669,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.status(401).json({ error: "Authentication required" });
   };
 
+  // Rota de teste para FormData
+  app.post("/api/test-formdata", upload.single('profileImage'), (req, res) => {
+    console.log("🧪 Test FormData - Content-Type:", req.headers['content-type']);
+    console.log("🧪 Test FormData - Body:", req.body);
+    console.log("🧪 Test FormData - File:", req.file);
+    res.json({ 
+      success: true, 
+      body: req.body, 
+      file: req.file ? "Present" : "Not present" 
+    });
+  });
+
   // Auth routes
-  app.post("/api/auth/register", async (req, res) => {
+  app.post("/api/auth/register", (req, res, next) => {
+    console.log("🔍 Pre-multer - Content-Type:", req.headers['content-type']);
+    console.log("🔍 Pre-multer - Body:", req.body);
+    next();
+  }, upload.single('profileImage'), async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
+      console.log("📝 Register request received");
+      console.log("📝 Content-Type:", req.headers['content-type']);
+      console.log("📝 Body keys:", Object.keys(req.body));
+      console.log("📝 Body values:", req.body);
+      console.log("📝 File:", req.file ? "Present" : "Not present");
+      console.log("📝 Files:", req.files);
+      
+      // Verificar se é multipart/form-data (com imagem)
+      let userData;
+      if (req.headers['content-type']?.includes('multipart/form-data')) {
+        // Se tem imagem, processar FormData
+        const { email, password, name, pregnancyDate, pregnancyType } = req.body;
+        const profileImage = req.file; // Multer vai processar o arquivo
+        
+        console.log("📝 FormData - Email:", email);
+        console.log("📝 FormData - Name:", name);
+        console.log("📝 FormData - Password length:", password?.length);
+        console.log("📝 FormData - ProfileImage:", profileImage ? "Present" : "Not present");
+        console.log("📝 FormData - PregnancyDate:", pregnancyDate);
+        console.log("📝 FormData - PregnancyType:", pregnancyType);
+        
+        // Validar campos obrigatórios
+        if (!email || !password || !name) {
+          console.error("❌ Missing required fields:", { email: !!email, password: !!password, name: !!name });
+          return res.status(400).json({ error: "Dados inválidos", details: "Email, senha e nome são obrigatórios" });
+        }
+        
+        userData = {
+          email: email.trim(),
+          password: password,
+          name: name.trim(),
+          profileImage: profileImage ? {
+            buffer: profileImage.buffer,
+            mimetype: profileImage.mimetype,
+            originalname: profileImage.originalname
+          } : null,
+          pregnancyDate: pregnancyDate,
+          pregnancyType: pregnancyType
+        };
+      } else {
+        // Se não tem imagem, processar JSON normal
+        console.log("📝 JSON - Body:", req.body);
+        const { pregnancyDate, pregnancyType, ...userFields } = req.body;
+        try {
+          userData = {
+            ...insertUserSchema.parse(userFields),
+            pregnancyDate,
+            pregnancyType
+          };
+        } catch (validationError) {
+          console.error("❌ Validation error:", validationError);
+          throw validationError;
+        }
+      }
+      
+      console.log("📝 Final userData:", { 
+        email: userData.email, 
+        name: userData.name, 
+        hasPassword: !!userData.password,
+        hasProfileImage: !!userData.profileImage,
+        pregnancyDate: userData.pregnancyDate,
+        pregnancyType: userData.pregnancyType
+      });
       
       // Verificar se usuário existe usando SQL direto
       const existingUserQuery = await db.execute(sql`SELECT id FROM users WHERE LOWER(email) = LOWER(${userData.email}) LIMIT 1`);
@@ -652,20 +763,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       req.session.userId = user.id;
       
+      console.log("🔐 Setting session userId:", user.id);
+      console.log("🔐 Session ID:", req.sessionID);
+      
       // Salvar a sessão explicitamente após registro
       req.session.save((err) => {
         if (err) {
           console.error("❌ Registration session save error:", err);
+        } else {
+          console.log("✅ Session saved successfully for user:", user.id);
         }
         res.json({ user: { id: user.id, email: user.email, name: user.name, profilePhotoUrl: user.profilePhotoUrl, birthDate: user.birthDate } });
       });
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("❌ Registration error:", error);
+      console.error("❌ Error type:", error.constructor.name);
+      console.error("❌ Error message:", error.message);
       
       if (error instanceof z.ZodError) {
+        console.error("❌ Zod validation errors:", error.issues);
         const fieldErrors: Record<string, string> = {};
         for (const issue of error.issues) {
           const field = issue.path[0] as string;
+          console.error(`❌ Field error - ${field}:`, issue.message);
           if (field === 'email') {
             fieldErrors.email = "Email inválido";
           } else if (field === 'password') {
@@ -1977,7 +2097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...entry,
             attachments: attachments.map(att => ({
               id: att.id,
-              data: att.fileData,
+              url: att.fileUrl, // ✅ CORRIGIDO: usar fileUrl ao invés de fileData
               type: att.fileType,
               name: att.fileName,
               size: att.fileSize,
@@ -2047,9 +2167,13 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
       console.log(`📎 Saving ${attachments.length} attachments...`);
       for (const attachment of attachments) {
         try {
+          // Detectar se é base64 (começa com 'data:') ou URL do Supabase
+          const isBase64 = attachment.url.startsWith('data:');
+          const fileUrl = attachment.url;
+          
           const attachmentData = {
             diaryEntryId: entry.id,
-            fileData: attachment.data,
+            fileUrl: fileUrl,
             fileType: attachment.type,
             fileName: attachment.name || null,
             fileSize: attachment.size || null,
@@ -2060,7 +2184,7 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
             fileType: attachmentData.fileType,
             fileName: attachmentData.fileName,
             fileSize: attachmentData.fileSize,
-            dataSize: `${(attachmentData.fileData.length / 1024).toFixed(2)} KB`
+            fileUrl: attachmentData.fileUrl
           });
           
           const validatedAttachment = insertDiaryAttachmentSchema.parse(attachmentData);
@@ -2112,6 +2236,10 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
       console.log("📝 Updating diary entry:", req.params.id);
       console.log("📝 Update data:", JSON.stringify(req.body, null, 2));
       
+      // Extrair attachments antes de processar
+      const attachments = req.body.attachments || [];
+      console.log("📎 Attachments received in update:", attachments.length);
+      
       // Converter string date para Date object e undefined para null antes da validação
       const processedBody = {
         ...req.body,
@@ -2137,6 +2265,56 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
       
       const updatedEntry = await storage.updateDiaryEntry(req.params.id, updateData);
       console.log("📝 Entry updated successfully:", updatedEntry);
+      
+      // 🆕 PROCESSAR ANEXOS NA EDIÇÃO
+      if (attachments.length > 0) {
+        console.log(`📎 Updating ${attachments.length} attachments for entry ${req.params.id}...`);
+        
+        // Primeiro, deletar anexos antigos
+        try {
+          await db.delete(diaryAttachments).where(eq(diaryAttachments.diaryEntryId, req.params.id));
+          console.log("🗑️ Old attachments deleted");
+        } catch (deleteError) {
+          console.error("❌ Error deleting old attachments:", deleteError);
+        }
+        
+        // Salvar novos anexos
+        for (const attachment of attachments) {
+          try {
+            const attachmentData = {
+              diaryEntryId: req.params.id,
+              fileUrl: attachment.url,
+              fileType: attachment.type,
+              fileName: attachment.name || null,
+              fileSize: attachment.size || null,
+            };
+            
+            console.log("📎 Saving attachment in update:", {
+              diaryEntryId: attachmentData.diaryEntryId,
+              fileType: attachmentData.fileType,
+              fileName: attachmentData.fileName,
+              fileSize: attachmentData.fileSize,
+            });
+            
+            const validatedAttachment = insertDiaryAttachmentSchema.parse(attachmentData);
+            await db.insert(diaryAttachments).values(validatedAttachment);
+            console.log("✅ Attachment saved in update:", attachmentData.fileName);
+          } catch (attachmentError) {
+            console.error("❌ Error saving attachment in update:", attachmentError);
+          }
+        }
+        
+        console.log(`✅ All attachments updated for entry ${req.params.id}`);
+      } else {
+        // Se não há anexos, deletar todos os anexos antigos
+        try {
+          await db.delete(diaryAttachments).where(eq(diaryAttachments.diaryEntryId, req.params.id));
+          console.log("🗑️ All attachments removed from entry");
+        } catch (deleteError) {
+          console.error("❌ Error removing attachments:", deleteError);
+        }
+      }
+      
       res.json({ success: true, entry: updatedEntry });
     } catch (error) {
       console.error("❌ Diary entry update error:", error);
@@ -2882,6 +3060,58 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     } catch (error: any) {
       console.error('❌ Erro geral:', error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== ROTAS DE NOTIFICAÇÕES =====
+  
+  // Solicitar permissão de notificação
+  app.post("/api/notifications/request-permission", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId;
+      console.log(`📱 User ${userId} requesting notification permission`);
+      
+      // Aqui você salvaria a preferência do usuário no banco
+      // Por enquanto, apenas retorna sucesso
+      res.json({ 
+        success: true, 
+        message: "Notification permission requested",
+        userId 
+      });
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
+      res.status(500).json({ error: "Failed to request notification permission" });
+    }
+  });
+
+  // Enviar notificação de teste
+  app.post("/api/notifications/test", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId;
+      console.log(`🧪 Sending test notification to user ${userId}`);
+      
+      // Enviar notificação de teste
+      await NotificationScheduler.sendTestNotification();
+      
+      res.json({ 
+        success: true, 
+        message: "Test notification sent",
+        userId 
+      });
+    } catch (error) {
+      console.error("Error sending test notification:", error);
+      res.status(500).json({ error: "Failed to send test notification" });
+    }
+  });
+
+  // Obter status do agendador de notificações
+  app.get("/api/notifications/status", requireAuth, async (req, res) => {
+    try {
+      const status = NotificationScheduler.getStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error getting notification status:", error);
+      res.status(500).json({ error: "Failed to get notification status" });
     }
   });
 

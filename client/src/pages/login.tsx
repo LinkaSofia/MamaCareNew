@@ -23,24 +23,65 @@ export default function Login() {
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(localStorage.getItem("rememberMe") === "true");
-  const [errors, setErrors] = useState<{email?: string; password?: string; name?: string; birthDate?: string; general?: string}>({});
+  const [errors, setErrors] = useState<{email?: string; password?: string; name?: string; pregnancyDate?: string; general?: string}>({});
   const [formData, setFormData] = useState({
     email: localStorage.getItem("rememberedEmail") || "",
     password: "",
     name: "",
-    birthDate: "",
+    pregnancyDate: "",
+    pregnancyType: "lastMenstruation" as "lastMenstruation" | "dueDate",
+    profileImage: null as File | null,
   });
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const { login, register, isLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  const validateForm = () => {
-    const newErrors: {email?: string; password?: string; name?: string; birthDate?: string; general?: string} = {};
 
-    if (!formData.email) {
+  const handleProfileImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        setErrors({ general: "Por favor, selecione apenas imagens" });
+        return;
+      }
+      
+      // Validar tamanho (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors({ general: "A imagem deve ter no máximo 5MB" });
+        return;
+      }
+
+      setFormData({ ...formData, profileImage: file });
+      
+      // Criar preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Limpar erros
+      setErrors({});
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: {email?: string; password?: string; name?: string; pregnancyDate?: string; general?: string} = {};
+
+    if (!formData.email || !formData.email.trim()) {
       newErrors.email = "Email é obrigatório";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email inválido";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      // Validação mais específica e suave
+      const email = formData.email.trim();
+      if (!email.includes('@')) {
+        newErrors.email = "Digite um email válido";
+      } else if (!email.includes('.')) {
+        newErrors.email = "Email incompleto";
+      } else {
+        newErrors.email = "Formato de email inválido";
+      }
     }
 
     if (!formData.password) {
@@ -53,6 +94,10 @@ export default function Login() {
       if (!formData.name.trim()) {
         newErrors.name = "Nome é obrigatório";
       }
+      
+      if (!formData.pregnancyDate) {
+        newErrors.pregnancyDate = "Data da gravidez é obrigatória";
+      }
     }
 
     setErrors(newErrors);
@@ -61,6 +106,7 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (!validateForm()) {
       return;
@@ -74,7 +120,10 @@ export default function Login() {
           setErrors({ general: "Nome é obrigatório" });
           return;
         }
-        await register(formData.email, formData.password, formData.name);
+        await register(formData.email, formData.password, formData.name, formData.profileImage, {
+          pregnancyDate: formData.pregnancyDate,
+          pregnancyType: formData.pregnancyType
+        });
       }
     } catch (error: any) {
       console.log("Login/Register error:", error);
@@ -94,8 +143,6 @@ export default function Login() {
         setErrors({ general: "Email ou senha incorretos" });
       } else if (errorMessage.includes("already exists") || errorMessage.includes("User already exists") || errorMessage.includes("já está cadastrado")) {
         setErrors({ email: "Este email já possui cadastro" });
-      } else if (errorMessage.includes("Data de nascimento inválida")) {
-        setErrors({ birthDate: "Data inválida" });
       } else if (error.response?.status === 401) {
         setErrors({ general: "Dados de login incorretos. Verifique email e senha." });
       } else {
@@ -142,17 +189,17 @@ export default function Login() {
   if (showForgotPassword) {
     return (
       <AnimatedBackground>
-        <div className="min-h-screen flex flex-col items-center justify-center p-6">
-          <div className="text-center mb-10">
-            <div className="mx-auto w-40 h-40 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+        <div className="min-h-screen flex flex-col items-center justify-start pt-16 p-6">
+          <div className="text-center mb-8">
+            <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-4 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
               <img 
                 src={logoImage} 
                 alt="Maternidade Logo" 
                 className="w-full h-full object-cover"
               />
             </div>
-            <h1 className="text-4xl font-bold text-charcoal mb-3">Esqueci minha senha</h1>
-            <p className="text-gray-600 text-lg">Digite seu email para recuperar a senha</p>
+            <h1 className="text-3xl font-bold text-charcoal mb-2">Esqueci minha senha</h1>
+            <p className="text-gray-600">Digite seu email para recuperar a senha</p>
           </div>
 
           <Card className="w-full max-w-md glass-effect shadow-2xl z-10">
@@ -218,9 +265,9 @@ export default function Login() {
 
   return (
     <AnimatedBackground>
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="text-center mb-10">
-          <div className="mx-auto w-40 h-40 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-6 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+      <div className="min-h-screen flex flex-col items-center justify-start pt-16 p-6">
+        <div className="text-center mb-8">
+          <div className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center mb-4 shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
             <img 
               src={logoImage} 
               alt="Maternidade Logo" 
@@ -228,8 +275,8 @@ export default function Login() {
               data-testid="img-logo"
             />
           </div>
-          <h1 className="text-4xl font-bold text-charcoal mb-3">Bem-vinda!</h1>
-          <p className="text-gray-600 text-lg">Acompanhe sua jornada maternal</p>
+          <h1 className="text-3xl font-bold text-charcoal mb-2">Bem-vinda!</h1>
+          <p className="text-gray-600">Acompanhe sua jornada maternal</p>
         </div>
 
         <Card className="w-full max-w-md glass-effect shadow-2xl z-10">
@@ -274,10 +321,47 @@ export default function Login() {
             )}
             
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {!isLoginMode && (
-                <div>
-                  <Label className="text-charcoal font-medium">Nome completo</Label>
+                <>
+                  {/* Foto de Perfil */}
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-baby-pink to-baby-blue flex items-center justify-center shadow-lg overflow-hidden">
+                        {profileImagePreview ? (
+                          <img 
+                            src={profileImagePreview} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-12 h-12 text-white" />
+                        )}
+                      </div>
+                      <label 
+                        htmlFor="profileImage"
+                        className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors border-2 border-pink-200"
+                      >
+                        <svg className="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </label>
+                      <input
+                        id="profileImage"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleProfileImageChange}
+                        className="hidden"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Toque para adicionar foto
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-charcoal font-medium">Nome completo</Label>
                   <div className="relative mt-1">
                     <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <Input
@@ -290,9 +374,10 @@ export default function Login() {
                     />
                   </div>
                   {errors.name && (
-                    <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                    <p className="text-red-500 text-sm mt-1 font-medium bg-red-50 px-2 py-1 rounded border border-red-200">{errors.name}</p>
                   )}
-                </div>
+                  </div>
+                </>
               )}
 
               <div>
@@ -300,16 +385,18 @@ export default function Login() {
                 <div className="relative mt-1">
                   <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                   <Input
-                    type="email"
+                    type="text"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="Digite seu email"
                     className="pl-10"
                     data-testid="input-email"
+                    autoComplete="email"
+                    noValidate
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  <p className="text-red-500 text-sm mt-1 font-medium bg-red-50 px-2 py-1 rounded border border-red-200">{errors.email}</p>
                 )}
               </div>
 
@@ -335,9 +422,79 @@ export default function Login() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                  <p className="text-red-500 text-sm mt-1 font-medium bg-red-50 px-2 py-1 rounded border border-red-200">{errors.password}</p>
                 )}
               </div>
+
+              {!isLoginMode && (
+                <>
+                  {/* Tipo de Cálculo da Gravidez */}
+                  <div>
+                    <Label className="text-charcoal font-medium">Como você prefere calcular?</Label>
+                    <div className="flex gap-3 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, pregnancyType: "lastMenstruation" })}
+                        className={`flex-1 flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.pregnancyType === "lastMenstruation"
+                            ? "border-pink-300 bg-pink-50 text-pink-700"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Última Menstruação
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, pregnancyType: "dueDate" })}
+                        className={`flex-1 flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.pregnancyType === "dueDate"
+                            ? "border-pink-300 bg-pink-50 text-pink-700"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Data Prevista
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Campo de Data */}
+                  <div>
+                    <Label className="text-charcoal font-medium">
+                      {formData.pregnancyType === "lastMenstruation" 
+                        ? "Data da última menstruação *" 
+                        : "Data prevista do parto *"
+                      }
+                    </Label>
+                    <div className="relative mt-1">
+                      <svg className="absolute left-3 top-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <Input
+                        type="date"
+                        value={formData.pregnancyDate}
+                        onChange={(e) => setFormData({ ...formData, pregnancyDate: e.target.value })}
+                        className="pl-10"
+                        data-testid="input-pregnancy-date"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formData.pregnancyType === "lastMenstruation" 
+                        ? "Calculamos automaticamente a data prevista do parto"
+                        : "Calculamos automaticamente a data da última menstruação"
+                      }
+                    </p>
+                    {errors.pregnancyDate && (
+                      <p className="text-red-500 text-sm mt-1 font-medium bg-red-50 px-2 py-1 rounded border border-red-200">{errors.pregnancyDate}</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               {isLoginMode && (
                 <div className="flex items-center justify-between">

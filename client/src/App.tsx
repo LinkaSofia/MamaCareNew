@@ -3,15 +3,16 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Suspense, Component } from "react";
+import { Suspense, Component, useEffect } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Auth provider removido - usando auth manager
 import { Layout } from "@/components/Layout";
+import { NotificationManager } from "./lib/notifications";
 
 // Import das páginas essenciais
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
-import PregnancySetup from "@/pages/pregnancy-setup";
+// import PregnancySetup from "@/pages/pregnancy-setup"; // REMOVIDO - dados coletados no registro
 import Setup from "@/pages/setup";
 import ResetPassword from "@/pages/reset-password";
 import Profile from "@/pages/profile";
@@ -58,7 +59,7 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/reset-password" component={ResetPassword} />
         <Route path="/forgot-password" component={ResetPassword} />
-        <Route path="/pregnancy-setup" component={PregnancySetup} />
+        {/* <Route path="/pregnancy-setup" component={PregnancySetup} /> */} {/* REMOVIDO - dados coletados no registro */}
         {/* <Route path="/setup" component={Setup} /> */} {/* REMOVIDO - Vai direto para pregnancy-setup */}
         
         {/* Páginas principais com layout */}
@@ -90,6 +91,30 @@ function Router() {
 }
 
 function App() {
+  // Inicializar notificações quando o app carrega
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      try {
+        // Configurar Service Worker
+        await NotificationManager.setupServiceWorker();
+        
+        // Solicitar permissão de notificação após 3 segundos
+        setTimeout(async () => {
+          const hasPermission = await NotificationManager.requestPermission();
+          if (hasPermission) {
+            console.log('✅ Notifications enabled');
+          } else {
+            console.log('❌ Notifications disabled');
+          }
+        }, 3000);
+      } catch (error) {
+        console.error('❌ Error initializing notifications:', error);
+      }
+    };
+
+    initializeNotifications();
+  }, []);
+
   return (
     <AnimatedBackground>
       <QueryClientProvider client={queryClient}>

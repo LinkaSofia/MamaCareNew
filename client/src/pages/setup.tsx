@@ -30,7 +30,7 @@ export default function Setup() {
         title: "Sucesso!",
         description: "Perfil atualizado com sucesso!",
       });
-      setLocation("/pregnancy-setup");
+      setLocation("/"); // Vai direto para o dashboard
     },
     onError: () => {
       toast({
@@ -69,7 +69,7 @@ export default function Setup() {
   };
 
   const handleSkip = () => {
-    setLocation("/pregnancy-setup");
+    setLocation("/"); // Vai direto para o dashboard
   };
 
   return (
@@ -80,7 +80,7 @@ export default function Setup() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/pregnancy-setup")}
+              onClick={() => setLocation("/")}
               className="text-gray-600 hover:text-gray-800"
               data-testid="button-back"
             >

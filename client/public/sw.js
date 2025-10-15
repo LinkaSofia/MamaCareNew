@@ -171,32 +171,78 @@ function doBackgroundSync() {
 
 // Push notifications
 self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data ? event.data.text() : 'Nova notificação da Maternidade',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+  console.log('📱 Push notification received:', event);
+  
+  let notificationData = {
+    title: '👶 MamaCare',
+    body: 'Venha ver como seu bebê está se desenvolvendo hoje!',
+    icon: '/icons/baby-192.png',
+    badge: '/icons/badge-72.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
+      primaryKey: 1,
+      url: '/'
+    }
+  };
+
+  // Se há dados no push, usar eles
+  if (event.data) {
+    try {
+      const pushData = event.data.json();
+      notificationData = { ...notificationData, ...pushData };
+    } catch (error) {
+      console.error('❌ Error parsing push data:', error);
+      notificationData.body = event.data.text() || notificationData.body;
+    }
+  }
+
+  const options = {
+    ...notificationData,
     actions: [
       {
-        action: 'explore',
-        title: 'Ver detalhes',
-        icon: '/icons/checkmark.png'
+        action: 'open',
+        title: 'Abrir App',
+        icon: '/icons/baby-192.png'
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/icons/xmark.png'
+        icon: '/icons/close-192.png'
       }
-    ]
+    ],
+    requireInteraction: false,
+    silent: false
   };
 
   event.waitUntil(
-    self.registration.showNotification('Maternidade App', options)
+    self.registration.showNotification(notificationData.title, options)
   );
+});
+
+// Clique em notificação
+self.addEventListener('notificationclick', (event) => {
+  console.log('📱 Notification clicked:', event);
+  
+  event.notification.close();
+
+  if (event.action === 'open' || !event.action) {
+    // Abrir o app
+    event.waitUntil(
+      clients.matchAll({ type: 'window' }).then(clientList => {
+        // Se já há uma janela aberta, focar nela
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Senão, abrir nova janela
+        if (clients.openWindow) {
+          return clients.openWindow('/');
+        }
+      })
+    );
+  }
 });
 
 // Escuta mensagens do cliente para forçar atualização
