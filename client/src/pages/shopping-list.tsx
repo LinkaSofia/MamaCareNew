@@ -534,22 +534,22 @@ export default function ShoppingList() {
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto bg-white/80 backdrop-blur-sm">
-            <TabsTrigger value="list" className="flex items-center py-2 px-3 text-xs md:text-sm">
-              <ShoppingCart className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Lista</span>
+          <TabsList className="grid w-full grid-cols-4 mb-4 h-12 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100">
+            <TabsTrigger value="list" className="flex flex-col items-center justify-center py-1 px-2 text-xs font-medium">
+              <ShoppingCart className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] leading-tight">Lista</span>
             </TabsTrigger>
-            <TabsTrigger value="suggestions" className="flex items-center py-2 px-3 text-xs md:text-sm">
-              <Lightbulb className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Sugestões</span>
+            <TabsTrigger value="suggestions" className="flex flex-col items-center justify-center py-1 px-2 text-xs font-medium">
+              <Lightbulb className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] leading-tight">Sugestões</span>
             </TabsTrigger>
-            <TabsTrigger value="budget" className="flex items-center py-2 px-3 text-xs md:text-sm">
-              <PieChart className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Orçamento</span>
+            <TabsTrigger value="budget" className="flex flex-col items-center justify-center py-1 px-2 text-xs font-medium">
+              <PieChart className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] leading-tight">Orçamento</span>
             </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center py-2 px-3 text-xs md:text-sm">
-              <Package className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Categorias</span>
+            <TabsTrigger value="categories" className="flex flex-col items-center justify-center py-1 px-2 text-xs font-medium">
+              <Package className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] leading-tight">Categorias</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1408,16 +1408,18 @@ export default function ShoppingList() {
 
       {/* Delete Confirmation Modal */}
       <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md mx-auto z-[9999]">
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. Isso excluirá permanentemente "{itemToDelete?.name}" da sua lista de compras.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelDelete}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={cancelDelete} className="w-full sm:w-auto">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600 w-full sm:w-auto">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

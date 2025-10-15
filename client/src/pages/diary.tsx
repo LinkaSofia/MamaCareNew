@@ -993,20 +993,20 @@ export default function Diary() {
 
             {/* Writing Prompts */}
             {currentPrompts.length > 0 && (
-              <Card className="mb-4 md:mb-6 bg-gradient-to-br from-pink-50/90 to-purple-50/90 backdrop-blur-sm border border-pink-200/50 rounded-3xl shadow-lg">
-                <CardContent className="p-3 md:p-6">
-                  <div className="flex flex-col items-center mb-3 md:mb-6">
-                    <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg mb-2 md:mb-3">
-                      <Lightbulb className="h-4 w-4 md:h-6 md:w-6 text-white" />
+              <Card className="mb-3 md:mb-6 bg-gradient-to-br from-pink-50/90 to-purple-50/90 backdrop-blur-sm border border-pink-200/50 rounded-2xl md:rounded-3xl shadow-md md:shadow-lg">
+                <CardContent className="p-2 md:p-6">
+                  <div className="flex flex-col items-center mb-2 md:mb-6">
+                    <div className="w-6 h-6 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg md:rounded-xl flex items-center justify-center shadow-md md:shadow-lg mb-1 md:mb-3">
+                      <Lightbulb className="h-3 w-3 md:h-6 md:w-6 text-white" />
                     </div>
-                    <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+                    <h3 className="text-sm md:text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
                     Inspiração para Escrever
                     </h3>
-                    <p className="text-xs md:text-sm text-gray-600 text-center mt-1">
+                    <p className="text-[10px] md:text-sm text-gray-600 text-center mt-0.5 md:mt-1">
                       Baseado na sua semana atual ({weekInfo?.week}ª)
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-3">
                     {currentPrompts.map((prompt, index) => (
                       <Card
                         key={index}
@@ -1014,15 +1014,15 @@ export default function Diary() {
                           setSelectedPrompt(prompt);
                           setShowAddForm(true);
                         }}
-                        className="cursor-pointer bg-white/95 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 rounded-2xl overflow-hidden group"
+                        className="cursor-pointer bg-white/95 backdrop-blur-sm hover:shadow-lg transition-all duration-300 border-0 rounded-xl md:rounded-2xl overflow-hidden group"
                       >
-                        <CardContent className="p-3 md:p-4">
-                          <div className="flex items-start space-x-2 md:space-x-3">
-                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 text-pink-600" />
+                        <CardContent className="p-2 md:p-4">
+                          <div className="flex items-start space-x-1.5 md:space-x-3">
+                            <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                              <MessageCircle className="w-3 h-3 md:w-5 md:h-5 text-pink-600" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs md:text-sm text-gray-700 leading-relaxed group-hover:text-pink-700 transition-colors">
+                              <p className="text-[10px] md:text-sm text-gray-700 leading-tight md:leading-relaxed group-hover:text-pink-700 transition-colors">
                                 {prompt}
                               </p>
                             </div>
