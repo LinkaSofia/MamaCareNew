@@ -760,7 +760,7 @@ export default function Diary() {
     } else {
       console.warn("⚠️ AVISO: Nenhum anexo para enviar! O usuário NÃO adicionou imagens/PDFs!");
     }
-    
+
     const entryData = {
       pregnancyId: pregnancy!.id,
       title: formData.title.trim(),
@@ -1131,20 +1131,20 @@ export default function Diary() {
                                       <FileText className="h-8 w-8 text-red-600 mb-1" />
                                       <span className="text-xs text-gray-700 text-center truncate max-w-full px-1">
                                         {attachment.name}
-                                      </span>
-                                    </div>
+                            </span>
+                          </div>
                                   )}
                                   {idx === 3 && entry.attachments && entry.attachments.length > 4 && (
                                     <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
                                       <span className="text-white text-sm font-bold">
                                         +{entry.attachments.length - 4}
-                                      </span>
+                      </span>
                                     </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                  </div>
                         )}
                 
                         {/* Content Preview */}
@@ -1248,32 +1248,32 @@ export default function Diary() {
                     className="min-h-[150px] resize-none bg-white/80 border-pink-200 focus:border-pink-400 focus:ring-pink-200"
                     required
                   />
-                </div>
+                  </div>
 
-                <div>
-                  <Label className="text-gray-700 font-medium">
-                    Semana da gestação
-                  </Label>
-                  <Select 
-                    value={formData.week} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, week: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={weekInfo ? `${weekInfo.week}ª semana (atual)` : "Selecione a semana"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 40 }, (_, i) => i + 1).map(week => (
-                        <SelectItem key={week} value={week.toString()}>
-                          {week}ª semana
-                          {milestones[week as keyof typeof milestones] && (
-                            <span className="ml-2 text-purple-600">
-                              • {milestones[week as keyof typeof milestones]}
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <Label className="text-gray-700 font-medium">
+                      Semana da gestação
+                    </Label>
+                    <Select 
+                      value={formData.week} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, week: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={weekInfo ? `${weekInfo.week}ª semana (atual)` : "Selecione a semana"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 40 }, (_, i) => i + 1).map(week => (
+                          <SelectItem key={week} value={week.toString()}>
+                            {week}ª semana
+                            {milestones[week as keyof typeof milestones] && (
+                              <span className="ml-2 text-purple-600">
+                                • {milestones[week as keyof typeof milestones]}
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                 </div>
 
                 <div>
