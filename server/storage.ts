@@ -706,14 +706,6 @@ export class DatabaseStorage implements IStorage {
     return results.length > 0 ? results[0] : null;
   }
 
-  async updateConsultation(id: string, data: Partial<Consultation>): Promise<Consultation> {
-    const [updated] = await db.update(consultations)
-      .set(data)
-      .where(eq(consultations.id, id))
-      .returning();
-    return updated;
-  }
-
   async deleteConsultation(id: string): Promise<void> {
     await db.delete(consultations)
       .where(eq(consultations.id, id));
@@ -1359,33 +1351,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserAnalytics(userId: string): Promise<any[]> {
-    try {
-      await this.ensureAnalyticsTablesExist();
-      
-      const result = await db.execute(sql`
-        SELECT * FROM user_analytics 
-        WHERE user_id = ${userId} 
-        ORDER BY timestamp DESC 
-        LIMIT 100
-      `);
-      
-      return result.rows.map(row => ({
-        id: row.id,
-        userId: row.user_id,
-        sessionId: row.session_id,
-        action: row.action,
-        page: row.page,
-        element: row.element,
-        duration: row.duration,
-        metadata: row.metadata,
-        timestamp: row.timestamp
-      }));
-    } catch (error) {
-      console.error("Error getting user analytics:", error);
-      return [];
-    }
-  }
 
   async getUserSessions(userId: string): Promise<any[]> {
     try {
@@ -1440,34 +1405,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAccessLogs(userId: string): Promise<any[]> {
-    try {
-      await this.ensureAnalyticsTablesExist();
-      
-      const result = await db.execute(sql`
-        SELECT * FROM access_logs 
-        WHERE user_id = ${userId} 
-        ORDER BY created_at DESC 
-        LIMIT 100
-      `);
-      
-      return result.rows.map(row => ({
-        id: row.id,
-        userId: row.user_id,
-        email: row.email,
-        action: row.action,
-        ipAddress: row.ip_address,
-        userAgent: row.user_agent,
-        success: row.success,
-        errorMessage: row.error_message,
-        sessionId: row.session_id,
-        createdAt: row.created_at
-      }));
-    } catch (error) {
-      console.error("Error getting access logs:", error);
-      return [];
-    }
-  }
 
   // Sistema de auditoria completa - métodos principais
   async createAuditLog(auditData: InsertAuditLog): Promise<AuditLog> {
