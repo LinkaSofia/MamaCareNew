@@ -478,6 +478,28 @@ export default function Dashboard() {
                       </p>
                     </div>
 
+                    {/* Seção de Comparação do Bebê */}
+                    {development.fruit_comparison && (
+                      <div className="bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl p-6 mb-6 border border-orange-200">
+                        <div className="text-center">
+                          <h4 className="text-lg font-bold text-gray-800 mb-4">
+                            Seu bebê é como...
+                          </h4>
+                          <div className="flex flex-col items-center">
+                            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg mb-4 border-2 border-orange-200">
+                              {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
+                            </div>
+                            <p className="text-xl font-bold text-orange-600">
+                              {development.fruit_comparison}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-2">
+                              Semana {currentWeek} de gestação
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Cards de Medidas - Tamanho e Peso */}
                     <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6">
                       <div className="bg-gradient-to-br from-pink-200 to-pink-400 backdrop-blur-sm border border-white/20 rounded-3xl p-4 md:p-6 shadow-xl hover:scale-105 transition-all duration-300">
