@@ -248,6 +248,11 @@ export default function ShoppingList() {
     value: cat.spent,
     color: cat.color
   }));
+  
+  // Debug: Log dos dados do gráfico
+  console.log('📊 Category Stats:', categoryStats);
+  console.log('📊 Pie Data:', pieData);
+  console.log('📊 Total Spent:', totalSpent);
 
   const addItemMutation = useMutation({
     mutationFn: async (item: any) => {
@@ -1023,15 +1028,15 @@ export default function ShoppingList() {
             </Card>
 
             {/* Spending Chart */}
-            {pieData.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <PieChart className="mr-2 h-5 w-5 text-purple-500" />
-                    Gastos por Categoria
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <PieChart className="mr-2 h-5 w-5 text-purple-500" />
+                  Gastos por Categoria
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pieData.length > 0 ? (
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPieChart data={pieData}>
@@ -1049,9 +1054,21 @@ export default function ShoppingList() {
                       </RechartsPieChart>
                     </ResponsiveContainer>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-center p-6">
+                    <div>
+                      <PieChart className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                      <p className="text-gray-500 text-sm">
+                        Nenhum gasto registrado ainda
+                      </p>
+                      <p className="text-gray-400 text-xs mt-2">
+                        Marque itens como comprados para visualizar os gastos por categoria
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Category Breakdown */}
             <Card>

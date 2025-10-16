@@ -618,7 +618,7 @@ export default function WeightTracking() {
 
       {/* Add weight modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 pb-20 z-50">
           <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
             <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
               <CardTitle className="text-2xl font-bold text-center">
@@ -701,7 +701,7 @@ export default function WeightTracking() {
 
       {/* Edit weight modal */}
       {showEditForm && editingRecord && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 pb-20 z-50">
           <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
             <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
               <CardTitle className="text-2xl font-bold text-center">

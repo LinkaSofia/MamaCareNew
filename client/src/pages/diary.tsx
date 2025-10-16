@@ -1224,8 +1224,8 @@ export default function Diary() {
 
       {/* Add/Edit Entry Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 pb-0 sm:pb-24 z-50">
-          <Card className="w-full sm:max-w-2xl h-[95vh] sm:max-h-[75vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 pb-20 z-50">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
             <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
               <CardTitle className="text-2xl font-bold text-center">
                 {editingEntry ? "Editar Entrada" : "Nova Entrada"}

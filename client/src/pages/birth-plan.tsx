@@ -323,11 +323,249 @@ export default function BirthPlan() {
     }
   };
 
+  // Função específica para mobile/PWA
+  const downloadPDFMobile = async () => {
+    if (!birthPlan) return;
+
+    try {
+      console.log('📱 Gerando PDF para mobile...');
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Plano de Parto - MamaCare</title>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              background: #ffffff;
+              font-size: 16px;
+              padding: 20px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            
+            .header {
+              text-align: center;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #ec4899;
+            }
+            
+            .logo-text {
+              font-size: 32px;
+              font-weight: 700;
+              color: #ec4899;
+              margin-bottom: 10px;
+            }
+            
+            .header h1 {
+              color: #1f2937;
+              font-size: 28px;
+              margin: 10px 0;
+              font-weight: 700;
+            }
+            
+            .section {
+              margin-bottom: 25px;
+              padding: 15px;
+              background: #f8f9fa;
+              border-radius: 10px;
+              border-left: 4px solid #ec4899;
+            }
+            
+            .section h3 {
+              color: #ec4899;
+              font-size: 18px;
+              margin-bottom: 10px;
+              font-weight: 600;
+            }
+            
+            .section p {
+              margin-bottom: 8px;
+              color: #555;
+            }
+            
+            .section strong {
+              color: #333;
+              font-weight: 600;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid #ddd;
+              color: #666;
+              font-size: 14px;
+            }
+            
+            @media print {
+              body { font-size: 12px; }
+              .section { break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo-text">MamaCare</div>
+            <h1>Plano de Parto</h1>
+            <p class="header-subtitle">Gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+          </div>
+          
+          <div class="section">
+            <h3>📍 Local do Parto</h3>
+            <p><strong>Local:</strong> ${birthPlan.location || 'Não informado'}</p>
+            <p><strong>Acompanhantes:</strong> ${birthPlan.companions || 'Não informado'}</p>
+            <p><strong>Preferência de médico:</strong> ${birthPlan.doctorPreference || 'Não informado'}</p>
+          </div>
+          
+          <div class="section">
+            <h3>🏠 Ambiente Desejado</h3>
+            <p><strong>Iluminação:</strong> ${birthPlan.lighting || 'Não informado'}</p>
+            <p><strong>Música:</strong> ${birthPlan.music ? 'Sim' : 'Não'}</p>
+            <p><strong>Liberdade de movimento:</strong> ${birthPlan.movement ? 'Sim' : 'Não'}</p>
+          </div>
+          
+          <div class="section">
+            <h3>💊 Alívio da Dor</h3>
+            <p><strong>Métodos naturais:</strong> ${birthPlan.painReliefNatural ? 'Sim' : 'Não'}</p>
+            <p><strong>Epidural:</strong> ${birthPlan.painReliefEpidural ? 'Sim' : 'Não'}</p>
+            <p><strong>Outros métodos:</strong> ${birthPlan.painReliefOther || 'Não informado'}</p>
+          </div>
+          
+          <div class="section">
+            <h3>🤱 Durante o Trabalho de Parto</h3>
+            <p><strong>Posição preferida:</strong> ${birthPlan.laborPosition || 'Não informado'}</p>
+            <p><strong>Monitoramento:</strong> ${birthPlan.monitoring || 'Não informado'}</p>
+            <p><strong>Hidratação e alimentação:</strong> ${birthPlan.hydrationFood ? 'Sim' : 'Não'}</p>
+          </div>
+          
+          <div class="section">
+            <h3>👶 Durante o Parto</h3>
+            <p><strong>Tipo de parto:</strong> ${birthPlan.deliveryType || 'Não informado'}</p>
+            <p><strong>Episiotomia:</strong> ${birthPlan.episiotomy || 'Não informado'}</p>
+            <p><strong>Corte do cordão:</strong> ${birthPlan.umbilicalCord || 'Não informado'}</p>
+            <p><strong>Contato pele a pele:</strong> ${birthPlan.skinToSkin ? 'Sim' : 'Não'}</p>
+          </div>
+          
+          <div class="section">
+            <h3>🍼 Pós-Parto</h3>
+            <p><strong>Amamentação:</strong> ${birthPlan.breastfeeding || 'Não informado'}</p>
+            <p><strong>Banho do bebê:</strong> ${birthPlan.babyBath || 'Não informado'}</p>
+            <p><strong>Presença do acompanhante:</strong> ${birthPlan.companionPresence ? 'Sim' : 'Não'}</p>
+          </div>
+          
+          <div class="footer">
+            <p>Este plano de parto foi criado com o MamaCare</p>
+            <p>Para mais informações, consulte seu médico</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Método 1: Tentar abrir em nova janela para impressão
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        // Aguardar carregamento e imprimir
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+          
+          // Fechar janela após impressão
+          setTimeout(() => {
+            printWindow.close();
+          }, 1000);
+        }, 500);
+        
+        toast({
+          title: "📄 Abrindo para Impressão",
+          description: "Seu plano de parto foi aberto em uma nova janela para impressão.",
+        });
+        
+        return;
+      }
+      
+      // Método 2: Fallback - mostrar conteúdo na tela
+      throw new Error('Não foi possível abrir nova janela');
+      
+    } catch (error) {
+      console.error('❌ Erro no método mobile:', error);
+      
+      // Método 3: Fallback final - mostrar em modal
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      `;
+      
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 90%;
+        max-height: 90%;
+        overflow-y: auto;
+        position: relative;
+      `;
+      
+      content.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="color: #ec4899; margin: 0;">Plano de Parto</h2>
+          <button onclick="this.closest('.modal').remove()" style="background: #ec4899; color: white; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer;">Fechar</button>
+        </div>
+        ${htmlContent.split('<body>')[1].split('</body>')[0]}
+      `;
+      
+      modal.className = 'modal';
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      toast({
+        title: "📱 Plano de Parto",
+        description: "Seu plano de parto foi exibido na tela. Use o botão de compartilhar do seu navegador para salvar.",
+      });
+    }
+  };
+
   const downloadPDF = async () => {
     if (!birthPlan) return;
 
     try {
-      // Importar html2pdf dinamicamente com fallback
+      console.log('🔄 Iniciando download do PDF...');
+      
+      // Detectar se é mobile/PWA
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      
+      console.log('📱 Dispositivo:', { isMobile, isPWA });
+      
+      // Para mobile/PWA, usar método mais simples
+      if (isMobile || isPWA) {
+        console.log('📱 Usando método mobile para PDF...');
+        await downloadPDFMobile();
+        return;
+      }
+      
+      // Para desktop, usar html2pdf
+      console.log('💻 Usando html2pdf para desktop...');
       const html2pdf = (await import('html2pdf.js')).default;
     
     const htmlContent = `
@@ -335,12 +573,11 @@ export default function BirthPlan() {
       <html>
       <head>
         <title>Plano de Parto - MamaCare</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
           @page { 
-            margin: 0; 
+            margin: 15mm; 
             size: A4;
           }
           
@@ -351,74 +588,44 @@ export default function BirthPlan() {
           }
           
           body {
-            font-family: 'Poppins', sans-serif;
-            line-height: 1.8;
-            color: #4a5568;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
             background: #ffffff;
-            position: relative;
-            overflow: hidden;
+            font-size: 14px;
           }
           
-          /* Fundo com corações decorativos - REMOVIDOS PARA PDF LIMPO */
-          
           .container {
-            position: relative;
-            z-index: 1;
-            max-width: 750px;
+            max-width: 210mm;
             margin: 0 auto;
-            padding: 40px;
+            padding: 20px;
             background: #ffffff;
-            min-height: 100vh;
           }
           
           .header {
             text-align: center;
-            padding-bottom: 30px;
-            margin-bottom: 40px;
-            border-bottom: 3px solid #ec4899;
-          }
-          
-          .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 15px;
-          }
-          
-          .logo-icon {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid #ec4899;
-          }
-          
-          .logo-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ec4899;
           }
           
           .logo-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 42px;
+            font-size: 28px;
             font-weight: 700;
             color: #ec4899;
+            margin-bottom: 10px;
           }
           
           .header h1 {
-            font-family: 'Playfair Display', serif;
             color: #1f2937;
-            font-size: 32px;
-            margin: 15px 0 10px 0;
+            font-size: 24px;
+            margin: 10px 0;
             font-weight: 700;
           }
           
           .header-subtitle {
-            color: #9ca3af;
-            font-size: 14px;
-            font-weight: 300;
+            color: #666;
+            font-size: 12px;
             font-style: italic;
           }
           
