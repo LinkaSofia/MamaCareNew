@@ -196,21 +196,21 @@ export default function Dashboard() {
   console.log('🔍 Dashboard - pregnancyLoading:', pregnancyLoading);
   console.log('🔍 Dashboard - weekInfo:', weekInfo);
 
-  if (!pregnancy && !pregnancyLoading) {
-    // Se não há dados de gravidez E não está carregando, mostrar mensagem ou redirecionar para configuração
-    console.log('⚠️ Mostrando tela de configuração necessária');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Configuração necessária</h2>
-          <p className="text-gray-600 mb-6">Complete seus dados de gravidez para continuar.</p>
-          <Button onClick={() => setLocation("/profile")} className="bg-pink-500 hover:bg-pink-600">
-            Ir para Perfil
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // DESABILITADO: Tela de configuração necessária
+  // if (!pregnancy && !pregnancyLoading) {
+  //   console.log('⚠️ Mostrando tela de configuração necessária');
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
+  //       <div className="text-center">
+  //         <h2 className="text-2xl font-bold text-gray-800 mb-4">Configuração necessária</h2>
+  //         <p className="text-gray-600 mb-6">Complete seus dados de gravidez para continuar.</p>
+  //         <Button onClick={() => setLocation("/profile")} className="bg-pink-500 hover:bg-pink-600">
+  //           Ir para Perfil
+  //         </Button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (!weekInfo) {
   return (
@@ -824,51 +824,7 @@ export default function Dashboard() {
               </>
             )}
 
-            {currentWeek > 3 && (
-              <>
-                <div className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50" data-testid="expert-content-1">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-sm">📋</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Mantenha o Pré-natal em Dia</h4>
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        Continue as consultas regulares e exames de rotina conforme orientação médica. O acompanhamento é essencial para sua saúde e do bebê.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl border-l-4 border-green-400 bg-green-50" data-testid="expert-content-2">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-sm">🍎</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 text-sm mb-2">Alimentação Saudável</h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      Mantenha uma dieta equilibrada rica em frutas, vegetais, proteínas e grãos integrais. Evite alimentos crus ou mal cozidos.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl border-l-4 border-purple-400 bg-purple-50" data-testid="expert-content-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-sm">💆‍♀️</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 text-sm mb-2">Cuide do seu Bem-estar</h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      Pratique técnicas de relaxamento, durma adequadamente e mantenha-se hidratada. Seu bem-estar reflete na saúde do bebê.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </>
-              )}
+            {/* CONTEÚDO DE ESPECIALISTAS REMOVIDO */}
             </div>
           )}
       {/* </div> */}
