@@ -30,11 +30,20 @@ export class NotificationScheduler {
       timezone: "America/Sao_Paulo"
     });
 
+    // Verificar consultas a cada hora (para notificações 24h antes)
+    cron.schedule('0 * * * *', async () => {
+      console.log("📅 Checking for upcoming consultations (hourly)");
+      await NotificationService.sendConsultationNotifications();
+    }, {
+      timezone: "America/Sao_Paulo"
+    });
+
     // Notificação de teste a cada 5 minutos (apenas em desenvolvimento)
     if (process.env.NODE_ENV === 'development') {
       cron.schedule('*/5 * * * *', async () => {
         console.log("🧪 Test notification (development only)");
         // await NotificationService.sendDailyNotifications();
+        // await NotificationService.sendConsultationNotifications();
       });
     }
 
@@ -63,5 +72,11 @@ export class NotificationScheduler {
   static async sendTestNotification(): Promise<void> {
     console.log("🧪 Sending test notification...");
     await NotificationService.sendDailyNotifications();
+  }
+
+  // Enviar teste de notificação de consulta
+  static async sendTestConsultationNotification(): Promise<void> {
+    console.log("🧪 Testing consultation notification...");
+    await NotificationService.sendConsultationNotifications();
   }
 }

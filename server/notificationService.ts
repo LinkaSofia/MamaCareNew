@@ -190,4 +190,173 @@ export class NotificationService {
       console.error("❌ Error sending daily notifications:", error);
     }
   }
+
+  // ==================== NOTIFICAÇÕES DE CONSULTAS ====================
+  
+  // Obter consultas que precisam de notificação 24h antes
+  static async getConsultationsFor24hNotification(): Promise<any[]> {
+    try {
+      const now = new Date();
+      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      
+      // Buscar consultas que acontecem em ~24 horas e ainda não foram notificadas
+      const result = await db.execute(sql`
+        SELECT 
+          c.id as consultation_id,
+          c.user_id,
+          c.title,
+          c.date,
+          c.location,
+          c.doctor_name,
+          c.pregnancy_id
+        FROM consultations c
+        WHERE c.date >= ${now.toISOString()}
+          AND c.date <= ${in24Hours.toISOString()}
+          AND c.completed = false
+          AND NOT EXISTS (
+            SELECT 1 
+            FROM consultation_notifications cn 
+            WHERE cn.consultation_id = c.id 
+              AND cn.notification_type = '24h_reminder'
+              AND cn.sent = true
+          )
+      `);
+      
+      return result;
+    } catch (error) {
+      console.error("❌ Error getting consultations for 24h notification:", error);
+      return [];
+    }
+  }
+
+  // Criar registro de notificação agendada
+  static async scheduleConsultationNotification(
+    consultationId: string,
+    userId: string,
+    notificationType: string,
+    scheduledFor: Date
+  ): Promise<void> {
+    try {
+      await db.execute(sql`
+        INSERT INTO consultation_notifications (
+          consultation_id,
+          user_id,
+          notification_type,
+          scheduled_for,
+          sent,
+          created_at
+        ) VALUES (
+          ${consultationId},
+          ${userId},
+          ${notificationType},
+          ${scheduledFor.toISOString()},
+          false,
+          NOW()
+        )
+        ON CONFLICT (consultation_id, notification_type, scheduled_for) DO NOTHING
+      `);
+      
+      console.log(`✅ Scheduled notification for consultation ${consultationId}`);
+    } catch (error) {
+      console.error("❌ Error scheduling consultation notification:", error);
+    }
+  }
+
+  // Marcar notificação como enviada
+  static async markNotificationAsSent(notificationId: string): Promise<void> {
+    try {
+      await db.execute(sql`
+        UPDATE consultation_notifications
+        SET sent = true,
+            sent_at = NOW()
+        WHERE id = ${notificationId}
+      `);
+      
+      console.log(`✅ Marked notification ${notificationId} as sent`);
+    } catch (error) {
+      console.error("❌ Error marking notification as sent:", error);
+    }
+  }
+
+  // Obter mensagem de notificação de consulta
+  static getConsultationNotificationMessage(consultation: any): NotificationMessage {
+    const consultationDate = new Date(consultation.date);
+    const timeString = consultationDate.toLocaleTimeString('pt-BR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    
+    const locationText = consultation.location 
+      ? ` em ${consultation.location}` 
+      : '';
+    
+    const doctorText = consultation.doctor_name 
+      ? ` com ${consultation.doctor_name}` 
+      : '';
+
+    return {
+      title: "📅 Lembrete de Consulta",
+      body: `${consultation.title}${doctorText}${locationText} amanhã às ${timeString}`,
+      icon: "/icons/calendar-192.png",
+      badge: "/icons/badge-72.png",
+      data: {
+        type: 'consultation_reminder',
+        consultationId: consultation.consultation_id,
+        url: '/consultations'
+      }
+    };
+  }
+
+  // Enviar notificações de consultas agendadas
+  static async sendConsultationNotifications(): Promise<void> {
+    try {
+      console.log("📅 Starting consultation notifications check...");
+      
+      const consultations = await this.getConsultationsFor24hNotification();
+      console.log(`📅 Found ${consultations.length} consultations to notify`);
+
+      for (const consultation of consultations) {
+        try {
+          // Criar registro de notificação
+          await this.scheduleConsultationNotification(
+            consultation.consultation_id,
+            consultation.user_id,
+            '24h_reminder',
+            new Date()
+          );
+
+          // Obter mensagem personalizada
+          const message = this.getConsultationNotificationMessage(consultation);
+
+          // Enviar notificação
+          const sent = await this.sendNotificationToUser(consultation.user_id, message);
+
+          if (sent) {
+            // Buscar o ID da notificação criada e marcar como enviada
+            const notificationResult = await db.execute(sql`
+              SELECT id FROM consultation_notifications
+              WHERE consultation_id = ${consultation.consultation_id}
+                AND notification_type = '24h_reminder'
+                AND sent = false
+              ORDER BY created_at DESC
+              LIMIT 1
+            `);
+            
+            if (notificationResult.length > 0) {
+              await this.markNotificationAsSent(notificationResult[0].id);
+            }
+          }
+
+          // Pequena pausa entre notificações
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.error(`❌ Error sending notification for consultation ${consultation.consultation_id}:`, error);
+        }
+      }
+
+      console.log("✅ Consultation notifications sent successfully");
+    } catch (error) {
+      console.error("❌ Error sending consultation notifications:", error);
+    }
+  }
 }

@@ -145,6 +145,17 @@ export const consultations = pgTable("consultations", {
   completed: boolean("completed").default(false),
 });
 
+export const consultationNotifications = pgTable("consultation_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  consultationId: varchar("consultation_id").references(() => consultations.id, { onDelete: "cascade" }).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  notificationType: varchar("notification_type").notNull().default("24h_reminder"),
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  sentAt: timestamp("sent_at"),
+  sent: boolean("sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const shoppingItems = pgTable("shopping_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   pregnancyId: varchar("pregnancy_id").references(() => pregnancies.id).notNull(),
@@ -311,6 +322,7 @@ export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: t
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true }).extend({
   date: z.string().transform((val) => new Date(val)),
 });
+export const insertConsultationNotificationSchema = createInsertSchema(consultationNotifications).omit({ id: true, createdAt: true });
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
 export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true });
 // Schema base para inserção (sem transformações)
@@ -384,6 +396,8 @@ export type BirthPlan = typeof birthPlans.$inferSelect;
 export type InsertBirthPlan = z.infer<typeof insertBirthPlanSchema>;
 export type Consultation = typeof consultations.$inferSelect;
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+export type ConsultationNotification = typeof consultationNotifications.$inferSelect;
+export type InsertConsultationNotification = z.infer<typeof insertConsultationNotificationSchema>;
 export type ShoppingItem = typeof shoppingItems.$inferSelect;
 export type InsertShoppingItem = z.infer<typeof insertShoppingItemSchema>;
 export type Photo = typeof photos.$inferSelect;

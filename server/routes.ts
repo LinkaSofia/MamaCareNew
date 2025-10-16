@@ -3120,6 +3120,26 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     }
   });
 
+  // Testar notificação de consulta
+  app.post("/api/notifications/test-consultation", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId;
+      console.log(`🧪 Testing consultation notification for user ${userId}`);
+      
+      // Enviar teste de notificação de consulta
+      await NotificationScheduler.sendTestConsultationNotification();
+      
+      res.json({ 
+        success: true, 
+        message: "Consultation notification test sent",
+        userId 
+      });
+    } catch (error) {
+      console.error("Error sending consultation notification test:", error);
+      res.status(500).json({ error: "Failed to send consultation notification test" });
+    }
+  });
+
   // Obter status do agendador de notificações
   app.get("/api/notifications/status", requireAuth, async (req, res) => {
     try {
