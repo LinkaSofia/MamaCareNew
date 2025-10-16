@@ -50,44 +50,43 @@
         console.log('🔧 Modo desenvolvimento');
       }
       
-      // LIMPEZA INTELIGENTE DE CACHE
+      // LIMPEZA FORÇADA DE CACHE PARA PWA
       if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        const lastCleanup = localStorage.getItem('lastCacheCleanup');
-        const now = Date.now();
-        const oneDay = 24 * 60 * 60 * 1000; // 24 horas
+        console.log('🚨 FORÇANDO LIMPEZA DE CACHE PWA...');
         
-        // Só limpa cache se passou mais de 1 dia
-        if (!lastCleanup || (now - parseInt(lastCleanup)) > oneDay) {
-          console.log('🧹 Limpando cache (primeira vez ou após 24h)...');
-          
-          // Desregistrar service workers antigos
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-              for(let registration of registrations) {
-                console.log('🗑️ Desregistrando SW antigo:', registration);
-                registration.unregister();
-              }
-            });
-          }
-          
-          // Limpar caches antigos (mas manter dados importantes)
-          if ('caches' in window) {
-            caches.keys().then(function(names) {
-              for (let name of names) {
-                if (name.includes('vite') || name.includes('static')) {
-                  console.log('🗑️ Removendo cache antigo:', name);
-                  caches.delete(name);
-                }
-              }
-            });
-          }
-          
-          // Salvar timestamp da limpeza
-          localStorage.setItem('lastCacheCleanup', now.toString());
-          console.log('✅ Cache limpo e timestamp salvo');
-        } else {
-          console.log('✅ Cache ainda válido, não precisa limpar');
+        // Desregistrar TODOS os service workers
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              console.log('🗑️ Desregistrando SW:', registration);
+              registration.unregister();
+            }
+          });
         }
+        
+        // Limpar TODOS os caches
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) {
+              console.log('🗑️ Removendo cache:', name);
+              caches.delete(name);
+            }
+          });
+        }
+        
+        // Limpar localStorage e sessionStorage (exceto dados importantes)
+        const keepKeys = ['user', 'auth', 'pregnancy'];
+        const allKeys = Object.keys(localStorage);
+        for (let key of allKeys) {
+          if (!keepKeys.some(keep => key.includes(keep))) {
+            console.log('🗑️ Removendo localStorage:', key);
+            localStorage.removeItem(key);
+          }
+        }
+        
+        sessionStorage.clear();
+        
+        console.log('✅ CACHE PWA COMPLETAMENTE LIMPO!');
       }
       
       // Log any errors
