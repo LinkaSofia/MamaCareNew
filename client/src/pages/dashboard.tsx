@@ -543,16 +543,16 @@ export default function Dashboard() {
           </div>
 
 
-        {/* Seção de Conteúdos de Especialistas */}
-      <div className="glass-effect rounded-2xl p-5 mx-4 mt-6 backdrop-blur-md bg-white/80">
-        <div className="flex items-center gap-2 mb-4">
+        {/* Seção de Conteúdos de Especialistas - REMOVIDA */}
+      {/* <div className="glass-effect rounded-2xl p-5 mx-4 mt-6 backdrop-blur-md bg-white/80"> */}
+        {/* <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
             <span className="text-white text-sm">👩‍⚕️</span>
           </div>
           <h3 className="text-lg font-semibold text-gray-800">
             Conteúdos para Você - Semana {currentWeek}
           </h3>
-        </div>
+        </div> */}
         
           {/* Loading state */}
           {isArticlesLoading && (
@@ -865,7 +865,7 @@ export default function Dashboard() {
               )}
             </div>
           )}
-      </div>
+      {/* </div> */}
       
         {/* Card da próxima consulta */}
       <div className="mx-4 mt-4">
