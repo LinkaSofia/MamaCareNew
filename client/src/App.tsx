@@ -3,11 +3,12 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Suspense, Component, useEffect } from "react";
+import { Suspense, Component, useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Auth provider removido - usando auth manager
 import { Layout } from "@/components/Layout";
 import { NotificationManager } from "./lib/notifications";
+import { SplashScreen } from "@/components/SplashScreen";
 
 // Import das páginas essenciais
 import Login from "@/pages/login";
@@ -91,6 +92,8 @@ function Router() {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
   // Inicializar notificações quando o app carrega
   useEffect(() => {
     const initializeNotifications = async () => {
@@ -115,6 +118,10 @@ function App() {
     initializeNotifications();
   }, []);
 
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
   return (
     <AnimatedBackground>
       <QueryClientProvider client={queryClient}>
@@ -131,9 +138,14 @@ function App() {
               onUpdateInstalled={() => console.log('✅ Atualização instalada')}
             />
             {/* <DebugCacheButton /> */}
-            <div className="App">
-              <Router />
-            </div>
+            
+            {showSplash ? (
+              <SplashScreen onComplete={handleSplashComplete} />
+            ) : (
+              <div className="App">
+                <Router />
+              </div>
+            )}
           </Suspense>
         </TooltipProvider>
       </QueryClientProvider>
