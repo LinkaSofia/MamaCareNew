@@ -191,8 +191,14 @@ export default function Dashboard() {
     );
   }
 
-  if (!pregnancy) {
-    // Se não há dados de gravidez, mostrar mensagem ou redirecionar para configuração
+  // Log para debug
+  console.log('🔍 Dashboard - pregnancy:', pregnancy);
+  console.log('🔍 Dashboard - pregnancyLoading:', pregnancyLoading);
+  console.log('🔍 Dashboard - weekInfo:', weekInfo);
+
+  if (!pregnancy && !pregnancyLoading) {
+    // Se não há dados de gravidez E não está carregando, mostrar mensagem ou redirecionar para configuração
+    console.log('⚠️ Mostrando tela de configuração necessária');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
         <div className="text-center">

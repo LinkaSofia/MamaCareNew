@@ -75,20 +75,31 @@ export default function Profile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Atualizar dados do usuário
-      const userResponse = await apiRequest("PUT", "/api/auth/profile", {
-        name: data.name,
-        birthDate: data.birthDate ? new Date(data.birthDate) : null
-      });
+      console.log('🔄 Salvando perfil:', data);
       
-      // Se tem dados de gravidez e DUM foi alterada, atualizar a gravidez
-      if (pregnancy && data.lastMenstrualPeriod) {
-        await apiRequest("PUT", `/api/pregnancies/${pregnancy.id}`, {
-          lastMenstrualPeriod: new Date(data.lastMenstrualPeriod)
+      try {
+        // Atualizar dados do usuário
+        console.log('📝 Atualizando dados do usuário...');
+        const userResponse = await apiRequest("PUT", "/api/auth/profile", {
+          name: data.name,
+          birthDate: data.birthDate ? new Date(data.birthDate) : null
         });
+        console.log('✅ Usuário atualizado:', userResponse);
+        
+        // Se tem dados de gravidez e DUM foi alterada, atualizar a gravidez
+        if (pregnancy && data.lastMenstrualPeriod) {
+          console.log('🤰 Atualizando dados de gravidez...');
+          await apiRequest("PUT", `/api/pregnancies/${pregnancy.id}`, {
+            lastMenstrualPeriod: new Date(data.lastMenstrualPeriod)
+          });
+          console.log('✅ Gravidez atualizada');
+        }
+        
+        return userResponse.json();
+      } catch (error) {
+        console.error('❌ Erro ao salvar perfil:', error);
+        throw error;
       }
-      
-      return userResponse.json();
     },
     onSuccess: () => {
       toast({
@@ -506,14 +517,15 @@ export default function Profile() {
                       </p>
                     </div>
                     
-                    {pregnancy.lastMenstrualPeriod && (
-                      <div className="p-3 bg-pink-50 rounded-lg">
-                        <Label className="text-sm text-gray-600">Última Menstruação (DUM)</Label>
-                        <p className="font-medium text-pink-700" data-testid="display-last-menstrual-period">
-                          {new Date(pregnancy.lastMenstrualPeriod).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                    )}
+                    <div className="p-3 bg-pink-50 rounded-lg">
+                      <Label className="text-sm text-gray-600">Última Menstruação (DUM)</Label>
+                      <p className="font-medium text-pink-700" data-testid="display-last-menstrual-period">
+                        {pregnancy.lastMenstrualPeriod 
+                          ? new Date(pregnancy.lastMenstrualPeriod).toLocaleDateString('pt-BR')
+                          : "Não informado"
+                        }
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
