@@ -10,7 +10,7 @@ Criei um splash screen **super animado e criativo** para o app MamaCare com dura
 
 ### **🎬 Animações Sequenciais:**
 1. **0.3s** - Partículas começam a flutuar
-2. **0.5s** - Digitação do nome "Maternity" inicia
+2. **0.5s** - Digitação do nome "MamaCare" inicia
 3. **0.8s** - Coração 💕 aparece com animação
 4. **1.2s** - Subtítulo aparece: "Sua jornada maternal começa aqui"
 5. **1.7s** - Barra de progresso animada
@@ -30,7 +30,7 @@ Criei um splash screen **super animado e criativo** para o app MamaCare com dura
 - Movimento orgânico com rotação e escala
 - Aparecem e desaparecem suavemente
 
-#### **3. Texto "Maternity":**
+#### **3. Texto "MamaCare":**
 - Efeito de digitação realista
 - Gradiente animado que se move
 - Cursor piscante
@@ -102,7 +102,7 @@ Dourado Suave: #fbbf24
                       │
 ┌─────────────────────────────────────────────────────────────┐
 │  0.5s ───────────────────────────────────────────────────── │
-│  • Digitação "Maternity" inicia                             │
+│  • Digitação "MamaCare" inicia                              │
 │  • Efeito de brilho rotativo                               │
 └─────────────────────┬───────────────────────────────────────┘
                       │
@@ -241,7 +241,7 @@ const completeTimer = setTimeout(() => {
 ### **Alterar Texto:**
 ```typescript
 // Em SplashScreen.tsx
-const fullText = "Seu Nome Aqui";
+const fullText = "MamaCare";
 ```
 
 ---

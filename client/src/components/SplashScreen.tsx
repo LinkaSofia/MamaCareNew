@@ -12,7 +12,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
 
-  const fullText = "Maternity";
+  const fullText = "MamaCare";
   const typingSpeed = 120;
 
   useEffect(() => {
