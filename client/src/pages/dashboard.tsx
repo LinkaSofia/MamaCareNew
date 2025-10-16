@@ -67,7 +67,10 @@ export default function Dashboard() {
   };
 
   const backToCurrentWeek = () => {
+    console.log('🔄 Botão "Voltar para semana atual" clicado!');
+    console.log('📊 Estados atuais:', { viewingWeek, weekInfo: weekInfo?.week });
     setViewingWeek(null);
+    console.log('✅ viewingWeek resetado para null');
   };
 
   // Estados para touch/swipe
@@ -435,7 +438,15 @@ export default function Dashboard() {
 
 
           {/* Botão Voltar para Semana Atual - Fora dos cards */}
-          {viewingWeek && viewingWeek !== weekInfo?.week && (
+          {(() => {
+            const shouldShow = viewingWeek && viewingWeek !== weekInfo?.week;
+            console.log('🔍 Verificando se deve mostrar botão:', { 
+              viewingWeek, 
+              weekInfoWeek: weekInfo?.week, 
+              shouldShow 
+            });
+            return shouldShow;
+          })() && (
             <div className="flex justify-center mb-4">
               <button 
                 onClick={backToCurrentWeek}
