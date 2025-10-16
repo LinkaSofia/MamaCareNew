@@ -69,8 +69,15 @@ export default function Dashboard() {
   const backToCurrentWeek = () => {
     console.log('🔄 Botão "Voltar para semana atual" clicado!');
     console.log('📊 Estados atuais:', { viewingWeek, weekInfo: weekInfo?.week });
+    
+    // Forçar atualização imediata
     setViewingWeek(null);
-    console.log('✅ viewingWeek resetado para null');
+    
+    // Log adicional para debug
+    setTimeout(() => {
+      console.log('✅ viewingWeek após reset:', viewingWeek);
+      console.log('✅ weekInfo após reset:', weekInfo?.week);
+    }, 100);
   };
 
   // Estados para touch/swipe
@@ -147,7 +154,7 @@ export default function Dashboard() {
   // Função para renderizar imagem de comparação
   const renderComparisonImage = (fruitComparison: string, fruitImageUrl?: string | null, size: 'small' | 'large' = 'large') => {
     if (fruitImageUrl && isValidImageUrl(fruitImageUrl)) {
-      const imageSize = size === 'small' ? 'w-16 h-16' : 'w-28 h-28';
+      const imageSize = size === 'small' ? 'w-24 h-24' : 'w-44 h-44';
       return (
         <img 
           src={convertDatabaseUrlToValidUrl(fruitImageUrl)} 
@@ -156,7 +163,7 @@ export default function Dashboard() {
         />
       );
     }
-    const emojiSize = size === 'small' ? 'text-3xl' : 'text-7xl';
+    const emojiSize = size === 'small' ? 'text-5xl' : 'text-9xl';
     return <span className={emojiSize}>{getFruitEmoji(fruitComparison)}</span>;
   };
 
@@ -213,22 +220,10 @@ export default function Dashboard() {
   // }
 
   if (!weekInfo) {
-  return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50">
-        <div className="text-center p-6">
-          <Baby className="mx-auto h-12 w-12 text-pink-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Erro ao calcular semana
-                  </h2>
-          <p className="text-gray-600 mb-4">
-            Verifique os dados da sua gravidez
-          </p>
-          <Button onClick={() => setLocation("/setup")} variant="outline">
-            Configurar
-          </Button>
-                </div>
-                  </div>
-    );
+    // Se não conseguiu calcular a semana, redirecionar para login
+    console.log('⚠️ Erro ao calcular semana - redirecionando para login');
+    setLocation("/login");
+    return null;
   }
 
   // Processar informações como texto corrido
@@ -453,13 +448,25 @@ export default function Dashboard() {
             });
             return shouldShow;
           })() && (
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-4 relative z-50">
               <button 
-                onClick={backToCurrentWeek}
-                className="btn-soft text-sm px-4 py-2 rounded-full shadow-lg hover:scale-105 transition-all duration-200"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🖱️ Evento de clique capturado!');
+                  backToCurrentWeek();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('👆 Evento de touch capturado!');
+                  backToCurrentWeek();
+                }}
+                className="bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white text-sm px-6 py-3 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 font-medium cursor-pointer select-none"
                 data-testid="button-back-to-current-week"
+                style={{ touchAction: 'manipulation' }}
               >
-                Voltar para semana atual ({weekInfo?.week})
+                📅 Voltar para semana atual ({weekInfo?.week}ª)
               </button>
             </div>
           )}
@@ -480,14 +487,14 @@ export default function Dashboard() {
 
                     {/* Seção de Comparação do Bebê */}
                     {development.fruit_comparison && (
-                      <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-gray-200 shadow-lg">
+                      <div className="bg-gradient-to-br from-blue-200 to-purple-200 backdrop-blur-sm border border-white/20 rounded-2xl p-3 mb-4 shadow-xl">
                         <div className="text-center">
                           <div className="flex flex-col items-center">
-                            <div className="w-32 h-32 mb-4 flex items-center justify-center">
+                            <div className="w-48 h-48 mb-2 flex items-center justify-center">
                               {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
                             </div>
                             <p className="text-lg font-bold text-gray-800">
-                              Seu bebê é como {development.fruit_comparison}
+                              Seu bebê é como {development.fruit_comparison.startsWith('uma ') || development.fruit_comparison.startsWith('um ') ? development.fruit_comparison : `uma ${development.fruit_comparison}`}
                             </p>
                           </div>
                         </div>
@@ -869,7 +876,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab("baby")}
             className={`flex-1 py-3 px-6 rounded-full text-sm font-medium transition-all ${
               activeTab === "baby"
-                ? "bg-white text-blue-600 shadow-lg"
+                ? "bg-pink-500 text-white shadow-lg"
                 : "text-gray-600"
             }`}
             data-testid="tab-baby"
