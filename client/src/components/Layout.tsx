@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { authManager } from '@/lib/auth';
 import BottomNavigation from '@/components/layout/bottom-navigation';
+import { SplashScreen } from '@/components/SplashScreen';
+import { useState, useEffect } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +14,8 @@ interface LayoutProps {
 export function Layout({ children, className }: LayoutProps) {
   const [location] = useLocation();
   const { user, isLoading } = useAuth();
+  const [showSplash, setShowSplash] = useState(false);
+  const [hasShownSplash, setHasShownSplash] = useState(false);
   
   console.log("🔍 Layout render:", { location, user: !!user, isLoading });
   
@@ -20,6 +24,20 @@ export function Layout({ children, className }: LayoutProps) {
   const shouldHideLayout = noLayoutPages.some(page => location.startsWith(page));
   
   console.log("🔍 Layout check:", { shouldHideLayout, noLayoutPages, location });
+  
+  // Mostrar splash screen apenas quando usuário logado acessa o dashboard pela primeira vez na sessão
+  useEffect(() => {
+    // Verificar se já mostrou o splash nesta sessão
+    const splashShown = sessionStorage.getItem('splashShown');
+    
+    if (user && !isLoading && !shouldHideLayout && !splashShown && location === '/') {
+      console.log("🎨 Showing splash screen for logged user");
+      setShowSplash(true);
+      setHasShownSplash(true);
+      // Marcar que já mostrou o splash nesta sessão
+      sessionStorage.setItem('splashShown', 'true');
+    }
+  }, [user, isLoading, shouldHideLayout, hasShownSplash, location]);
   
   // Se está carregando, mostrar loading
   if (isLoading) {
@@ -44,6 +62,15 @@ export function Layout({ children, className }: LayoutProps) {
 
   if (shouldHideLayout) {
     return <>{children}</>;
+  }
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  // Mostrar splash screen se necessário
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
   return (
