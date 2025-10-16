@@ -147,7 +147,7 @@ export default function Dashboard() {
   // Função para renderizar imagem de comparação
   const renderComparisonImage = (fruitComparison: string, fruitImageUrl?: string | null, size: 'small' | 'large' = 'large') => {
     if (fruitImageUrl && isValidImageUrl(fruitImageUrl)) {
-      const imageSize = size === 'small' ? 'w-12 h-12' : 'w-56 h-56';
+      const imageSize = size === 'small' ? 'w-16 h-16' : 'w-28 h-28';
       return (
         <img 
           src={convertDatabaseUrlToValidUrl(fruitImageUrl)} 
@@ -156,7 +156,7 @@ export default function Dashboard() {
         />
       );
     }
-    const emojiSize = size === 'small' ? 'text-2xl' : 'text-8xl';
+    const emojiSize = size === 'small' ? 'text-3xl' : 'text-7xl';
     return <span className={emojiSize}>{getFruitEmoji(fruitComparison)}</span>;
   };
 
@@ -480,20 +480,14 @@ export default function Dashboard() {
 
                     {/* Seção de Comparação do Bebê */}
                     {development.fruit_comparison && (
-                      <div className="bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl p-6 mb-6 border border-orange-200">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-gray-200 shadow-lg">
                         <div className="text-center">
-                          <h4 className="text-lg font-bold text-gray-800 mb-4">
-                            Seu bebê é como...
-                          </h4>
                           <div className="flex flex-col items-center">
-                            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg mb-4 border-2 border-orange-200">
+                            <div className="w-32 h-32 mb-4 flex items-center justify-center">
                               {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
                             </div>
-                            <p className="text-xl font-bold text-orange-600">
-                              {development.fruit_comparison}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-2">
-                              Semana {currentWeek} de gestação
+                            <p className="text-lg font-bold text-gray-800">
+                              Seu bebê é como {development.fruit_comparison}
                             </p>
                           </div>
                         </div>
