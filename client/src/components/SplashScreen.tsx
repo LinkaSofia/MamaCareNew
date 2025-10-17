@@ -1,49 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import logoSvg from '@/assets/logo.svg';
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const [currentText, setCurrentText] = useState('');
   const [showParticles, setShowParticles] = useState(false);
-  const [showHeart, setShowHeart] = useState(false);
+  const [showLogo, setShowLogo] = useState(false);
+  const [showTitle, setShowTitle] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
-  const [showProgress, setShowProgress] = useState(false);
-
-  const fullText = "MamaCare";
-  const typingSpeed = 120;
 
   useEffect(() => {
-    // Iniciar partículas após 0.3s
+    // Iniciar partículas após 0.2s
     const particlesTimer = setTimeout(() => {
       setShowParticles(true);
+    }, 200);
+
+    // Mostrar logo após 0.3s
+    const logoTimer = setTimeout(() => {
+      setShowLogo(true);
     }, 300);
 
-    // Iniciar coração após 0.8s
-    const heartTimer = setTimeout(() => {
-      setShowHeart(true);
+    // Mostrar título após 0.8s
+    const titleTimer = setTimeout(() => {
+      setShowTitle(true);
     }, 800);
 
-    // Iniciar digitação após 0.5s
-    const typingTimer = setTimeout(() => {
-      let index = 0;
-      const typingInterval = setInterval(() => {
-        if (index < fullText.length) {
-          setCurrentText(fullText.slice(0, index + 1));
-          index++;
-        } else {
-          clearInterval(typingInterval);
-          // Mostrar subtítulo após terminar a digitação
-          setTimeout(() => setShowSubtitle(true), 200);
-          // Mostrar progresso após subtítulo
-          setTimeout(() => setShowProgress(true), 500);
-        }
-      }, typingSpeed);
-
-      return () => clearInterval(typingInterval);
-    }, 500);
+    // Mostrar subtítulo após 1.5s
+    const subtitleTimer = setTimeout(() => {
+      setShowSubtitle(true);
+    }, 1500);
 
     // Completar após 3 segundos
     const completeTimer = setTimeout(() => {
@@ -52,8 +40,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
     return () => {
       clearTimeout(particlesTimer);
-      clearTimeout(heartTimer);
-      clearTimeout(typingTimer);
+      clearTimeout(logoTimer);
+      clearTimeout(titleTimer);
+      clearTimeout(subtitleTimer);
       clearTimeout(completeTimer);
     };
   }, [onComplete]);
@@ -206,154 +195,131 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
       {/* Conteúdo principal */}
       <div className="relative z-10 flex flex-col items-center justify-center">
-        {/* Ícone do coração animado */}
+        {/* Logo animada */}
         <AnimatePresence>
-          {showHeart && (
+          {showLogo && (
             <motion.div
-              initial={{ scale: 0, rotate: -180 }}
+              initial={{ scale: 0, rotate: -180, opacity: 0 }}
               animate={{ 
-                scale: [0, 1.2, 1],
-                rotate: [0, 10, -10, 0],
+                scale: 1,
+                rotate: 0,
+                opacity: 1,
               }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ 
                 duration: 0.8,
                 ease: "easeOut",
+                type: "spring",
+                stiffness: 100,
               }}
-              className="mb-6"
+              className="mb-8"
             >
               <motion.div
-                className="text-6xl"
                 animate={{
-                  scale: [1, 1.1, 1],
+                  scale: [1, 1.05, 1],
                 }}
                 transition={{
-                  duration: 1.5,
+                  duration: 2,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
+                className="relative"
               >
-                💕
+                {/* Glow effect atrás da logo */}
+                <motion.div
+                  className="absolute inset-0 blur-2xl opacity-50"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.6, 0.3],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  style={{
+                    background: "radial-gradient(circle, rgba(236, 72, 153, 0.4), rgba(139, 92, 246, 0.4))",
+                  }}
+                />
+                
+                {/* Logo SVG */}
+                <img 
+                  src={logoSvg} 
+                  alt="MamaCare Logo" 
+                  className="w-48 h-48 md:w-64 md:h-64 relative z-10"
+                  style={{
+                    filter: "drop-shadow(0 10px 30px rgba(236, 72, 153, 0.3))",
+                  }}
+                />
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Nome do app com efeito de digitação */}
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <motion.h1
-            className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent"
-            animate={{
-              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            style={{
-              backgroundSize: "200% 200%",
-            }}
-          >
-            {currentText}
-            <motion.span
-              className="inline-block w-1 h-16 bg-pink-500 ml-2"
-              animate={{
-                opacity: [1, 0, 1],
-              }}
-              transition={{
-                duration: 0.8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.h1>
-
-          {/* Subtítulo */}
-          <AnimatePresence>
-            {showSubtitle && (
-              <motion.p
-                className="text-xl md:text-2xl text-gray-600 mt-4 font-light"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              >
-                Sua jornada maternal começa aqui
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Barra de progresso */}
+        {/* Nome do app */}
         <AnimatePresence>
-          {showProgress && (
+          {showTitle && (
             <motion.div
-              className="mt-8 w-64 h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner"
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <motion.h1
+                className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-3"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  backgroundSize: "200% 200%",
+                }}
+              >
+                MamaCare
+              </motion.h1>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Subtítulo */}
+        <AnimatePresence>
+          {showSubtitle && (
+            <motion.p
+              className="text-lg md:text-xl text-gray-600 mt-2 font-light text-center px-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              Sua jornada maternal começa aqui
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {/* Barra de progresso sutil */}
+        <AnimatePresence>
+          {showSubtitle && (
+            <motion.div
+              className="mt-8 w-48 h-1 bg-gray-200 rounded-full overflow-hidden"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
               <motion.div
-                className="h-full rounded-full relative"
+                className="h-full rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6, #ec4899)",
-                  backgroundSize: "200% 100%",
+                  background: "linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6)",
                 }}
                 initial={{ width: "0%" }}
-                animate={{ 
-                  width: "100%",
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                }}
-                transition={{ 
-                  width: { duration: 2, ease: "easeOut" },
-                  backgroundPosition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
               />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Loading dots */}
-        <AnimatePresence>
-          {showProgress && (
-            <motion.div
-              className="flex space-x-3 mt-6"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-3 h-3 rounded-full"
-                  style={{
-                    background: `linear-gradient(45deg, ${
-                      ['#ec4899', '#8b5cf6', '#3b82f6'][i]
-                    }, ${
-                      ['#f472b6', '#a78bfa', '#60a5fa'][i]
-                    })`,
-                  }}
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.6, 1, 0.6],
-                    y: [0, -5, 0],
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    delay: i * 0.3,
-                    ease: "easeInOut",
-                  }}
-                />
-              ))}
             </motion.div>
           )}
         </AnimatePresence>

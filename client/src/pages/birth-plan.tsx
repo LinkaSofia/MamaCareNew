@@ -468,7 +468,28 @@ export default function BirthPlan() {
         </html>
       `;
       
-      // Método 1: Tentar abrir em nova janela para impressão
+      // Método 1: Em mobile, sempre usar visualização na tela com opção de compartilhar
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobileDevice) {
+        // Mobile: Criar blob e abrir em nova aba
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "📄 Plano de Parto Aberto",
+          description: "Use o botão de compartilhar do navegador para imprimir ou salvar.",
+        });
+        
+        return;
+      }
+      
+      // Método 2: Desktop - tentar abrir em nova janela para impressão
       const printWindow = window.open('', '_blank', 'width=800,height=600');
       if (printWindow) {
         printWindow.document.write(htmlContent);
@@ -493,7 +514,7 @@ export default function BirthPlan() {
         return;
       }
       
-      // Método 2: Fallback - mostrar conteúdo na tela
+      // Método 3: Fallback - mostrar conteúdo na tela
       throw new Error('Não foi possível abrir nova janela');
       
     } catch (error) {

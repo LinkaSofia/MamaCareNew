@@ -46,7 +46,7 @@ import {
   PiggyBank,
   Pencil
 } from "lucide-react";
-import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface ShoppingItem {
   id: string;
@@ -1037,20 +1037,25 @@ export default function ShoppingList() {
               </CardHeader>
               <CardContent>
                 {pieData.length > 0 ? (
-                  <div className="h-64">
+                  <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart data={pieData}>
-                        <RechartsPieChart
+                      <RechartsPieChart>
+                        <Pie
+                          data={pieData}
                           cx="50%"
                           cy="50%"
+                          labelLine={false}
+                          label={(entry) => entry.name}
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
-                        />
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
+                        >
+                          {pieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
                         <Tooltip formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Gasto']} />
+                        <Legend />
                       </RechartsPieChart>
                     </ResponsiveContainer>
                   </div>
