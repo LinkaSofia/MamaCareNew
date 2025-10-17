@@ -513,16 +513,26 @@ export default function ShoppingList() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
+      <AnimatedBackground>
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AnimatedBackground>
     );
   }
 
   if (!user || !pregnancy) {
+    console.log("⚠️ Shopping List: User ou pregnancy não encontrado", { user: !!user, pregnancy: !!pregnancy });
     setLocation("/login");
     return null;
   }
+
+  console.log("🛒 Shopping List: Renderizando componente", {
+    itemsCount: items.length,
+    isLoading,
+    pregnancy: pregnancy?.id,
+    user: user?.id
+  });
 
   const suggestions = getSuggestions();
 
@@ -700,8 +710,33 @@ export default function ShoppingList() {
               </CardContent>
             </Card>
 
+            {/* Empty State */}
+            {items.length === 0 && (
+              <Card className="bg-gradient-to-br from-pink-50 to-purple-50">
+                <CardContent className="p-12 text-center">
+                  <div className="flex flex-col items-center space-y-4">
+                    <ShoppingCart className="h-20 w-20 text-pink-300" />
+                    <h3 className="text-2xl font-bold text-gray-700">
+                      Sua lista está vazia
+                    </h3>
+                    <p className="text-gray-600 max-w-md">
+                      Comece adicionando itens essenciais para a chegada do seu bebê. 
+                      Você também pode usar nossas sugestões personalizadas!
+                    </p>
+                    <Button 
+                      onClick={() => setShowAddForm(true)}
+                      className="mt-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                    >
+                      <Plus className="mr-2 h-5 w-5" />
+                      Adicionar Primeiro Item
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Pending Items */}
-            {pendingItems.length > 0 && (
+            {items.length > 0 && pendingItems.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -780,7 +815,7 @@ export default function ShoppingList() {
             )}
 
             {/* Purchased Items */}
-            {purchasedItems.length > 0 && (
+            {items.length > 0 && purchasedItems.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">

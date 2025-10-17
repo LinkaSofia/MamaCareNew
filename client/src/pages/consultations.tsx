@@ -52,9 +52,20 @@ export default function Consultations() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [consultationToDelete, setConsultationToDelete] = useState<Consultation | null>(null);
+  // Função para obter data atual no timezone local (Brasil)
+  const getCurrentDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    console.log('📅 Data atual calculada:', dateStr, 'Timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    return dateStr;
+  };
+
   const [formData, setFormData] = useState({
     title: "",
-    date: new Date().toISOString().split('T')[0], // Data atual como padrão
+    date: getCurrentDateString(), // Data atual SEMPRE
     time: "",
     location: "",
     doctorName: "",
@@ -82,7 +93,7 @@ export default function Consultations() {
   const resetForm = () => {
     setFormData({
       title: "",
-      date: new Date().toISOString().split('T')[0], // Data atual como padrão
+      date: getCurrentDateString(), // Data atual SEMPRE
       time: "",
       location: "",
       doctorName: "",
@@ -143,10 +154,26 @@ export default function Consultations() {
 
   const updateConsultationMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      console.log("🔵 MUTATION: Chamando PUT /api/consultations/" + id);
+      console.log("🔵 MUTATION: Dados enviados:", JSON.stringify(data, null, 2));
+      
       const response = await apiRequest("PUT", `/api/consultations/${id}`, data);
-      return response.json();
+      
+      console.log("🔵 MUTATION: Status da resposta:", response.status);
+      console.log("🔵 MUTATION: Response OK?", response.ok);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ MUTATION: Erro na resposta:", errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log("✅ MUTATION: Sucesso!", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("✅ onSuccess chamado com:", data);
       // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
       queryClient.refetchQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
@@ -161,11 +188,16 @@ export default function Consultations() {
         duration: 3000,
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("❌ onError chamado com:", error);
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      
       toast({
-        title: "❌ Erro",
-        description: "Erro ao atualizar consulta. Tente novamente.",
+        title: "❌ Erro ao atualizar consulta",
+        description: error.message || "Tente novamente.",
         variant: "destructive",
+        duration: 5000,
       });
     },
   });

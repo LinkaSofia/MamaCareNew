@@ -45,10 +45,19 @@ export default function WeightTracking() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
+  // Função para obter data atual no timezone local
+  const getCurrentDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<any>(null);
   const [weight, setWeight] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getCurrentDateString());
   const [notes, setNotes] = useState("");
   const { user } = useAuth();
   const { pregnancy } = usePregnancy();
@@ -83,7 +92,7 @@ export default function WeightTracking() {
       // Fechar o formulário primeiro
       setShowAddForm(false);
       setWeight("");
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(getCurrentDateString());
       setNotes("");
       
       // Atualizar o cache IMEDIATAMENTE (optimistic update)
@@ -174,7 +183,7 @@ export default function WeightTracking() {
       setShowEditForm(false);
       setEditingRecord(null);
       setWeight("");
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(getCurrentDateString());
       setNotes("");
       
       // Atualizar o cache IMEDIATAMENTE (optimistic update)
@@ -382,7 +391,7 @@ export default function WeightTracking() {
     setShowEditForm(false);
     setEditingRecord(null);
     setWeight("");
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(getCurrentDateString());
     setNotes("");
   };
 
