@@ -244,7 +244,7 @@ export default function ShoppingList() {
 
   // Pie chart data
   const pieData = categoryStats.filter(cat => cat.spent > 0).map((cat) => {
-    const percentOfBudget = budget > 0 ? (cat.spent / budget * 100).toFixed(1) : '0.0';
+    const percentOfBudget = budget > 0 ? Math.round(cat.spent / budget * 100) : 0;
     return {
       name: `${cat.name} (${percentOfBudget}%)`,
       value: cat.spent,
@@ -976,8 +976,12 @@ export default function ShoppingList() {
                     <Label className="text-sm text-gray-700 mb-2 block">Definir orçamento total</Label>
                     <Input
                       type="number"
-                      value={budget}
-                      onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
+                      value={budget === 0 ? '' : budget}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setBudget(value === '' ? 0 : parseFloat(value) || 0);
+                      }}
+                      placeholder="Digite o orçamento"
                       className="w-full"
                     />
                   </div>
@@ -1036,7 +1040,7 @@ export default function ShoppingList() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <PieChart className="mr-2 h-5 w-5 text-purple-500" />
-                  Gastos por Categoria
+                  Distribuição de Gastos
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1061,7 +1065,7 @@ export default function ShoppingList() {
                         <Tooltip 
                           formatter={(value: number, name: string, props: any) => {
                             const percent = props.payload.percentOfBudget;
-                            return [`R$ ${value.toFixed(2)} (${percent}% do orçamento)`, 'Gasto'];
+                            return [`R$ ${value.toFixed(2)} (${percent}% do orçamento)`, name];
                           }} 
                         />
                         <Legend />

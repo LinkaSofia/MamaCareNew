@@ -1224,25 +1224,25 @@ export default function Diary() {
 
       {/* Add/Edit Entry Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 md:p-4 md:pb-20">
-          <Card className="w-full h-full md:h-auto md:max-w-lg md:max-h-[90vh] overflow-y-auto bg-white md:rounded-3xl shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white sticky top-0 z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 pb-20">
+          <Card className="w-full max-w-lg max-h-[85vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-t-3xl">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
                   onClick={handleCloseForm}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors md:hidden"
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
                   aria-label="Fechar"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <X className="h-5 w-5" />
                 </button>
-                <CardTitle className="text-xl md:text-2xl font-bold flex-1 text-center md:text-center">
+                <CardTitle className="text-lg md:text-xl font-bold flex-1 text-center">
                   {editingEntry ? "Editar Entrada" : "Nova Entrada"}
                 </CardTitle>
-                <div className="w-9 md:hidden" /> {/* Spacer para centralizar título */}
+                <div className="w-9" /> {/* Spacer para centralizar título */}
               </div>
             </CardHeader>
-            <CardContent className="pt-4 sm:pt-8 px-4 sm:px-6 pb-24 md:pb-6">
+            <CardContent className="pt-6 px-4 sm:px-6 pb-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {selectedPrompt && (
                   <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
