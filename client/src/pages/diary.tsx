@@ -906,9 +906,9 @@ export default function Diary() {
   return (
     <AnimatedBackground>
       <div className="min-h-screen pb-24 sm:pb-20">
-      <div className="px-4 pt-4 pb-4 relative">
+      <div className="px-4 pt-8 pb-4 relative">
         {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
-        <div className="flex items-center justify-between mb-10 relative">
+        <div className="flex items-center justify-between mb-6 relative">
           {/* Botão Voltar - Esquerda */}
           <Button
             variant="ghost"
@@ -922,10 +922,10 @@ export default function Diary() {
           
           {/* Título - Centro */}
           <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                 Diário de Gestação
               </h1>
-            <p className="text-xs text-gray-600 mt-0.5 flex items-center justify-center">
+            <p className="text-xs text-gray-600 mt-1 flex items-center justify-center">
                 <Heart className="h-3 w-3 mr-1 text-pink-500" />
               {weekInfo ? `Semana ${weekInfo.week}` : "Registre seus momentos"}
               </p>

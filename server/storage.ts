@@ -691,19 +691,10 @@ export class DatabaseStorage implements IStorage {
     return results.length > 0 ? results[0] : null;
   }
 
-  async updateConsultation(id: string, data: Partial<Consultation>): Promise<Consultation> {
-    const [updated] = await db.update(consultations)
+  async updateConsultation(id: string, data: Partial<InsertConsultation>): Promise<void> {
+    await db.update(consultations)
       .set(data)
-      .where(eq(consultations.id, id))
-      .returning();
-    return updated;
-  }
-
-  async getConsultationById(id: string): Promise<Consultation | null> {
-    const results = await db.select().from(consultations)
-      .where(eq(consultations.id, id))
-      .limit(1);
-    return results.length > 0 ? results[0] : null;
+      .where(eq(consultations.id, id));
   }
 
   async deleteConsultation(id: string): Promise<void> {

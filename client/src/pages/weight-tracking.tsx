@@ -445,9 +445,9 @@ export default function WeightTracking() {
   return (
     <AnimatedBackground>
       <div className="min-h-screen pb-24 sm:pb-20">
-      <div className="px-4 pt-4 pb-4">
+      <div className="px-4 pt-8 pb-4">
         {/* Header com Botão de Voltar, Título Centralizado e Botão Add */}
-        <div className="flex items-center justify-between mb-10 relative">
+        <div className="flex items-center justify-between mb-6 relative">
           {/* Botão Voltar - Esquerda */}
           <Button
             variant="ghost"
@@ -461,10 +461,10 @@ export default function WeightTracking() {
           
           {/* Título - Centro */}
           <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent" data-testid="text-page-title">
+            <h2 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent" data-testid="text-page-title">
             Controle de Peso
           </h2>
-            <p className="text-xs text-gray-600 mt-0.5">Acompanhe sua evolução</p>
+            <p className="text-xs text-gray-600 mt-1">Acompanhe sua evolução</p>
           </div>
           
           {/* Botão Adicionar - Direita */}

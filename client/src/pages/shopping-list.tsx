@@ -243,11 +243,15 @@ export default function ShoppingList() {
   };
 
   // Pie chart data
-  const pieData = categoryStats.filter(cat => cat.spent > 0).map((cat) => ({
-    name: cat.name,
-    value: cat.spent,
-    color: cat.color
-  }));
+  const pieData = categoryStats.filter(cat => cat.spent > 0).map((cat) => {
+    const percentOfBudget = budget > 0 ? (cat.spent / budget * 100).toFixed(1) : '0.0';
+    return {
+      name: `${cat.name} (${percentOfBudget}%)`,
+      value: cat.spent,
+      color: cat.color,
+      percentOfBudget
+    };
+  });
   
   // Debug: Log dos dados do gráfico
   console.log('📊 Category Stats:', categoryStats);
@@ -1045,7 +1049,7 @@ export default function ShoppingList() {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={(entry) => entry.name}
+                          label={false}
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
@@ -1054,7 +1058,12 @@ export default function ShoppingList() {
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Gasto']} />
+                        <Tooltip 
+                          formatter={(value: number, name: string, props: any) => {
+                            const percent = props.payload.percentOfBudget;
+                            return [`R$ ${value.toFixed(2)} (${percent}% do orçamento)`, 'Gasto'];
+                          }} 
+                        />
                         <Legend />
                       </RechartsPieChart>
                     </ResponsiveContainer>
