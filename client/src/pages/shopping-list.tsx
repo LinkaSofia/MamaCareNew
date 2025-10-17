@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -129,7 +129,10 @@ export default function ShoppingList() {
   const [itemToDelete, setItemToDelete] = useState<ShoppingItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
-  const [budget, setBudget] = useState<number>(2000);
+  const [budget, setBudget] = useState<number>(() => {
+    const savedBudget = localStorage.getItem(`mamacare_budget_${pregnancy?.id}`);
+    return savedBudget ? parseFloat(savedBudget) : 2000;
+  });
   const [showEssentialsOnly, setShowEssentialsOnly] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -156,6 +159,14 @@ export default function ShoppingList() {
       return data;
     },
   });
+
+  // Salvar orçamento no localStorage quando mudar
+  useEffect(() => {
+    if (pregnancy?.id) {
+      localStorage.setItem(`mamacare_budget_${pregnancy.id}`, budget.toString());
+      console.log(`💰 Budget saved to localStorage: ${budget}`);
+    }
+  }, [budget, pregnancy?.id]);
 
   // Calculations
   const items = shoppingData?.items || [];

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// Usando uma das imagens existentes como logo
+import logoImage from '@/assets/3_1757174102100.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -241,81 +243,77 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
                   }}
                 />
                 
-                {/* Logo SVG - Mãe com Bebê */}
-                <svg 
-                  width="192" 
-                  height="192" 
-                  viewBox="0 0 200 200" 
-                  className="w-48 h-48 md:w-64 md:h-64 relative z-10"
-                  style={{
-                    filter: "drop-shadow(0 10px 30px rgba(236, 72, 153, 0.3))",
+                {/* Logo em Círculo Elegante */}
+                <motion.div
+                  className="relative mb-8"
+                  animate={{
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
                   }}
                 >
-                  {/* Fundo circular rosa suave */}
-                  <circle cx="100" cy="100" r="95" fill="#FFC0CB" fillOpacity="0.3"/>
+                  {/* Círculos de fundo animados */}
+                  <motion.div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(139, 92, 246, 0.3))",
+                      filter: "blur(20px)",
+                    }}
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [0.5, 0.8, 0.5],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
                   
-                  {/* Mãe */}
-                  <g id="mother">
-                    {/* Cabeça da mãe */}
-                    <ellipse cx="85" cy="70" rx="18" ry="22" fill="#F5D5B8"/>
-                    
-                    {/* Cabelo da mãe */}
-                    <path d="M67 65 Q67 50 85 48 Q103 50 103 65 L103 80 Q95 82 85 82 Q75 82 67 80 Z" fill="#C4915F"/>
-                    <path d="M67 65 Q67 75 75 85 L95 85 Q103 75 103 65" fill="#C4915F"/>
-                    
-                    {/* Olhos fechados */}
-                    <path d="M78 68 Q80 70 82 68" stroke="#8B4513" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-                    <path d="M88 68 Q90 70 92 68" stroke="#8B4513" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-                    
-                    {/* Sorriso suave */}
-                    <path d="M80 75 Q85 77 90 75" stroke="#8B4513" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-                    
-                    {/* Corpo da mãe (blusa rosa) */}
-                    <ellipse cx="90" cy="115" rx="35" ry="45" fill="#FFB6C1"/>
-                    
-                    {/* Braços */}
-                    <ellipse cx="60" cy="110" rx="12" ry="35" fill="#FFB6C1" transform="rotate(-20 60 110)"/>
-                    <ellipse cx="120" cy="110" rx="12" ry="35" fill="#FFB6C1" transform="rotate(20 120 110)"/>
-                    
-                    {/* Mãos */}
-                    <circle cx="55" cy="130" r="8" fill="#F5D5B8"/>
-                    <circle cx="115" cy="130" r="8" fill="#F5D5B8"/>
-                  </g>
+                  {/* Círculo com gradiente e logo */}
+                  <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400 p-2 shadow-2xl">
+                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-4 shadow-inner">
+                      <img 
+                        src={logoImage} 
+                        alt="MamaCare Logo" 
+                        className="w-full h-full object-contain"
+                        style={{
+                          filter: "drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1))",
+                        }}
+                      />
+                    </div>
+                  </div>
                   
-                  {/* Bebê */}
-                  <g id="baby">
-                    {/* Cabeça do bebê */}
-                    <circle cx="95" cy="120" r="14" fill="#F5D5B8"/>
-                    
-                    {/* Olhos fechados do bebê */}
-                    <path d="M90 118 Q91 119 92 118" stroke="#8B4513" strokeWidth="1" strokeLinecap="round" fill="none"/>
-                    <path d="M98 118 Q99 119 100 118" stroke="#8B4513" strokeWidth="1" strokeLinecap="round" fill="none"/>
-                    
-                    {/* Corpo do bebê (roupa azul) */}
-                    <ellipse cx="95" cy="142" rx="16" ry="20" fill="#87CEEB"/>
-                    
-                    {/* Braços do bebê */}
-                    <ellipse cx="78" cy="140" rx="6" ry="15" fill="#87CEEB" transform="rotate(-10 78 140)"/>
-                    <ellipse cx="112" cy="140" rx="6" ry="15" fill="#87CEEB" transform="rotate(10 112 140)"/>
-                  </g>
-                  
-                  {/* Contornos */}
-                  <g stroke="#5D4037" strokeWidth="2" fill="none">
-                    {/* Contorno da mãe */}
-                    <ellipse cx="85" cy="70" rx="18" ry="22"/>
-                    <path d="M67 65 Q67 50 85 48 Q103 50 103 65 L103 80 Q95 82 85 82 Q75 82 67 80 Z"/>
-                    <ellipse cx="90" cy="115" rx="35" ry="45"/>
-                    
-                    {/* Contorno do bebê */}
-                    <circle cx="95" cy="120" r="14"/>
-                    <ellipse cx="95" cy="142" rx="16" ry="20"/>
-                  </g>
-                  
-                  {/* Coração flutuante decorativo */}
-                  <g id="heart" opacity="0.6">
-                    <path d="M100 50 L102 48 Q105 45 108 48 Q111 51 108 54 L100 62 L92 54 Q89 51 92 48 Q95 45 98 48 Z" fill="#FF69B4"/>
-                  </g>
-                </svg>
+                  {/* Partículas flutuantes ao redor do círculo */}
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-2 h-2 rounded-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${
+                          i % 3 === 0 ? '#ec4899' : i % 3 === 1 ? '#8b5cf6' : '#3b82f6'
+                        }, ${
+                          i % 3 === 0 ? '#f472b6' : i % 3 === 1 ? '#a78bfa' : '#60a5fa'
+                        })`,
+                        left: `${50 + 40 * Math.cos((i * Math.PI * 2) / 6)}%`,
+                        top: `${50 + 40 * Math.sin((i * Math.PI * 2) / 6)}%`,
+                      }}
+                      animate={{
+                        y: [-10, 10, -10],
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                </motion.div>
               </motion.div>
             </motion.div>
           )}

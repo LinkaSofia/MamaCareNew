@@ -141,6 +141,7 @@ export default function WeightTracking() {
       toast({
         title: "⚖️ Peso registrado!",
         description: "Seu peso foi adicionado com sucesso.",
+        duration: 3000, // 3 segundos
       });
     },
     onError: (error: any) => {
@@ -219,6 +220,7 @@ export default function WeightTracking() {
       toast({
         title: "⚖️ Peso atualizado!",
         description: "Seu peso foi atualizado com sucesso.",
+        duration: 3000, // 3 segundos
       });
     },
     onError: (error: any) => {
@@ -291,6 +293,7 @@ export default function WeightTracking() {
       toast({
         title: "🗑️ Peso removido",
         description: "Entrada de peso foi removida com sucesso.",
+        duration: 3000, // 3 segundos
       });
     },
     onError: (error: any) => {

@@ -67,7 +67,7 @@ export interface IStorage {
   // Consultations
   getConsultations(pregnancyId: string): Promise<Consultation[]>;
   createConsultation(consultation: InsertConsultation): Promise<Consultation>;
-  updateConsultation(id: string, updates: Partial<InsertConsultation>): Promise<void>;
+  updateConsultation(id: string, updates: Partial<InsertConsultation>): Promise<Consultation>;
   getUpcomingConsultations(pregnancyId: string): Promise<Consultation[]>;
 
   // Shopping Items
@@ -650,8 +650,12 @@ export class DatabaseStorage implements IStorage {
     return newConsultation;
   }
 
-  async updateConsultation(id: string, updates: Partial<InsertConsultation>): Promise<void> {
-    await db.update(consultations).set(updates).where(eq(consultations.id, id));
+  async updateConsultation(id: string, updates: Partial<InsertConsultation>): Promise<Consultation> {
+    const [updated] = await db.update(consultations)
+      .set(updates)
+      .where(eq(consultations.id, id))
+      .returning();
+    return updated;
   }
 
   async getUpcomingConsultations(pregnancyId: string): Promise<Consultation[]> {
@@ -689,12 +693,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(consultations.id, id))
       .limit(1);
     return results.length > 0 ? results[0] : null;
-  }
-
-  async updateConsultation(id: string, data: Partial<InsertConsultation>): Promise<void> {
-    await db.update(consultations)
-      .set(data)
-      .where(eq(consultations.id, id));
   }
 
   async deleteConsultation(id: string): Promise<void> {
