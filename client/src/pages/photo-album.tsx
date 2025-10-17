@@ -390,9 +390,9 @@ export default function PhotoAlbum() {
   return (
     <AnimatedBackground>
       <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
-      <div className="p-4 pt-8">
+      <div className="px-4 pt-8 pb-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-6">
           <Button 
             variant="ghost" 
             size="icon"

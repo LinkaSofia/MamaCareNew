@@ -511,11 +511,6 @@ export default function ShoppingList() {
     setFormData({ name: "", price: "", category: "", priority: "medium", essential: false });
   };
 
-  if (!user || !pregnancy) {
-    setLocation("/login");
-    return null;
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -524,28 +519,38 @@ export default function ShoppingList() {
     );
   }
 
+  if (!user || !pregnancy) {
+    setLocation("/login");
+    return null;
+  }
+
   const suggestions = getSuggestions();
 
   return (
     <AnimatedBackground>
       <div className="min-h-screen pb-20">
-        <div className="p-4 pt-8">
+        <div className="px-4 pt-8 pb-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-6 relative">
           <Button 
             variant="ghost" 
             size="icon"
-            className="rounded-full bg-white/95 backdrop-blur-sm shadow-xl border border-white/20"
+            className="bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
             onClick={() => setLocation("/")}
             data-testid="button-back"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Lista de Compras</h1>
+          <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              Lista de Compras
+            </h1>
+            <p className="text-xs text-gray-600 mt-1">Organize suas compras</p>
+          </div>
           <Button 
             variant="ghost" 
             size="icon"
-            className="rounded-full bg-gradient-to-r from-pink-500 to-blue-500 shadow-xl border border-white/20"
+            className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
             onClick={() => setShowAddForm(true)}
             data-testid="button-add-item"
           >

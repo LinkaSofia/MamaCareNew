@@ -295,8 +295,8 @@ export default function Dashboard() {
                     </div>
       
       {/* Header Mobile Sofisticado */}
-      <div className="relative z-10 px-4 pt-safe pb-4">
-        <div className="flex items-center justify-between mb-10">
+      <div className="relative z-10 px-4 pt-8 pb-4">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center shadow-lg animate-glow">
               <Baby className="h-7 w-7 text-white" />

@@ -205,12 +205,12 @@ export default function KickCounter() {
   return (
     <AnimatedBackground>
       <div className="min-h-screen pb-20 bg-gradient-to-br from-pink-50 via-pink-100 to-purple-100">
-      <div className="p-4 pt-8">
+      <div className="px-4 pt-8 pb-4">
         {/* Botão de Voltar */}
         <Button 
           variant="ghost" 
           size="icon"
-          className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
+          className="mb-6 bg-white/80 backdrop-blur-sm shadow-lg rounded-full hover:bg-gray-100"
           onClick={() => setLocation("/")}
           data-testid="button-back"
         >
@@ -218,7 +218,7 @@ export default function KickCounter() {
         </Button>
         
         {/* Header */}
-        <div className="flex items-center justify-center mb-6 pt-12">
+        <div className="flex items-center justify-center mb-6">
           <h1 className="text-2xl font-bold text-pink-600 dark:text-pink-400">Contador de Movimentos</h1>
         </div>
 

@@ -269,7 +269,7 @@ export default function Profile() {
   return (
     <AnimatedBackground>
       <div className="min-h-screen pb-20 relative">
-        <div className="p-4 relative z-10">
+        <div className="px-4 pt-8 pb-4 relative z-10">
         {/* Botão de Voltar */}
         <Button
           variant="ghost"

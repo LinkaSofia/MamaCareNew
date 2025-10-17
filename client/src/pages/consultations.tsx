@@ -129,6 +129,7 @@ export default function Consultations() {
       toast({
         title: "✅ Consulta agendada!",
         description: "Sua consulta foi adicionada com sucesso.",
+        duration: 3000,
       });
     },
     onError: () => {
@@ -157,6 +158,7 @@ export default function Consultations() {
       toast({
         title: "✅ Consulta atualizada!",
         description: "Suas alterações foram salvas.",
+        duration: 3000,
       });
     },
     onError: () => {
@@ -186,6 +188,7 @@ export default function Consultations() {
       toast({
         title: "✅ Consulta removida!",
         description: "A consulta foi excluída com sucesso.",
+        duration: 3000,
       });
     },
     onError: () => {
@@ -211,17 +214,21 @@ export default function Consultations() {
 
     const dateTime = new Date(`${formData.date}T${formData.time}`);
     
+    console.log("🔍 Submitting form:", { editingId, formData, dateTime });
+    
     if (editingId) {
+      const updateData = {
+        pregnancyId: pregnancy!.id,
+        title: formData.title,
+        date: dateTime.toISOString(),
+        location: formData.location || null,
+        doctorName: formData.doctorName || null,
+        notes: formData.notes || null
+      };
+      console.log("📝 Updating consultation:", editingId, updateData);
       updateConsultationMutation.mutate({
         id: editingId,
-        data: {
-          pregnancyId: pregnancy!.id,
-          title: formData.title,
-          date: dateTime.toISOString(),
-          location: formData.location || null,
-          doctorName: formData.doctorName || null,
-          notes: formData.notes || null
-        }
+        data: updateData
       });
     } else {
       addConsultationMutation.mutate({
@@ -316,6 +323,7 @@ export default function Consultations() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
+                          console.log("✏️ Editing consultation:", consultation);
                           setFormData({
                             title: consultation.title,
                             date: format(parseISO(consultation.date), 'yyyy-MM-dd'),
@@ -330,6 +338,7 @@ export default function Consultations() {
                           });
                           setEditingId(consultation.id);
                           setShowAddForm(true);
+                          console.log("✏️ Editing ID set to:", consultation.id);
                         }}
                         className="h-8 w-8 p-0 text-pink-500 hover:text-pink-700 hover:bg-pink-100 rounded-full"
                       >
