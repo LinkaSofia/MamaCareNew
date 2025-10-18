@@ -157,20 +157,40 @@ export default function Consultations() {
       console.log("🔵 MUTATION: Chamando PUT /api/consultations/" + id);
       console.log("🔵 MUTATION: Dados enviados:", JSON.stringify(data, null, 2));
       
-      const response = await apiRequest("PUT", `/api/consultations/${id}`, data);
-      
-      console.log("🔵 MUTATION: Status da resposta:", response.status);
-      console.log("🔵 MUTATION: Response OK?", response.ok);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ MUTATION: Erro na resposta:", errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      try {
+        const response = await fetch(`/api/consultations/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(data)
+        });
+        
+        console.log("🔵 MUTATION: Status da resposta:", response.status);
+        console.log("🔵 MUTATION: Response OK?", response.ok);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ MUTATION: Erro na resposta (texto):", errorText);
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            console.error("❌ MUTATION: Erro (JSON):", errorJson);
+          } catch (e) {
+            console.error("❌ MUTATION: Erro não é JSON");
+          }
+          
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log("✅ MUTATION: Sucesso!", result);
+        return result;
+      } catch (error: any) {
+        console.error("❌ MUTATION: Exceção capturada:", error);
+        throw error;
       }
-      
-      const result = await response.json();
-      console.log("✅ MUTATION: Sucesso!", result);
-      return result;
     },
     onSuccess: (data) => {
       console.log("✅ onSuccess chamado com:", data);

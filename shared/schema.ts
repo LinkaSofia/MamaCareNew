@@ -322,6 +322,14 @@ export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: t
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true }).extend({
   date: z.string().transform((val) => new Date(val)),
 });
+export const updateConsultationSchema = z.object({
+  title: z.string().optional(),
+  date: z.string().optional(), // Mantém como string timestamp ISO
+  location: z.string().nullable().optional(),
+  doctorName: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  completed: z.boolean().optional(),
+}).partial();
 export const insertConsultationNotificationSchema = createInsertSchema(consultationNotifications).omit({ id: true, createdAt: true });
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({ id: true, purchaseDate: true });
 export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true });

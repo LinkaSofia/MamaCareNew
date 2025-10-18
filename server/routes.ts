@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertDiaryAttachmentSchema, diaryAttachments, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, updateConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertDiaryAttachmentSchema, diaryAttachments, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 // FileStore removido - usando MemoryStore (in-memory) para compatibilidade com Render
@@ -1868,8 +1868,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Não autorizado" });
       }
       
+      console.log("📝 Validating update data with updateConsultationSchema...");
+      const validatedData = updateConsultationSchema.parse(req.body);
+      console.log("✅ Update data validated:", validatedData);
+      
+      // Converter date string para Date object se existir
+      const updateData = {
+        ...validatedData,
+        ...(validatedData.date && { date: new Date(validatedData.date) })
+      };
+      console.log("📝 Update data with Date conversion:", updateData);
+      
       console.log("📝 About to call storage.updateConsultation...");
-      const updatedConsultation = await storage.updateConsultation(consultationId, req.body);
+      const updatedConsultation = await storage.updateConsultation(consultationId, updateData);
       console.log("✅ Storage update returned:", JSON.stringify(updatedConsultation, null, 2));
       
       // Log de auditoria
