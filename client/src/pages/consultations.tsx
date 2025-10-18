@@ -55,6 +55,11 @@ export default function Consultations() {
   // Função para obter data atual no timezone local (Brasil)
   const getCurrentDateString = () => {
     const now = new Date();
+    console.log('🕐 Date object completo:', now);
+    console.log('🕐 now.getDate():', now.getDate());
+    console.log('🕐 now.getMonth():', now.getMonth());
+    console.log('🕐 now.getFullYear():', now.getFullYear());
+    
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
@@ -330,7 +335,28 @@ export default function Consultations() {
             
             {/* Botão Adicionar - Direita */}
             <Button
-              onClick={() => setShowAddForm(true)}
+              onClick={() => {
+                // Resetar formulário com data ATUAL sempre que abrir para nova consulta
+                const currentDate = getCurrentDateString();
+                console.log("➕ ANTES de setFormData - Data que será setada:", currentDate);
+                
+                setFormData({
+                  title: "",
+                  date: currentDate,
+                  time: "",
+                  location: "",
+                  doctorName: "",
+                  notes: "",
+                  type: 'prenatal' as ConsultationType,
+                  priority: 'medium' as 'low' | 'medium' | 'high',
+                  reminders: true,
+                  preparation: [] as string[]
+                });
+                
+                console.log("➕ DEPOIS de setFormData");
+                setEditingId(null);
+                setShowAddForm(true);
+              }}
               className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
             >
               <Plus className="h-5 w-5 text-white" />
@@ -452,6 +478,7 @@ export default function Consultations() {
                       Data *
                     </Label>
                     <DatePicker
+                      key={editingId || 'new'} // Força recriação quando muda entre novo/edição
                       value={formData.date}
                       onChange={(value) => setFormData({ ...formData, date: value })}
                       placeholder="Selecione a data"

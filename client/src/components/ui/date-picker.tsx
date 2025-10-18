@@ -27,13 +27,26 @@ export function DatePicker({
   className,
   disabled,
 }: DatePickerProps) {
-  const [date, setDate] = React.useState<Date | undefined>(
-    value ? new Date(value) : undefined
-  )
+  const [date, setDate] = React.useState<Date | undefined>(() => {
+    if (value) {
+      // Criar Date usando timezone LOCAL ao invés de UTC
+      const [year, month, day] = value.split('-').map(Number);
+      return new Date(year, month - 1, day); // Mês é 0-indexed
+    }
+    return undefined;
+  })
 
   React.useEffect(() => {
+    console.log('🔄 DatePicker useEffect - value mudou:', value);
     if (value) {
-      setDate(new Date(value))
+      // Criar Date usando timezone LOCAL ao invés de UTC
+      const [year, month, day] = value.split('-').map(Number);
+      const newDate = new Date(year, month - 1, day); // Mês é 0-indexed
+      console.log('📅 Setando nova data no DatePicker (LOCAL):', newDate);
+      setDate(newDate);
+    } else {
+      console.log('❌ Value é undefined, limpando data');
+      setDate(undefined);
     }
   }, [value])
 
