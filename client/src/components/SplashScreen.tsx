@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// Logo oficial do MamaCare: Mãe e Bebê (CORRIGIDO)
-import logoImage from '@/assets/logo-mamacare-correto.png';
+// Logo oficial do MamaCare: Ilustração da mãe e bebê
+import logoImage from '@/assets/logo-mamacare-final.png';
 
 interface SplashScreenProps {
   onComplete: () => void;

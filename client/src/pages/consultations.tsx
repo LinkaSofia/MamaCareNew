@@ -250,7 +250,6 @@ export default function Consultations() {
     
     if (editingId) {
       const updateData = {
-        pregnancyId: pregnancy!.id,
         title: formData.title,
         date: dateTime.toISOString(),
         location: formData.location || null,
@@ -263,14 +262,16 @@ export default function Consultations() {
         data: updateData
       });
     } else {
-      addConsultationMutation.mutate({
+      const newData = {
         pregnancyId: pregnancy!.id,
         title: formData.title,
         date: dateTime.toISOString(),
         location: formData.location || null,
         doctorName: formData.doctorName || null,
         notes: formData.notes || null
-      });
+      };
+      console.log("➕ Adding consultation:", newData);
+      addConsultationMutation.mutate(newData);
     }
   };
 

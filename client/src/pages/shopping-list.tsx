@@ -122,6 +122,9 @@ const priorityColors = {
 };
 
 export default function ShoppingList() {
+  const { user } = useAuth();
+  const { pregnancy, weekInfo } = usePregnancy();
+  
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
@@ -141,22 +144,42 @@ export default function ShoppingList() {
     priority: "medium" as 'high' | 'medium' | 'low',
     essential: false
   });
-
-  const { user } = useAuth();
-  const { pregnancy, weekInfo } = usePregnancy();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: shoppingData, isLoading, refetch } = useQuery<ShoppingData>({
+  const { data: shoppingData, isLoading, error: queryError, refetch } = useQuery<ShoppingData>({
     queryKey: ["/api/shopping-items", pregnancy?.id],
     enabled: !!pregnancy,
     queryFn: async () => {
-      console.log("🛒 Fetching shopping items from API for pregnancy:", pregnancy?.id);
-      const response = await apiRequest("GET", `/api/shopping-items?pregnancyId=${pregnancy?.id}`);
-      const data = await response.json();
-      console.log("🛒 Shopping items loaded from database:", data);
-      return data;
+      console.log("🛒 [SHOPPING] Iniciando busca de itens para pregnancy:", pregnancy?.id);
+      console.log("🛒 [SHOPPING] Pregnancy object:", pregnancy);
+      console.log("🛒 [SHOPPING] User object:", user);
+      
+      if (!pregnancy?.id) {
+        console.error("❌ [SHOPPING] pregnancy.id está undefined!");
+        throw new Error("pregnancy.id está undefined");
+      }
+      
+      try {
+        const response = await apiRequest("GET", `/api/shopping-items?pregnancyId=${pregnancy.id}`);
+        console.log("🛒 [SHOPPING] Response status:", response.status);
+        console.log("🛒 [SHOPPING] Response ok:", response.ok);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ [SHOPPING] Erro na resposta:", errorText);
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log("✅ [SHOPPING] Items carregados:", data);
+        console.log("✅ [SHOPPING] Número de items:", data?.items?.length || 0);
+        return data;
+      } catch (error) {
+        console.error("❌ [SHOPPING] ERRO ao buscar items:", error);
+        throw error;
+      }
     },
   });
 
@@ -527,12 +550,14 @@ export default function ShoppingList() {
     return null;
   }
 
-  console.log("🛒 Shopping List: Renderizando componente", {
-    itemsCount: items.length,
-    isLoading,
-    pregnancy: pregnancy?.id,
-    user: user?.id
-  });
+  console.log("🛒 [SHOPPING] ===== RENDERIZANDO COMPONENTE =====");
+  console.log("🛒 [SHOPPING] Items count:", items.length);
+  console.log("🛒 [SHOPPING] isLoading:", isLoading);
+  console.log("🛒 [SHOPPING] queryError:", queryError);
+  console.log("🛒 [SHOPPING] pregnancy:", { id: pregnancy?.id, exists: !!pregnancy });
+  console.log("🛒 [SHOPPING] user:", { id: user?.id, exists: !!user });
+  console.log("🛒 [SHOPPING] shoppingData:", shoppingData);
+  console.log("🛒 [SHOPPING] =====================================");
 
   const suggestions = getSuggestions();
 
