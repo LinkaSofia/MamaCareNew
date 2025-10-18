@@ -275,11 +275,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
                   
                   {/* Círculo com gradiente e logo */}
                   <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400 p-2 shadow-2xl">
-                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-4 shadow-inner">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white shadow-inner">
                       <img 
                         src={logoImage} 
                         alt="MamaCare Logo" 
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                         style={{
                           filter: "drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1))",
                         }}
