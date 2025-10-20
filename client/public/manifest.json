@@ -1,6 +1,6 @@
 {
-  "name": "Maternidade - Acompanhamento de Gravidez",
-  "short_name": "Maternidade",
+  "name": "MamaCare - Acompanhamento de Gravidez",
+  "short_name": "MamaCare",
   "description": "Aplicativo completo para acompanhamento da gravidez com recursos 3D, monitoramento e comunidade",
   "start_url": "/",
   "display": "standalone",
@@ -9,6 +9,53 @@
   "orientation": "portrait",
   "categories": ["health", "medical", "lifestyle"],
   "lang": "pt-BR",
-  "icons": [],
-  "shortcuts": []
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Ir para o dashboard principal",
+      "url": "/",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Consultas",
+      "short_name": "Consultas",
+      "description": "Ver e agendar consultas",
+      "url": "/consultas",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Diário",
+      "short_name": "Diário",
+      "description": "Acessar diário da gestação",
+      "url": "/diario",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
 }

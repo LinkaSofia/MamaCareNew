@@ -3223,6 +3223,27 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     }
   });
 
+  // TRIGGER MANUAL: Forçar verificação de notificações AGORA
+  app.post("/api/notifications/trigger-check", requireAuth, async (req, res) => {
+    try {
+      console.log(`\n🔥🔥🔥 TRIGGER MANUAL DE VERIFICAÇÃO DE NOTIFICAÇÕES 🔥🔥🔥`);
+      console.log(`Usuário: ${req.userId}`);
+      console.log(`Hora: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`);
+      
+      // Executar verificação de notificações imediatamente
+      await NotificationService.sendConsultationNotifications();
+      
+      res.json({ 
+        success: true, 
+        message: "Verificação de notificações executada! Veja os logs do servidor.",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("❌ Erro no trigger manual:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // DEBUG: Ver quais consultas seriam notificadas agora
   app.get("/api/notifications/debug-consultations", requireAuth, async (req, res) => {
     try {

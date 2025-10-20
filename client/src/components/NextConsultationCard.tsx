@@ -54,7 +54,13 @@ export function NextConsultationCard() {
   }
 
   const consultationDate = new Date(consultation.date);
-  const daysUntil = differenceInDays(consultationDate, new Date());
+  const now = new Date();
+  
+  // Normalizar datas para comparação (apenas dia, sem hora)
+  const consultationDay = new Date(consultationDate.getFullYear(), consultationDate.getMonth(), consultationDate.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const daysUntil = differenceInDays(consultationDay, today);
   const isToday = daysUntil === 0;
   const isTomorrow = daysUntil === 1;
 

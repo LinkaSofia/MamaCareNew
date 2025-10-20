@@ -314,14 +314,42 @@ export class NotificationService {
   // Enviar notificações de consultas agendadas
   static async sendConsultationNotifications(): Promise<void> {
     try {
-      console.log("📅 Starting consultation notifications check...");
+      const now = new Date();
+      console.log("=".repeat(80));
+      console.log("📅 INICIANDO VERIFICAÇÃO DE NOTIFICAÇÕES DE CONSULTAS");
+      console.log(`⏰ Hora atual: ${now.toISOString()} (${now.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })})`);
+      console.log("=".repeat(80));
       
       const consultations = await this.getConsultationsFor24hNotification();
-      console.log(`📅 Found ${consultations.length} consultations to notify`);
+      console.log(`\n📊 RESULTADO DA BUSCA:`);
+      console.log(`   Total de consultas encontradas: ${consultations.length}`);
+      
+      if (consultations.length === 0) {
+        console.log(`\n⚠️  NENHUMA CONSULTA PARA NOTIFICAR!`);
+        console.log(`   Possíveis razões:`);
+        console.log(`   1. Não há consultas nas próximas 24 horas`);
+        console.log(`   2. Todas as consultas já foram notificadas`);
+        console.log(`   3. Consultas estão marcadas como 'completed = true'`);
+        console.log("=".repeat(80));
+        return;
+      }
+
+      console.log(`\n📋 CONSULTAS A SEREM NOTIFICADAS:`);
+      consultations.forEach((c, i) => {
+        console.log(`\n   ${i + 1}. Consulta ID: ${c.consultation_id}`);
+        console.log(`      Usuário: ${c.user_id}`);
+        console.log(`      Título: ${c.title}`);
+        console.log(`      Data: ${c.date}`);
+        console.log(`      Local: ${c.location || 'Não informado'}`);
+      });
 
       for (const consultation of consultations) {
         try {
+          console.log(`\n${"─".repeat(80)}`);
+          console.log(`🔔 PROCESSANDO: ${consultation.title} (ID: ${consultation.consultation_id})`);
+          
           // Criar registro de notificação
+          console.log(`   📝 Criando registro de notificação...`);
           await this.scheduleConsultationNotification(
             consultation.consultation_id,
             consultation.user_id,
@@ -331,11 +359,15 @@ export class NotificationService {
 
           // Obter mensagem personalizada
           const message = this.getConsultationNotificationMessage(consultation);
+          console.log(`   📨 Mensagem preparada:`, message);
 
           // Enviar notificação
+          console.log(`   🚀 Enviando notificação para usuário ${consultation.user_id}...`);
           const sent = await this.sendNotificationToUser(consultation.user_id, message);
-
+          
           if (sent) {
+            console.log(`   ✅ Notificação ENVIADA com sucesso!`);
+            
             // Buscar o ID da notificação criada e marcar como enviada
             const notificationResult = await db.execute(sql`
               SELECT id FROM consultation_notifications
@@ -347,20 +379,29 @@ export class NotificationService {
             `);
             
             if (notificationResult.length > 0) {
+              console.log(`   ✅ Marcando notificação como enviada (ID: ${notificationResult[0].id})`);
               await this.markNotificationAsSent(notificationResult[0].id);
             }
+          } else {
+            console.log(`   ❌ FALHA ao enviar notificação!`);
+            console.log(`   Possíveis razões:`);
+            console.log(`   - Usuário sem subscription de push`);
+            console.log(`   - Permissões de notificação bloqueadas`);
+            console.log(`   - Token de push inválido`);
           }
 
           // Pequena pausa entre notificações
           await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
-          console.error(`❌ Error sending notification for consultation ${consultation.consultation_id}:`, error);
+          console.error(`   ❌ ERRO ao processar consulta ${consultation.consultation_id}:`, error);
         }
       }
 
-      console.log("✅ Consultation notifications sent successfully");
+      console.log(`\n${"=".repeat(80)}`);
+      console.log("✅ VERIFICAÇÃO DE NOTIFICAÇÕES CONCLUÍDA");
+      console.log("=".repeat(80));
     } catch (error) {
-      console.error("❌ Error sending consultation notifications:", error);
+      console.error("❌ ERRO CRÍTICO no sistema de notificações:", error);
     }
   }
 }
