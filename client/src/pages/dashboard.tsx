@@ -545,13 +545,10 @@ export default function Dashboard() {
                     <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6">
                       {/* Card - Semana atual */}
                       <div className="bg-gradient-to-br from-blue-200 to-blue-400 backdrop-blur-sm border border-white/20 rounded-3xl p-4 md:p-6 shadow-xl hover:scale-105 transition-all duration-300">
-                        <div className="flex items-center gap-1.5 mb-3 md:mb-4 overflow-hidden">
-                          <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                            <Calendar className="h-4 w-4 md:h-6 md:w-6 text-white" />
+                        <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <Calendar className="h-5 w-5 md:h-6 md:w-6 text-white" />
                           </div>
-                          <span className="font-bold text-gray-800 text-[10px] md:text-base leading-tight truncate">
-                            {viewingWeek && viewingWeek !== weekInfo.week ? 'Desenvolvimento' : 'Semana Atual'}
-                          </span>
                         </div>
                         <p className="text-xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2">
                           {currentWeek}ª semana
