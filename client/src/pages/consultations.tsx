@@ -47,6 +47,17 @@ interface ConsultationsData {
   upcoming: Consultation[];
 }
 
+// Função helper para converter string de data do banco para Date local
+const parseDateStringToLocal = (dateString: string): Date => {
+  // Remove espaços e garante formato compatível
+  const dateStr = dateString.replace(' ', 'T');
+  const match = dateStr.match(/(\d+)/g);
+  if (!match) return new Date();
+  
+  const [year, month, day, hour = 0, minute = 0, second = 0] = match.map(Number);
+  return new Date(year, month - 1, day, hour, minute, second);
+};
+
 export default function Consultations() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -387,7 +398,7 @@ export default function Consultations() {
                       <div className="space-y-1 text-sm text-gray-600 mt-2">
                         <div className="flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
-                          {format(parseISO(consultation.date), "dd/MM/yyyy 'às' HH:mm")}
+                          {format(parseDateStringToLocal(consultation.date), "dd/MM/yyyy 'às' HH:mm")}
                         </div>
                         {consultation.doctorName && (
                           <div className="flex items-center">
@@ -409,10 +420,13 @@ export default function Consultations() {
                         size="sm"
                         onClick={() => {
                           console.log("✏️ Editing consultation:", consultation);
+                          
+                          const localDate = parseDateStringToLocal(consultation.date);
+                          
                           setFormData({
                             title: consultation.title,
-                            date: format(parseISO(consultation.date), 'yyyy-MM-dd'),
-                            time: format(parseISO(consultation.date), 'HH:mm'),
+                            date: format(localDate, 'yyyy-MM-dd'),
+                            time: format(localDate, 'HH:mm'),
                             location: consultation.location || "",
                             doctorName: consultation.doctorName || "",
                             notes: consultation.notes || "",

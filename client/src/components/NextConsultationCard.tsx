@@ -5,6 +5,16 @@ import { Calendar, Clock, MapPin, User } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+// Função helper para converter string de data do banco para Date local
+const parseDateStringToLocal = (dateString: string): Date => {
+  const dateStr = dateString.replace(' ', 'T');
+  const match = dateStr.match(/(\d+)/g);
+  if (!match) return new Date();
+  
+  const [year, month, day, hour = 0, minute = 0, second = 0] = match.map(Number);
+  return new Date(year, month - 1, day, hour, minute, second);
+};
+
 export function NextConsultationCard() {
   const { data, isLoading } = useQuery({
     queryKey: ['/api/consultations/next/user'],
@@ -53,7 +63,8 @@ export function NextConsultationCard() {
     );
   }
 
-  const consultationDate = new Date(consultation.date);
+  const consultationDate = parseDateStringToLocal(consultation.date);
+  
   const now = new Date();
   
   // Normalizar datas para comparação (apenas dia, sem hora)
