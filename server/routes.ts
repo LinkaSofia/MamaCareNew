@@ -1820,9 +1820,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = insertConsultationSchema.parse(consultationData);
       console.log("✅ Consultation data validated:", validatedData);
+      console.log("📅 Date being saved:", validatedData.date, typeof validatedData.date);
       
       const consultation = await storage.createConsultation(validatedData);
       console.log("✅ Consultation created successfully:", consultation);
+      console.log("📅 Date saved in DB:", consultation.date);
       
       res.json({ consultation });
     } catch (error: any) {

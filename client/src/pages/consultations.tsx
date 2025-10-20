@@ -269,14 +269,20 @@ export default function Consultations() {
       return;
     }
 
-    const dateTime = new Date(`${formData.date}T${formData.time}`);
+    // Criar timestamp no timezone local (sem conversão UTC)
+    const dateTimeString = `${formData.date}T${formData.time}:00`;
     
-    console.log("🔍 Submitting form:", { editingId, formData, dateTime });
+    console.log("🔍 Submitting form:", { 
+      editingId, 
+      formData, 
+      dateTimeString,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+    });
     
     if (editingId) {
       const updateData = {
         title: formData.title,
-        date: dateTime.toISOString(),
+        date: dateTimeString, // String no formato YYYY-MM-DDTHH:mm:ss (timezone local)
         location: formData.location || null,
         doctorName: formData.doctorName || null,
         notes: formData.notes || null
@@ -290,7 +296,7 @@ export default function Consultations() {
       const newData = {
         pregnancyId: pregnancy!.id,
         title: formData.title,
-        date: dateTime.toISOString(),
+        date: dateTimeString, // String no formato YYYY-MM-DDTHH:mm:ss (timezone local)
         location: formData.location || null,
         doctorName: formData.doctorName || null,
         notes: formData.notes || null

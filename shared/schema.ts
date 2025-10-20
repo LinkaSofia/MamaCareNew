@@ -320,7 +320,7 @@ export const updateWeightEntrySchema = z.object({
 }).partial();
 export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true }).extend({
-  date: z.string().transform((val) => new Date(val)),
+  date: z.string(), // Mantém como string ISO, sem transformação
 });
 export const updateConsultationSchema = z.object({
   title: z.string().optional(),
