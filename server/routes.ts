@@ -16,6 +16,7 @@ import path from "path";
 import cors from "cors";
 import multer from "multer";
 import { NotificationScheduler } from "./notificationScheduler";
+import { NotificationService } from "./notificationService";
 
 // Simple session store for user authentication
 declare module "express-session" {
@@ -3151,6 +3152,66 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     }
   });
 
+  // Forçar notificação de uma consulta específica (TESTE)
+  app.post("/api/notifications/force-consultation/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId;
+      const consultationId = req.params.id;
+      
+      console.log(`🧪 Forcing notification for consultation ${consultationId}`);
+      
+      // Buscar consulta
+      const consultation = await storage.getConsultationById(consultationId);
+      
+      if (!consultation) {
+        return res.status(404).json({ error: "Consultation not found" });
+      }
+      
+      if (consultation.userId !== userId) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+      
+      // Criar mensagem de notificação
+      const consultationDate = new Date(consultation.date);
+      const timeString = consultationDate.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      const message = {
+        title: "🏥 Lembrete de Consulta - MamaCare",
+        body: `Sua consulta "${consultation.title}" está marcada para amanhã às ${timeString}! ${consultation.location ? `Local: ${consultation.location}` : ''}`,
+        icon: "/icon-192x192.png",
+        data: {
+          type: "consultation",
+          consultationId: consultation.id,
+          url: "/consultas"
+        }
+      };
+      
+      // Enviar notificação forçada
+      const sent = await NotificationService.sendNotificationToUser(userId, message);
+      
+      if (sent) {
+        res.json({ 
+          success: true, 
+          message: "Notification sent!",
+          consultation: {
+            id: consultation.id,
+            title: consultation.title,
+            date: consultation.date
+          }
+        });
+      } else {
+        res.status(500).json({ error: "Failed to send notification" });
+      }
+      
+    } catch (error: any) {
+      console.error("Error forcing consultation notification:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Obter status do agendador de notificações
   app.get("/api/notifications/status", requireAuth, async (req, res) => {
     try {
@@ -3159,6 +3220,89 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     } catch (error) {
       console.error("Error getting notification status:", error);
       res.status(500).json({ error: "Failed to get notification status" });
+    }
+  });
+
+  // DEBUG: Ver quais consultas seriam notificadas agora
+  app.get("/api/notifications/debug-consultations", requireAuth, async (req, res) => {
+    try {
+      const now = new Date();
+      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      
+      console.log(`🔍 DEBUG: Buscando consultas entre ${now.toISOString()} e ${in24Hours.toISOString()}`);
+      
+      // Buscar TODAS as consultas futuras do usuário
+      const allConsultations = await db.execute(sql`
+        SELECT 
+          c.id,
+          c.user_id,
+          c.title,
+          c.date,
+          c.completed,
+          c.location,
+          c.doctor_name
+        FROM consultations c
+        WHERE c.user_id = ${req.userId}
+          AND c.date >= ${now.toISOString()}
+        ORDER BY c.date
+      `);
+      
+      // Buscar consultas que seriam notificadas
+      const toNotify = await db.execute(sql`
+        SELECT 
+          c.id,
+          c.user_id,
+          c.title,
+          c.date,
+          c.location,
+          c.doctor_name
+        FROM consultations c
+        WHERE c.user_id = ${req.userId}
+          AND c.date >= ${now.toISOString()}
+          AND c.date <= ${in24Hours.toISOString()}
+          AND c.completed = false
+          AND NOT EXISTS (
+            SELECT 1 
+            FROM consultation_notifications cn 
+            WHERE cn.consultation_id = c.id 
+              AND cn.notification_type = '24h_reminder'
+              AND cn.sent = true
+          )
+      `);
+      
+      // Buscar notificações já enviadas
+      const sentNotifications = await db.execute(sql`
+        SELECT 
+          cn.id,
+          cn.consultation_id,
+          cn.notification_type,
+          cn.sent,
+          cn.sent_at,
+          cn.scheduled_for,
+          c.title,
+          c.date as consultation_date
+        FROM consultation_notifications cn
+        JOIN consultations c ON cn.consultation_id = c.id
+        WHERE cn.user_id = ${req.userId}
+        ORDER BY cn.created_at DESC
+      `);
+      
+      res.json({
+        now: now.toISOString(),
+        in24Hours: in24Hours.toISOString(),
+        timezone: "America/Sao_Paulo",
+        allFutureConsultations: allConsultations,
+        consultationsToNotify: toNotify,
+        sentNotifications: sentNotifications,
+        debug: {
+          totalFuture: allConsultations.length,
+          toNotifyCount: toNotify.length,
+          alreadySent: sentNotifications.filter((n: any) => n.sent).length
+        }
+      });
+    } catch (error: any) {
+      console.error("Error debugging consultations:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 

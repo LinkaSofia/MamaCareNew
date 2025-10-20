@@ -199,6 +199,8 @@ export class NotificationService {
       const now = new Date();
       const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
       
+      console.log(`🔍 Buscando consultas entre ${now.toISOString()} e ${in24Hours.toISOString()}`);
+      
       // Buscar consultas que acontecem em ~24 horas e ainda não foram notificadas
       const result = await db.execute(sql`
         SELECT 
@@ -221,6 +223,8 @@ export class NotificationService {
               AND cn.sent = true
           )
       `);
+      
+      console.log(`📊 Encontradas ${result.length} consultas para notificar:`, result);
       
       return result;
     } catch (error) {
