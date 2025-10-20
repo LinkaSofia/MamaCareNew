@@ -494,7 +494,18 @@ export default function Dashboard() {
                               {renderComparisonImage(development.fruit_comparison, development.fruit_image_url, 'large')}
                             </div>
                             <p className="text-lg font-bold text-gray-800">
-                              Seu bebê é como {development.fruit_comparison.startsWith('uma ') || development.fruit_comparison.startsWith('um ') ? development.fruit_comparison : `uma ${development.fruit_comparison}`}
+                              Seu bebê é como {(() => {
+                                const fruit = development.fruit_comparison;
+                                // Se já tem artigo, retorna direto
+                                if (fruit.startsWith('uma ') || fruit.startsWith('um ')) return fruit;
+                                
+                                // Lista de palavras masculinas (terminam em -o, -ão, -e, etc)
+                                const masculineEndings = ['limão', 'abacaxi', 'coco', 'melão', 'morango', 'pêssego', 'grão', 'feijão', 'milho', 'arroz'];
+                                const isMasculine = masculineEndings.some(word => fruit.toLowerCase().includes(word)) || 
+                                                   fruit.endsWith('o') || fruit.endsWith('ão');
+                                
+                                return isMasculine ? `um ${fruit}` : `uma ${fruit}`;
+                              })()}
                             </p>
                           </div>
                         </div>
@@ -539,14 +550,14 @@ export default function Dashboard() {
                             <Calendar className="h-5 w-5 md:h-6 md:w-6 text-white" />
                           </div>
                           <span className="font-bold text-gray-800 text-sm md:text-lg">
-                            {viewingWeek && viewingWeek !== weekInfo.week ? 'Visualizando' : 'Semana Atual'}
+                            {viewingWeek && viewingWeek !== weekInfo.week ? 'Desenvolvimento' : 'Semana Atual'}
                           </span>
                         </div>
                         <p className="text-xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2">
                           {currentWeek}ª semana
                         </p>
                         <p className="text-xs md:text-sm text-gray-600">
-                          {viewingWeek && viewingWeek !== weekInfo.week ? 'de desenvolvimento' : 'da sua gestação'}
+                          {viewingWeek && viewingWeek !== weekInfo.week ? 'do seu bebê' : 'da sua gestação'}
                         </p>
                       </div>
                       
