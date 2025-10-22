@@ -919,24 +919,6 @@ export default function ShoppingList() {
                 </CardContent>
               </Card>
             )}
-
-            {/* Empty State */}
-            {items.length === 0 && (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Lista vazia</h3>
-                  <p className="text-gray-600 mb-4">Comece adicionando itens para seu bebê</p>
-                  <Button
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-gradient-to-r from-pink-500 to-blue-500 hover:opacity-90"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Adicionar primeiro item
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           {/* Suggestions Tab */}

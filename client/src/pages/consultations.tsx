@@ -22,7 +22,8 @@ import {
   MapPin, 
   User,
   Edit,
-  Trash2
+  Trash2,
+  Bell
 } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 
@@ -351,33 +352,64 @@ export default function Consultations() {
             </div>
             
             {/* Botão Adicionar - Direita */}
-            <Button
-              onClick={() => {
-                // Resetar formulário com data ATUAL sempre que abrir para nova consulta
-                const currentDate = getCurrentDateString();
-                console.log("➕ ANTES de setFormData - Data que será setada:", currentDate);
-                
-                setFormData({
-                  title: "",
-                  date: currentDate,
-                  time: "",
-                  location: "",
-                  doctorName: "",
-                  notes: "",
-                  type: 'prenatal' as ConsultationType,
-                  priority: 'medium' as 'low' | 'medium' | 'high',
-                  reminders: true,
-                  preparation: [] as string[]
-                });
-                
-                console.log("➕ DEPOIS de setFormData");
-                setEditingId(null);
-                setShowAddForm(true);
-              }}
-              className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
-            >
-              <Plus className="h-5 w-5 text-white" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={async () => {
+                  try {
+                    toast({
+                      title: "🔔 Testando notificações...",
+                      description: "Verificando consultas para notificar",
+                    });
+                    const response = await fetch('/api/notifications/trigger-check', { method: 'POST' });
+                    const result = await response.json();
+                    console.log('🔔 Resultado do teste:', result);
+                    toast({
+                      title: result.success ? "✅ Teste concluído!" : "⚠️ Atenção",
+                      description: result.message || `${result.notificationsSent} notificação(ões) enviada(s)`,
+                    });
+                  } catch (error) {
+                    console.error('❌ Erro ao testar:', error);
+                    toast({
+                      title: "❌ Erro",
+                      description: "Falha ao testar notificações",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                variant="outline"
+                size="icon"
+                className="rounded-full bg-blue-500/80 backdrop-blur-sm shadow-lg hover:bg-blue-600 border-none"
+              >
+                <Bell className="h-4 w-4 text-white" />
+              </Button>
+              <Button
+                onClick={() => {
+                  // Resetar formulário com data ATUAL sempre que abrir para nova consulta
+                  const currentDate = getCurrentDateString();
+                  console.log("➕ ANTES de setFormData - Data que será setada:", currentDate);
+                  
+                  setFormData({
+                    title: "",
+                    date: currentDate,
+                    time: "",
+                    location: "",
+                    doctorName: "",
+                    notes: "",
+                    type: 'prenatal' as ConsultationType,
+                    priority: 'medium' as 'low' | 'medium' | 'high',
+                    reminders: true,
+                    preparation: [] as string[]
+                  });
+                  
+                  console.log("➕ DEPOIS de setFormData");
+                  setEditingId(null);
+                  setShowAddForm(true);
+                }}
+                className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
+              >
+                <Plus className="h-5 w-5 text-white" />
+              </Button>
+            </div>
           </div>
 
         {/* Upcoming Consultations */}
