@@ -148,6 +148,14 @@ export default function ShoppingList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Salvar orçamento no localStorage sempre que mudar
+  useEffect(() => {
+    if (pregnancy?.id) {
+      localStorage.setItem(`mamacare_budget_${pregnancy.id}`, budget.toString());
+      console.log(`💰 Orçamento salvo no localStorage: R$ ${budget} para gravidez ${pregnancy.id}`);
+    }
+  }, [budget, pregnancy?.id]);
+
   const { data: shoppingData, isLoading, error: queryError, refetch } = useQuery<ShoppingData>({
     queryKey: ["/api/shopping-items", pregnancy?.id],
     enabled: !!pregnancy,
