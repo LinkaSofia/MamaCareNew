@@ -1765,6 +1765,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Consultation routes
+  // Nova rota: buscar consultas da gravidez ativa do usuário (sem precisar de pregnancyId)
+  app.get("/api/consultations", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      console.log("📅 Getting consultations for user:", userId);
+      
+      // Buscar gravidez ativa do usuário
+      const activePregnancy = await storage.getActivePregnancy(userId);
+      if (!activePregnancy) {
+        console.log("⚠️ No active pregnancy found for user:", userId);
+        return res.json({ consultations: [], upcoming: [] });
+      }
+      
+      console.log("📅 Found active pregnancy:", activePregnancy.id);
+      const consultations = await storage.getConsultations(activePregnancy.id);
+      const upcoming = await storage.getUpcomingConsultations(activePregnancy.id);
+      console.log("📊 Found consultations:", consultations.length, "upcoming:", upcoming.length);
+      console.log("📋 All consultations:", consultations);
+      console.log("⏰ Upcoming consultations:", upcoming);
+      res.json({ consultations, upcoming });
+    } catch (error) {
+      console.error("❌ Error getting consultations:", error);
+      res.status(500).json({ error: "Failed to get consultations" });
+    }
+  });
+
   app.get("/api/consultations/:pregnancyId", requireAuth, async (req, res) => {
     try {
       console.log("📅 Getting consultations for pregnancy ID:", req.params.pregnancyId);
@@ -1822,13 +1848,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("✅ Consultation data validated:", validatedData);
       console.log("📅 Date being saved:", validatedData.date, typeof validatedData.date);
       
-      const consultation = await storage.createConsultation(validatedData);
+      // Tratar a data como timestamp no timezone local (América/São Paulo)
+      // A string vem no formato "YYYY-MM-DDTHH:mm:ss" sem timezone
+      // Vamos salvá-la diretamente como string TIMESTAMP no PostgreSQL
+      const consultationWithDate = {
+        ...validatedData,
+        // Salvar como string para PostgreSQL interpretar como TIMESTAMP sem conversão
+        date: validatedData.date
+      };
+      console.log("📅 Saving date as string for local timezone:", consultationWithDate.date);
+      
+      const consultation = await storage.createConsultation(consultationWithDate);
       console.log("✅ Consultation created successfully:", consultation);
       console.log("📅 Date saved in DB:", consultation.date);
       
       res.json({ consultation });
     } catch (error: any) {
       console.error("❌ Consultation creation error:", error);
+      console.error("❌ Error type:", typeof error);
+      console.error("❌ Error stack:", error.stack);
+      console.error("❌ Error details:", JSON.stringify(error, null, 2));
+      
       if (error.issues) {
         // Erro de validação Zod
         const fieldErrors = error.issues.map((issue: any) => ({
@@ -1837,7 +1877,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
         res.status(400).json({ error: "Dados de consulta inválidos", details: fieldErrors });
       } else {
-        res.status(400).json({ error: "Erro ao criar consulta: " + error.message });
+        res.status(400).json({ 
+          error: "Erro ao criar consulta: " + error.message,
+          details: error.toString(),
+          stack: error.stack
+        });
       }
     }
   });
@@ -1875,12 +1919,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = updateConsultationSchema.parse(req.body);
       console.log("✅ Update data validated:", validatedData);
       
-      // Converter date string para Date object se existir
+      // Salvar date como string para manter timezone local
       const updateData = {
         ...validatedData,
-        ...(validatedData.date && { date: new Date(validatedData.date) })
+        // Manter como string para PostgreSQL interpretar como TIMESTAMP local
+        ...(validatedData.date && { date: validatedData.date })
       };
-      console.log("📝 Update data with Date conversion:", updateData);
+      console.log("📝 Update data (keeping date as string):", updateData);
       
       console.log("📝 About to call storage.updateConsultation...");
       const updatedConsultation = await storage.updateConsultation(consultationId, updateData);

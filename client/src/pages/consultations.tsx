@@ -99,10 +99,36 @@ export default function Consultations() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: consultationsData, isLoading } = useQuery<ConsultationsData>({
+  const { data: consultationsData, isLoading, error: queryError } = useQuery<ConsultationsData>({
     queryKey: ["/api/consultations", pregnancy?.id],
-    enabled: !!pregnancy,
+    enabled: !!pregnancy?.id,
+    queryFn: async () => {
+      if (!pregnancy?.id) {
+        console.log("⚠️ No pregnancy ID available");
+        return { consultations: [], upcoming: [] };
+      }
+      
+      console.log("🔍 FETCHING CONSULTATIONS for pregnancy:", pregnancy.id);
+      try {
+        const response = await apiRequest("GET", `/api/consultations/${pregnancy.id}`);
+        const data = await response.json();
+        console.log("✅ CONSULTATIONS LOADED:", data);
+        console.log("✅ Total consultations:", data?.consultations?.length || 0);
+        console.log("✅ Upcoming:", data?.upcoming?.length || 0);
+        return data;
+      } catch (error) {
+        console.error("❌ ERROR FETCHING CONSULTATIONS:", error);
+        throw error;
+      }
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+  
+  // Log quando há erro
+  if (queryError) {
+    console.error("❌ QUERY ERROR:", queryError);
+  }
 
   const consultations = consultationsData?.consultations || [];
   const upcoming = consultationsData?.upcoming || [];
@@ -149,9 +175,6 @@ export default function Consultations() {
       // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
       queryClient.refetchQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
-      
-      // Também invalidar todas as queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ["/api/consultations"] });
       
       resetForm();
       toast({
@@ -215,9 +238,6 @@ export default function Consultations() {
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
       queryClient.refetchQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
       
-      // Também invalidar todas as queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ["/api/consultations"] });
-      
       resetForm();
       toast({
         title: "✅ Consulta atualizada!",
@@ -248,9 +268,6 @@ export default function Consultations() {
       // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
       queryClient.refetchQueries({ queryKey: ["/api/consultations", pregnancy?.id] });
-      
-      // Também invalidar todas as queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ["/api/consultations"] });
       
       setShowDeleteModal(false);
       setConsultationToDelete(null);
@@ -305,8 +322,17 @@ export default function Consultations() {
         data: updateData
       });
     } else {
+      if (!pregnancy?.id) {
+        toast({
+          title: "Erro",
+          description: "Gravidez não encontrada. Por favor, recarregue a página.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const newData = {
-        pregnancyId: pregnancy!.id,
+        pregnancyId: pregnancy.id,
         title: formData.title,
         date: dateTimeString, // String no formato YYYY-MM-DDTHH:mm:ss (timezone local)
         location: formData.location || null,

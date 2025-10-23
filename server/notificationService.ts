@@ -196,10 +196,25 @@ export class NotificationService {
   // Obter consultas que precisam de notificação 24h antes
   static async getConsultationsFor24hNotification(): Promise<any[]> {
     try {
+      // Usar timezone local (America/Sao_Paulo) para comparações
       const now = new Date();
       const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
       
-      console.log(`🔍 Buscando consultas entre ${now.toISOString()} e ${in24Hours.toISOString()}`);
+      // Formatar datas como strings TIMESTAMP para comparação local (sem conversão timezone)
+      const formatLocalTimestamp = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
+        const second = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+      };
+      
+      const nowStr = formatLocalTimestamp(now);
+      const in24HoursStr = formatLocalTimestamp(in24Hours);
+      
+      console.log(`🔍 Buscando consultas entre ${nowStr} e ${in24HoursStr} (horário local)`);
       
       // Buscar consultas que acontecem em ~24 horas e ainda não foram notificadas
       const result = await db.execute(sql`
@@ -212,8 +227,8 @@ export class NotificationService {
           c.doctor_name,
           c.pregnancy_id
         FROM consultations c
-        WHERE c.date >= ${now.toISOString()}
-          AND c.date <= ${in24Hours.toISOString()}
+        WHERE c.date >= ${nowStr}::timestamp
+          AND c.date <= ${in24HoursStr}::timestamp
           AND c.completed = false
           AND NOT EXISTS (
             SELECT 1 
@@ -257,7 +272,7 @@ export class NotificationService {
           false,
           NOW()
         )
-        ON CONFLICT (consultation_id, notification_type, scheduled_for) DO NOTHING
+        ON CONFLICT (consultation_id, notification_type) DO NOTHING
       `);
       
       console.log(`✅ Scheduled notification for consultation ${consultationId}`);
@@ -284,11 +299,18 @@ export class NotificationService {
 
   // Obter mensagem de notificação de consulta
   static getConsultationNotificationMessage(consultation: any): NotificationMessage {
-    const consultationDate = new Date(consultation.date);
-    const timeString = consultationDate.toLocaleTimeString('pt-BR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    // Parse da data como timestamp local (sem conversão timezone)
+    const dateStr = typeof consultation.date === 'string' 
+      ? consultation.date.replace(' ', 'T') 
+      : consultation.date.toISOString();
+    
+    const match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+    let timeString = '00:00';
+    
+    if (match) {
+      const [, , , , hour, minute] = match;
+      timeString = `${hour}:${minute}`;
+    }
     
     const locationText = consultation.location 
       ? ` em ${consultation.location}` 

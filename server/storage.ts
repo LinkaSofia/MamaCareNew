@@ -643,14 +643,50 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createConsultation(consultation: InsertConsultation): Promise<Consultation> {
-    const [newConsultation] = await db.insert(consultations).values({
-      ...consultation,
-      id: randomUUID(),
-    }).returning();
-    return newConsultation;
+    // Usar SQL direto para garantir que date é interpretado como timestamp local
+    const [newConsultation] = await db.execute(sql`
+      INSERT INTO consultations (
+        id, user_id, pregnancy_id, title, date, location, doctor_name, notes, completed
+      ) VALUES (
+        ${randomUUID()},
+        ${consultation.userId},
+        ${consultation.pregnancyId},
+        ${consultation.title},
+        ${consultation.date}::timestamp,
+        ${consultation.location || null},
+        ${consultation.doctorName || null},
+        ${consultation.notes || null},
+        ${consultation.completed || false}
+      )
+      RETURNING *
+    `);
+    return newConsultation as Consultation;
   }
 
   async updateConsultation(id: string, updates: Partial<InsertConsultation>): Promise<Consultation> {
+    // Se há atualização de date, usar SQL direto para garantir timestamp local
+    if (updates.date) {
+      const fields = [];
+      const values = [];
+      
+      if (updates.title) { fields.push('title = $' + (fields.length + 1)); values.push(updates.title); }
+      if (updates.date) { fields.push('date = $' + (fields.length + 1) + '::timestamp'); values.push(updates.date); }
+      if (updates.location !== undefined) { fields.push('location = $' + (fields.length + 1)); values.push(updates.location); }
+      if (updates.doctorName !== undefined) { fields.push('doctor_name = $' + (fields.length + 1)); values.push(updates.doctorName); }
+      if (updates.notes !== undefined) { fields.push('notes = $' + (fields.length + 1)); values.push(updates.notes); }
+      if (updates.completed !== undefined) { fields.push('completed = $' + (fields.length + 1)); values.push(updates.completed); }
+      
+      const [updated] = await db.execute(sql.unsafe(`
+        UPDATE consultations 
+        SET ${fields.join(', ')}
+        WHERE id = $${fields.length + 1}
+        RETURNING *
+      `, [...values, id]));
+      
+      return updated as Consultation;
+    }
+    
+    // Se não há date, usar update normal
     const [updated] = await db.update(consultations)
       .set(updates)
       .where(eq(consultations.id, id))
