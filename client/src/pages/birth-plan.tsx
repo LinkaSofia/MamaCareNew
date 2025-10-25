@@ -418,47 +418,53 @@ export default function BirthPlan() {
           </div>
           
           <div class="section">
-            <h3>📍 Local do Parto</h3>
+            <h3>📍 Informações Básicas</h3>
             <p><strong>Local:</strong> ${birthPlan.location || 'Não informado'}</p>
-            <p><strong>Acompanhantes:</strong> ${birthPlan.companions || 'Não informado'}</p>
-            <p><strong>Preferência de médico:</strong> ${birthPlan.doctorPreference || 'Não informado'}</p>
-          </div>
-          
-          <div class="section">
-            <h3>🏠 Ambiente Desejado</h3>
-            <p><strong>Iluminação:</strong> ${birthPlan.lighting || 'Não informado'}</p>
-            <p><strong>Música:</strong> ${birthPlan.music ? 'Sim' : 'Não'}</p>
-            <p><strong>Liberdade de movimento:</strong> ${birthPlan.movement ? 'Sim' : 'Não'}</p>
+            <p><strong>Tipo de parto:</strong> ${birthPlan.birth_type || 'Não informado'}</p>
+            <p><strong>Hospital:</strong> ${birthPlan.hospital || 'Não informado'}</p>
+            <p><strong>Médico:</strong> ${birthPlan.doctor || 'Não informado'}</p>
+            <p><strong>Doula:</strong> ${birthPlan.doula || 'Não informado'}</p>
           </div>
           
           <div class="section">
             <h3>💊 Alívio da Dor</h3>
-            <p><strong>Métodos naturais:</strong> ${birthPlan.painReliefNatural ? 'Sim' : 'Não'}</p>
-            <p><strong>Epidural:</strong> ${birthPlan.painReliefEpidural ? 'Sim' : 'Não'}</p>
-            <p><strong>Outros métodos:</strong> ${birthPlan.painReliefOther || 'Não informado'}</p>
+            ${birthPlan.pain_relief ? `<p>${typeof birthPlan.pain_relief === 'object' ? JSON.stringify(birthPlan.pain_relief, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.pain_relief}</p>` : '<p>Não informado</p>'}
           </div>
           
           <div class="section">
-            <h3>🤱 Durante o Trabalho de Parto</h3>
-            <p><strong>Posição preferida:</strong> ${birthPlan.laborPosition || 'Não informado'}</p>
-            <p><strong>Monitoramento:</strong> ${birthPlan.monitoring || 'Não informado'}</p>
-            <p><strong>Hidratação e alimentação:</strong> ${birthPlan.hydrationFood ? 'Sim' : 'Não'}</p>
+            <h3>🏠 Ambiente Desejado</h3>
+            ${birthPlan.environment ? `<p>${typeof birthPlan.environment === 'object' ? JSON.stringify(birthPlan.environment, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.environment}</p>` : '<p>Não informado</p>'}
           </div>
           
           <div class="section">
-            <h3>👶 Durante o Parto</h3>
-            <p><strong>Tipo de parto:</strong> ${birthPlan.deliveryType || 'Não informado'}</p>
-            <p><strong>Episiotomia:</strong> ${birthPlan.episiotomy || 'Não informado'}</p>
-            <p><strong>Corte do cordão:</strong> ${birthPlan.umbilicalCord || 'Não informado'}</p>
-            <p><strong>Contato pele a pele:</strong> ${birthPlan.skinToSkin ? 'Sim' : 'Não'}</p>
+            <h3>👥 Acompanhantes</h3>
+            <p>${birthPlan.companions || 'Não informado'}</p>
+            ${birthPlan.support_team ? `<p>${typeof birthPlan.support_team === 'object' ? JSON.stringify(birthPlan.support_team, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.support_team}</p>` : ''}
+          </div>
+          
+          <div class="section">
+            <h3>👶 Preferências de Nascimento</h3>
+            ${birthPlan.birth_preferences ? `<p>${typeof birthPlan.birth_preferences === 'object' ? JSON.stringify(birthPlan.birth_preferences, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.birth_preferences}</p>` : '<p>Não informado</p>'}
           </div>
           
           <div class="section">
             <h3>🍼 Pós-Parto</h3>
-            <p><strong>Amamentação:</strong> ${birthPlan.breastfeeding || 'Não informado'}</p>
-            <p><strong>Banho do bebê:</strong> ${birthPlan.babyBath || 'Não informado'}</p>
-            <p><strong>Presença do acompanhante:</strong> ${birthPlan.companionPresence ? 'Sim' : 'Não'}</p>
+            ${birthPlan.post_birth ? `<p>${typeof birthPlan.post_birth === 'object' ? JSON.stringify(birthPlan.post_birth, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.post_birth}</p>` : '<p>Não informado</p>'}
           </div>
+          
+          ${birthPlan.special_requests ? `
+          <div class="section">
+            <h3>✨ Pedidos Especiais</h3>
+            <p>${birthPlan.special_requests}</p>
+          </div>
+          ` : ''}
+          
+          ${birthPlan.emergency_preferences ? `
+          <div class="section">
+            <h3>🚨 Preferências em Caso de Emergência</h3>
+            <p>${birthPlan.emergency_preferences}</p>
+          </div>
+          ` : ''}
           
           <div class="footer">
             <p>Este plano de parto foi criado com o MamaCare</p>
@@ -572,6 +578,12 @@ export default function BirthPlan() {
     try {
       console.log('🔄 Iniciando download do PDF...');
       
+      // USAR SEMPRE O MÉTODO DE IMPRESSÃO (mais confiável)
+      console.log('🖨️ Usando método de impressão nativa...');
+      await downloadPDFMobile();
+      return;
+      
+      /* CÓDIGO ANTIGO DO HTML2PDF - COMENTADO POIS ESTAVA GERANDO PDF EM BRANCO
       // Detectar se é mobile/PWA
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -588,6 +600,8 @@ export default function BirthPlan() {
       // Para desktop, usar html2pdf
       console.log('💻 Usando html2pdf para desktop...');
       const html2pdf = (await import('html2pdf.js')).default;
+    
+    console.log('📄 Preparando conteúdo do PDF...');
     
     const htmlContent = `
       <!DOCTYPE html>
@@ -785,12 +799,7 @@ export default function BirthPlan() {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo-container">
-              <div class="logo-icon">
-                <img src="${logoImage}" alt="MamaCare Logo" />
-              </div>
-              <div class="logo-text">MamaCare</div>
-            </div>
+            <div class="logo-text">💕 MamaCare</div>
             <h1>Meu Plano de Parto</h1>
             <p class="header-subtitle">Planejando um parto com amor e cuidado</p>
           </div>
@@ -976,64 +985,73 @@ export default function BirthPlan() {
       pagebreak: { mode: 'avoid-all' }
     };
     
-      // Gerar e baixar o PDF (SEM ABRIR NOVA JANELA)
-      // Adicionar elemento temporariamente ao DOM (necessário para renderização)
+      // Gerar e baixar o PDF
+      // IMPORTANTE: O elemento precisa estar visível na viewport para html2canvas funcionar
+      console.log('🎨 Adicionando elemento ao DOM...');
+      
+      // Adicionar elemento ao DOM de forma VISÍVEL mas fora da tela visível
       element.style.position = 'absolute';
-      element.style.left = '-9999px';
-      element.style.top = '-9999px';
+      element.style.top = '0';
+      element.style.left = '0';
       element.style.width = '210mm'; // A4 width
       element.style.height = 'auto';
+      element.style.zIndex = '9999'; // Na frente para garantir renderização
+      element.style.background = 'white'; // Fundo branco
+      element.style.overflow = 'visible';
+      
+      // Criar um overlay escuro para cobrir a tela enquanto gera
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100vw';
+      overlay.style.height = '100vh';
+      overlay.style.background = 'rgba(0, 0, 0, 0.8)';
+      overlay.style.zIndex = '9998';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.color = 'white';
+      overlay.style.fontSize = '20px';
+      overlay.innerHTML = '<div style="text-align: center;"><div style="font-size: 40px; margin-bottom: 20px;">📄</div>Gerando PDF...</div>';
+      
+      document.body.appendChild(overlay);
       document.body.appendChild(element);
       
-      // Aguardar um pouco para garantir que o elemento foi renderizado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('⏳ Aguardando renderização...');
+      // Aguardar mais tempo para garantir renderização completa
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
+      console.log('🔄 Gerando PDF...');
       // Gerar PDF e forçar download direto
       await html2pdf().set(options).from(element).save();
       
-      // Remover elemento temporário
-      document.body.removeChild(element);
+      console.log('✅ PDF gerado!');
+      
+      // Aguardar um pouco antes de remover para garantir que o PDF foi processado
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Remover elementos temporários
+      if (document.body.contains(element)) {
+        document.body.removeChild(element);
+      }
+      if (document.body.contains(overlay)) {
+        document.body.removeChild(overlay);
+      }
       
       toast({
         title: "✅ PDF Baixado!",
         description: "Seu plano de parto foi salvo com sucesso.",
       });
+      */
+      // FIM DO CÓDIGO COMENTADO
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      // Limpar elemento se houver erro
-      if (document.body.contains(element)) {
-        document.body.removeChild(element);
-      }
-      
-      // Fallback para mobile: tentar abrir em nova janela para impressão
-      try {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(htmlContent);
-          printWindow.document.close();
-          printWindow.focus();
-          
-          // Aguardar carregamento e imprimir
-          setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-          }, 1000);
-          
-          toast({
-            title: "📄 Abrindo para Impressão",
-            description: "Seu plano de parto foi aberto em uma nova janela para impressão.",
-          });
-        } else {
-          throw new Error('Não foi possível abrir nova janela');
-        }
-      } catch (fallbackError) {
-        console.error('Erro no fallback:', fallbackError);
-        toast({
-          title: "Erro",
-          description: "Não foi possível gerar o PDF. Tente novamente.",
-          variant: "destructive",
-        });
-      }
+      console.error('❌ Erro ao gerar PDF:', error);
+      toast({
+        title: "❌ Erro",
+        description: "Não foi possível gerar o PDF. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 

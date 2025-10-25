@@ -268,6 +268,16 @@ export const babyDevelopment = pgTable("baby_development", {
   weight_grams: numeric("weight_grams").default(sql`0`),
 });
 
+// Tabela de feedbacks dos usuários
+export const feedbacks = pgTable("feedbacks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  page: text("page").notNull(), // página onde o feedback foi dado
+  rating: integer("rating").notNull(), // 1 a 5 estrelas
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Tabela de auditoria completa - registra todas as modificações de dados
 export const auditLogs = pgTable("audit_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -387,6 +397,7 @@ export const insertAccessLogSchema = createInsertSchema(accessLogs).omit({ id: t
 export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit({ id: true, timestamp: true });
 export const insertUserSessionSchema = createInsertSchema(userSessions).omit({ id: true, startTime: true, endTime: true });
 export const insertBabyDevelopmentSchema = createInsertSchema(babyDevelopment).omit({ id: true });
+export const insertFeedbackSchema = createInsertSchema(feedbacks).omit({ id: true, createdAt: true });
 export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, timestamp: true });
 
 // Types
@@ -430,6 +441,8 @@ export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type BabyDevelopment = typeof babyDevelopment.$inferSelect;
 export type InsertBabyDevelopment = z.infer<typeof insertBabyDevelopmentSchema>;
+export type Feedback = typeof feedbacks.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, updateConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertDiaryAttachmentSchema, diaryAttachments, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema } from "@shared/schema";
+import { insertUserSchema, insertPregnancySchema, insertKickCountSchema, insertWeightRecordSchema, insertWeightEntrySchema, updateWeightEntrySchema, insertBirthPlanSchema, insertConsultationSchema, updateConsultationSchema, insertShoppingItemSchema, insertPhotoSchema, insertDiaryEntrySchema, updateDiaryEntrySchema, insertDiaryAttachmentSchema, diaryAttachments, insertSymptomSchema, insertMedicationSchema, insertCommunityPostSchema, insertCommunityCommentSchema, insertBabyDevelopmentSchema, babyDevelopment, articles, insertArticleSchema, feedbacks, insertFeedbackSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 // FileStore removido - usando MemoryStore (in-memory) para compatibilidade com Render
@@ -3371,6 +3371,37 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
     } catch (error: any) {
       console.error("Error debugging consultations:", error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Feedback routes
+  app.post("/api/feedback", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { page, rating, message } = req.body;
+      
+      console.log("💬 Recebendo feedback:", { userId, page, rating, message });
+      
+      if (!page || !rating || !message) {
+        return res.status(400).json({ error: "Campos obrigatórios: page, rating, message" });
+      }
+      
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating deve ser entre 1 e 5" });
+      }
+      
+      const feedback = await db.insert(feedbacks).values({
+        userId,
+        page,
+        rating,
+        message,
+      }).returning();
+      
+      console.log("✅ Feedback salvo:", feedback[0].id);
+      res.json({ success: true, feedback: feedback[0] });
+    } catch (error: any) {
+      console.error("❌ Erro ao salvar feedback:", error);
+      res.status(500).json({ error: "Erro ao salvar feedback" });
     }
   });
 

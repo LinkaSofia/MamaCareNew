@@ -7,6 +7,7 @@ import { Suspense, Component, useEffect } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Auth provider removido - usando auth manager
 import { Layout } from "@/components/Layout";
+import { FeedbackButton } from "@/components/feedback-button";
 import { NotificationManager } from "./lib/notifications";
 
 // Import das páginas essenciais
@@ -125,6 +126,7 @@ function App() {
             </div>
           }>
             <Toaster />
+            <FeedbackButton />
             <PWAInstallPrompt />
             <ServiceWorkerManager 
               onUpdateAvailable={() => console.log('🔄 Atualização disponível')}
