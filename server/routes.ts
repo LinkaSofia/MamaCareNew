@@ -1343,6 +1343,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota específica para atualizar orçamento
+  app.put("/api/pregnancies/:id/budget", requireAuth, async (req, res) => {
+    try {
+      const pregnancyId = req.params.id;
+      const userId = req.userId!;
+      const { budget } = req.body;
+      
+      if (budget === undefined || budget === null) {
+        return res.status(400).json({ error: "Budget é obrigatório" });
+      }
+      
+      const budgetValue = parseFloat(budget);
+      if (isNaN(budgetValue) || budgetValue < 0) {
+        return res.status(400).json({ error: "Budget deve ser um número positivo" });
+      }
+      
+      // Verificar se a gravidez pertence ao usuário
+      const existingPregnancy = await storage.getActivePregnancy(userId);
+      if (!existingPregnancy || existingPregnancy.id !== pregnancyId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+      
+      // Buscar gravidez antiga para auditoria
+      const oldPregnancy = { ...existingPregnancy };
+      
+      // Atualizar orçamento
+      const updatedPregnancy = await storage.updatePregnancy(pregnancyId, { budget: budgetValue });
+      
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        req.sessionID,
+        'pregnancies',
+        pregnancyId,
+        'update',
+        oldPregnancy,
+        updatedPregnancy,
+        req
+      );
+      
+      res.json({ pregnancy: updatedPregnancy });
+    } catch (error) {
+      console.error("Error updating budget:", error);
+      res.status(500).json({ error: "Failed to update budget" });
+    }
+  });
+
   // Rota para atualizar dados de gravidez
   app.put("/api/pregnancies/:id", requireAuth, async (req, res) => {
     try {
@@ -1362,11 +1409,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (dueDate) updateData.dueDate = new Date(dueDate);
       if (lastMenstrualPeriod) updateData.lastMenstrualPeriod = new Date(lastMenstrualPeriod);
       if (isActive !== undefined) updateData.isActive = isActive;
+      if (req.body.budget !== undefined) updateData.budget = parseFloat(req.body.budget);
       
-      await storage.updatePregnancy(pregnancyId, updateData);
+      // Buscar gravidez antiga para auditoria
+      const oldPregnancy = await storage.getActivePregnancy(userId);
+      if (!oldPregnancy) {
+        return res.status(404).json({ error: "Gravidez não encontrada" });
+      }
       
-      // Retornar os dados atualizados
-      const updatedPregnancy = await storage.getActivePregnancy(userId);
+      const updatedPregnancy = await storage.updatePregnancy(pregnancyId, updateData);
+      
+      // Log de auditoria apenas se budget foi alterado
+      if (req.body.budget !== undefined && oldPregnancy.budget !== updatedPregnancy.budget) {
+        await storage.auditDataChange(
+          userId,
+          req.sessionID,
+          'pregnancies',
+          pregnancyId,
+          'update',
+          oldPregnancy,
+          updatedPregnancy,
+          req
+        );
+      }
+      
       res.json({ pregnancy: updatedPregnancy });
     } catch (error) {
       console.error("Error updating pregnancy:", error);
@@ -1441,6 +1507,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("⚖️ Parsed weight data:", weightData);
       const entry = await storage.createWeightRecord(weightData);
       
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        req.sessionID,
+        'weight_records',
+        entry.id,
+        'create',
+        undefined,
+        entry,
+        req
+      );
+      
       // Log da ação para analytics
       await storage.logUserAction({
         userId,
@@ -1511,8 +1589,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateData = updateWeightEntrySchema.parse(processedData);
       console.log("📊 Validated update data:", updateData);
 
+      // Buscar registro antigo para auditoria
+      const oldEntry = await storage.getWeightRecordById(req.params.id);
+      if (!oldEntry) {
+        return res.status(404).json({ error: "Registro de peso não encontrado" });
+      }
+
       const updatedEntry = await storage.updateWeightEntry(req.params.id, updateData);
       console.log("📊 Weight entry updated successfully:", updatedEntry);
+      
+      // Log de auditoria
+      try {
+        console.log("📝 Iniciando auditoria de peso...");
+        console.log("📝 Dados antigos:", JSON.stringify(oldEntry, null, 2));
+        console.log("📝 Dados novos:", JSON.stringify(updatedEntry, null, 2));
+        
+        await storage.auditDataChange(
+          userId,
+          req.sessionID,
+          'weight_records',
+          req.params.id,
+          'update',
+          oldEntry,
+          updatedEntry,
+          req
+        );
+        
+        console.log("✅ Auditoria de peso registrada com sucesso!");
+      } catch (auditError) {
+        console.error("❌ ERRO ao registrar auditoria de peso:", auditError);
+        // Não bloquear a resposta mesmo se a auditoria falhar
+      }
       
       res.json({ success: true, entry: updatedEntry });
     } catch (error) {
@@ -1540,9 +1647,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "No active pregnancy found" });
       }
 
+      // Buscar registro antes de deletar para auditoria
+      const entryToDelete = await storage.getWeightRecordById(req.params.id);
+      if (!entryToDelete) {
+        return res.status(404).json({ error: "Registro de peso não encontrado" });
+      }
+
       console.log("🗑️ Calling storage.deleteWeightEntry with ID:", req.params.id);
       const result = await storage.deleteWeightEntry(req.params.id);
       console.log("🗑️ Weight entry deleted successfully:", result);
+      
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        req.sessionID,
+        'weight_records',
+        req.params.id,
+        'delete',
+        entryToDelete,
+        undefined,
+        req
+      );
       
       res.json({ success: true, id: result.id });
     } catch (error) {
@@ -2049,11 +2174,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/shopping-items", requireAuth, async (req, res) => {
     try {
+      const userId = req.userId!;
+      const sessionId = req.sessionID;
+      
       console.log("🛒 Creating shopping item with data:", JSON.stringify(req.body, null, 2));
       const itemData = insertShoppingItemSchema.parse(req.body);
       console.log("✅ Shopping item data validated:", JSON.stringify(itemData, null, 2));
       const item = await storage.createShoppingItem(itemData);
       console.log("✅ Shopping item created:", item.id);
+      
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        sessionId,
+        'shopping_items',
+        item.id,
+        'create',
+        undefined,
+        item,
+        req
+      );
+      
       res.json({ item });
     } catch (error: any) {
       console.error("❌ Error creating shopping item:", error);
@@ -2072,18 +2213,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/shopping-items/:id", requireAuth, async (req, res) => {
     try {
-      await storage.updateShoppingItem(req.params.id, req.body);
-      res.json({ success: true });
+      const userId = req.userId!;
+      const sessionId = req.sessionID;
+      const itemId = req.params.id;
+      
+      // Buscar item antigo para auditoria
+      const oldItem = await storage.getShoppingItemById(itemId);
+      if (!oldItem) {
+        return res.status(404).json({ error: "Item não encontrado" });
+      }
+      
+      // Atualizar item
+      const updatedItem = await storage.updateShoppingItem(itemId, req.body);
+      
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        sessionId,
+        'shopping_items',
+        itemId,
+        'update',
+        oldItem,
+        updatedItem,
+        req
+      );
+      
+      res.json({ item: updatedItem });
     } catch (error) {
+      console.error("❌ Error updating shopping item:", error);
       res.status(500).json({ error: "Failed to update shopping item" });
     }
   });
 
   app.delete("/api/shopping-items/:id", requireAuth, async (req, res) => {
     try {
-      await storage.deleteShoppingItem(req.params.id);
+      const userId = req.userId!;
+      const sessionId = req.sessionID;
+      const itemId = req.params.id;
+      
+      // Buscar item antes de deletar para auditoria
+      const itemToDelete = await storage.getShoppingItemById(itemId);
+      if (!itemToDelete) {
+        return res.status(404).json({ error: "Item não encontrado" });
+      }
+      
+      await storage.deleteShoppingItem(itemId);
+      
+      // Log de auditoria
+      await storage.auditDataChange(
+        userId,
+        sessionId,
+        'shopping_items',
+        itemId,
+        'delete',
+        itemToDelete,
+        undefined,
+        req
+      );
+      
       res.json({ success: true });
     } catch (error) {
+      console.error("❌ Error deleting shopping item:", error);
       res.status(500).json({ error: "Failed to delete shopping item" });
     }
   });

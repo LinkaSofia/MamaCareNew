@@ -132,10 +132,7 @@ export default function ShoppingList() {
   const [itemToDelete, setItemToDelete] = useState<ShoppingItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
-  const [budget, setBudget] = useState<number>(() => {
-    const savedBudget = localStorage.getItem(`mamacare_budget_${pregnancy?.id}`);
-    return savedBudget ? parseFloat(savedBudget) : 2000;
-  });
+  const [budget, setBudget] = useState<number>(2000);
   const [showEssentialsOnly, setShowEssentialsOnly] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -148,26 +145,101 @@ export default function ShoppingList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Salvar orçamento no localStorage sempre que mudar
-  useEffect(() => {
-    if (pregnancy?.id) {
-      localStorage.setItem(`mamacare_budget_${pregnancy.id}`, budget.toString());
-      console.log(`💰 Orçamento salvo no localStorage: R$ ${budget} para gravidez ${pregnancy.id}`);
+  // Mutation para atualizar orçamento no banco
+  const updateBudgetMutation = useMutation({
+    mutationFn: async (newBudget: number) => {
+      if (!pregnancy?.id) throw new Error("Gravidez não encontrada");
+      const response = await apiRequest("PUT", `/api/pregnancies/${pregnancy.id}/budget`, {
+        budget: newBudget
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao salvar orçamento");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Atualizar cache da pregnancy
+      queryClient.setQueryData(["/api/pregnancy"], (old: any) => ({
+        ...old,
+        pregnancy: data.pregnancy
+      }));
+      // Salvar também no localStorage como backup
+      if (pregnancy?.id) {
+        localStorage.setItem(`mamacare_budget_${pregnancy.id}`, budget.toString());
+      }
+      toast({
+        title: "✅ Orçamento salvo",
+        description: `Seu orçamento de R$ ${budget.toFixed(2)} foi salvo com sucesso!`,
+      });
+    },
+    onError: (error: any) => {
+      console.error("❌ Erro ao salvar orçamento:", error);
+      toast({
+        title: "❌ Erro",
+        description: error.message || "Não foi possível salvar o orçamento",
+        variant: "destructive",
+      });
     }
-  }, [budget, pregnancy?.id]);
+  });
 
-  // Carregar orçamento salvo quando a gravidez estiver disponível
+  // Carregar orçamento do banco quando a gravidez estiver disponível
   useEffect(() => {
     if (!pregnancy?.id) return;
 
+    // Priorizar budget do banco de dados
+    if (pregnancy.budget !== undefined && pregnancy.budget !== null) {
+      const budgetValue = typeof pregnancy.budget === 'string' 
+        ? parseFloat(pregnancy.budget) 
+        : Number(pregnancy.budget);
+      if (!isNaN(budgetValue) && budgetValue > 0) {
+        setBudget(budgetValue);
+        // Sincronizar localStorage
+        localStorage.setItem(`mamacare_budget_${pregnancy.id}`, budgetValue.toString());
+        return;
+      }
+    }
+
+    // Fallback: tentar localStorage
     const savedBudget = localStorage.getItem(`mamacare_budget_${pregnancy.id}`);
     if (savedBudget !== null) {
       const parsed = parseFloat(savedBudget);
-      if (!Number.isNaN(parsed)) {
+      if (!isNaN(parsed) && parsed > 0) {
         setBudget(parsed);
+        // Migrar para o banco se não existir no banco
+        if (!pregnancy.budget || pregnancy.budget === null) {
+          // Usar setTimeout para evitar dependência circular
+          setTimeout(() => {
+            updateBudgetMutation.mutate(parsed);
+          }, 500);
+        }
       }
     }
-  }, [pregnancy?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pregnancy?.id, pregnancy?.budget]);
+
+  // Salvar orçamento no banco quando mudar (com debounce)
+  useEffect(() => {
+    if (!pregnancy?.id) return;
+    
+    // Não salvar se for o valor padrão inicial e não houver mudança do usuário
+    const dbBudget = pregnancy.budget 
+      ? (typeof pregnancy.budget === 'string' ? parseFloat(pregnancy.budget) : Number(pregnancy.budget))
+      : null;
+    
+    // Se já tem valor no banco igual, não fazer nada
+    if (dbBudget !== null && Math.abs(dbBudget - budget) < 0.01) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      console.log(`💰 Salvando orçamento: R$ ${budget} (valor no banco: ${dbBudget || 'nenhum'})`);
+      updateBudgetMutation.mutate(budget);
+    }, 1000); // Debounce de 1 segundo
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [budget, pregnancy?.id]);
 
   const { data: shoppingData, isLoading, error: queryError, refetch } = useQuery<ShoppingData>({
     queryKey: ["/api/shopping-items", pregnancy?.id],
@@ -204,13 +276,6 @@ export default function ShoppingList() {
     },
   });
 
-  // Salvar orçamento no localStorage quando mudar
-  useEffect(() => {
-    if (pregnancy?.id) {
-      localStorage.setItem(`mamacare_budget_${pregnancy.id}`, budget.toString());
-      console.log(`💰 Budget saved to localStorage: ${budget}`);
-    }
-  }, [budget, pregnancy?.id]);
 
   // Calculations
   const items = shoppingData?.items || [];

@@ -60,6 +60,7 @@ export const pregnancies = pgTable("pregnancies", {
   dueDate: timestamp("due_date").notNull(),
   lastMenstrualPeriod: timestamp("last_menstrual_period"),
   isActive: boolean("is_active").default(true),
+  budget: decimal("budget", { precision: 10, scale: 2 }).default("2000.00"), // Orçamento da lista de compras
   createdAt: timestamp("created_at").defaultNow(),
 });
 

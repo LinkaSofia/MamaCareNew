@@ -38,7 +38,7 @@ export interface IStorage {
   // Pregnancies
   getActivePregnancy(userId: string): Promise<Pregnancy | undefined>;
   createPregnancy(pregnancy: InsertPregnancy): Promise<Pregnancy>;
-  updatePregnancy(id: string, updates: Partial<InsertPregnancy>): Promise<void>;
+  updatePregnancy(id: string, updates: Partial<InsertPregnancy>): Promise<Pregnancy>;
 
   // Kick Counts
   getKickCountsForDate(pregnancyId: string, date: Date): Promise<KickCount[]>;
@@ -47,6 +47,7 @@ export interface IStorage {
 
   // Weight Records
   getWeightRecords(pregnancyId: string): Promise<WeightRecord[]>;
+  getWeightRecordById(id: string): Promise<WeightRecord | undefined>;
   createWeightRecord(weightRecord: InsertWeightRecord): Promise<WeightRecord>;
   getLatestWeight(pregnancyId: string): Promise<WeightRecord | undefined>;
   
@@ -72,8 +73,9 @@ export interface IStorage {
 
   // Shopping Items
   getShoppingItems(pregnancyId: string): Promise<ShoppingItem[]>;
+  getShoppingItemById(id: string): Promise<ShoppingItem | undefined>;
   createShoppingItem(item: InsertShoppingItem): Promise<ShoppingItem>;
-  updateShoppingItem(id: string, updates: Partial<InsertShoppingItem>): Promise<void>;
+  updateShoppingItem(id: string, updates: Partial<InsertShoppingItem>): Promise<ShoppingItem>;
   deleteShoppingItem(id: string): Promise<void>;
 
   // Photos
@@ -440,8 +442,15 @@ export class DatabaseStorage implements IStorage {
     return newPregnancy;
   }
 
-  async updatePregnancy(id: string, updates: Partial<InsertPregnancy>): Promise<void> {
-    await db.update(pregnancies).set(updates).where(eq(pregnancies.id, id));
+  async updatePregnancy(id: string, updates: Partial<InsertPregnancy>): Promise<Pregnancy> {
+    const [updated] = await db.update(pregnancies)
+      .set(updates)
+      .where(eq(pregnancies.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Pregnancy not found");
+    }
+    return updated;
   }
 
   async getKickCountsForDate(pregnancyId: string, date: Date): Promise<KickCount[]> {
@@ -479,6 +488,13 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(weightRecords)
       .where(eq(weightRecords.pregnancyId, pregnancyId))
       .orderBy(desc(weightRecords.date));
+  }
+
+  async getWeightRecordById(id: string): Promise<WeightRecord | undefined> {
+    const [record] = await db.select().from(weightRecords)
+      .where(eq(weightRecords.id, id))
+      .limit(1);
+    return record;
   }
 
   async createWeightRecord(weightRecord: InsertWeightRecord): Promise<WeightRecord> {
@@ -542,19 +558,18 @@ export class DatabaseStorage implements IStorage {
   async updateWeightEntry(id: string, updates: Partial<InsertWeightEntry>): Promise<WeightEntry> {
     console.log("📊 Updating weight entry:", id, updates);
     
-    // Atualizar a entrada
-    await db.update(weightRecords)
+    // Atualizar a entrada e retornar o objeto atualizado diretamente
+    const [updated] = await db.update(weightRecords)
       .set(updates)
-      .where(eq(weightRecords.id, id));
+      .where(eq(weightRecords.id, id))
+      .returning();
     
-    // Buscar e retornar a entrada atualizada
-    const result = await db.select().from(weightRecords).where(eq(weightRecords.id, id));
-    if (result.length === 0) {
+    if (!updated) {
       throw new Error("Weight entry not found after update");
     }
     
-    console.log("✅ Weight entry updated successfully:", result[0]);
-    return result[0];
+    console.log("✅ Weight entry updated successfully:", updated);
+    return updated;
   }
 
   async deleteWeightEntry(id: string): Promise<{ id: string }> {
@@ -742,6 +757,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(shoppingItems.purchased, desc(shoppingItems.priority));
   }
 
+  async getShoppingItemById(id: string): Promise<ShoppingItem | undefined> {
+    const [item] = await db.select().from(shoppingItems)
+      .where(eq(shoppingItems.id, id))
+      .limit(1);
+    return item;
+  }
+
   async createShoppingItem(item: InsertShoppingItem): Promise<ShoppingItem> {
     const [newItem] = await db.insert(shoppingItems).values({
       ...item,
@@ -750,16 +772,20 @@ export class DatabaseStorage implements IStorage {
     return newItem;
   }
 
-  async updateShoppingItem(id: string, updates: Partial<InsertShoppingItem>): Promise<void> {
+  async updateShoppingItem(id: string, updates: Partial<InsertShoppingItem>): Promise<ShoppingItem> {
     const updateData = { ...updates };
     if (updates.purchased) {
       // Note: purchaseDate is handled at the database level with the purchase timestamp
-      await db.update(shoppingItems).set({
+      const [updated] = await db.update(shoppingItems).set({
         ...updateData,
         purchaseDate: new Date()
-      }).where(eq(shoppingItems.id, id));
+      }).where(eq(shoppingItems.id, id))
+      .returning();
+      return updated;
     } else {
-      await db.update(shoppingItems).set(updateData).where(eq(shoppingItems.id, id));
+      const [updated] = await db.update(shoppingItems).set(updateData).where(eq(shoppingItems.id, id))
+      .returning();
+      return updated;
     }
   }
 
