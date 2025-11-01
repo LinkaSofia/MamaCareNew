@@ -17,8 +17,18 @@ export function useUserTracking(config: TrackingConfig = {}) {
     trackTime = true
   } = config;
 
+  const resolvePagePath = () => {
+    const { pathname, hash } = window.location;
+    if (hash && hash !== "#") {
+      const normalized = hash.startsWith("#") ? hash.slice(1) : hash;
+      if (!normalized) return pathname || "/";
+      return normalized.startsWith("/") ? normalized : `/${normalized}`;
+    }
+    return pathname || "/";
+  };
+
   const pageStartTime = useRef<number>(Date.now());
-  const currentPage = useRef<string>(window.location.pathname);
+  const currentPage = useRef<string>(resolvePagePath());
   const sessionId = useRef<string>(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
 
   // Rastrear visita de página
@@ -42,7 +52,7 @@ export function useUserTracking(config: TrackingConfig = {}) {
     try {
       await apiRequest("POST", `/api/analytics/action`, {
         action,
-        page: window.location.pathname,
+        page: resolvePagePath(),
         element
       });
     } catch (error) {
@@ -56,21 +66,20 @@ export function useUserTracking(config: TrackingConfig = {}) {
 
     const startTime = Date.now();
     pageStartTime.current = startTime;
-    currentPage.current = window.location.pathname;
+    currentPage.current = resolvePagePath();
 
     // Rastrear entrada na página
-    trackPageVisit(window.location.pathname);
+    trackPageVisit(currentPage.current);
 
-    // Listener para mudanças de página
-    const handlePopState = () => {
+    const handleRouteChange = () => {
       if (trackTime) {
         const duration = Date.now() - pageStartTime.current;
         trackPageVisit(currentPage.current, duration);
       }
       
       pageStartTime.current = Date.now();
-      currentPage.current = window.location.pathname;
-      trackPageVisit(window.location.pathname);
+      currentPage.current = resolvePagePath();
+      trackPageVisit(currentPage.current);
     };
 
     // Listener para cliques (tracking automático)
@@ -103,8 +112,27 @@ export function useUserTracking(config: TrackingConfig = {}) {
       }
     };
 
+    // Listener para navegação via history API (pushState/replaceState)
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    const notifyLocationChange = () => {
+      handleRouteChange();
+    };
+
+    const wrapHistoryMethod = (method: typeof history.pushState) =>
+      function (this: History, ...args: Parameters<typeof history.pushState>) {
+        const result = method.apply(this, args);
+        window.dispatchEvent(new Event('locationchange'));
+        return result;
+      };
+
+    history.pushState = wrapHistoryMethod(originalPushState);
+    history.replaceState = wrapHistoryMethod(originalReplaceState);
+
     // Adicionar listeners
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleRouteChange);
+    window.addEventListener('locationchange', notifyLocationChange);
     document.addEventListener('click', handleClick);
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -116,7 +144,10 @@ export function useUserTracking(config: TrackingConfig = {}) {
         trackPageVisit(currentPage.current, duration);
       }
       
-      window.removeEventListener('popstate', handlePopState);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+      window.removeEventListener('popstate', handleRouteChange);
+      window.removeEventListener('locationchange', notifyLocationChange);
       document.removeEventListener('click', handleClick);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
