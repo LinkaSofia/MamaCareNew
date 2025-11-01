@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type RequestHandler } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -651,39 +651,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   // Authentication middleware - aceita session OU token
-  const requireAuth = (req: any, res: any, next: any) => {
-    console.log("🔍 Auth check - Session ID:", req.sessionID);
-    console.log("🔍 Auth check - Session exists:", !!req.session);
-    console.log("🔍 Auth check - Session userId:", req.session?.userId);
-    console.log("🔍 Auth check - Cookies:", req.headers.cookie);
-    
-    // Tentar session primeiro
-    if (req.session && req.session.userId) {
-      console.log("🔐 Auth via session:", { userId: req.session.userId });
-      req.userId = req.session.userId;
-      return next();
-    }
-    
-    // Tentar token do header
-    const authToken = req.headers['x-auth-token'];
-    if (authToken) {
-      try {
-        const decoded = JSON.parse(Buffer.from(authToken, 'base64').toString());
-        if (decoded.userId && decoded.timestamp) {
-          // Token válido por 24h
-          if (Date.now() - decoded.timestamp < 24 * 60 * 60 * 1000) {
-            console.log("🔑 Auth via token:", { userId: decoded.userId });
-            req.userId = decoded.userId;
-            return next();
-          }
+  const requireAuth: RequestHandler = async (req: any, res: any, next: any) => {
+    try {
+      console.log("🔍 Auth check - Session ID:", req.sessionID);
+      console.log("🔍 Auth check - Session exists:", !!req.session);
+      console.log("🔍 Auth check - Session userId:", req.session?.userId);
+      console.log("🔍 Auth check - Cookies:", req.headers.cookie);
+
+      // Verificar sessão primeiro (garantindo que o usuário ainda exista)
+      const sessionUserId = req.session?.userId;
+      if (sessionUserId) {
+        const user = await storage.getUser(sessionUserId);
+        if (user) {
+          console.log("🔐 Auth via session:", { userId: sessionUserId });
+          req.userId = sessionUserId;
+          return next();
         }
-      } catch (error) {
-        console.log("❌ Invalid token:", error);
+
+        console.warn("⚠️ Session user not found, clearing session", { sessionUserId });
+        if (req.session) {
+          delete req.session.userId;
+        }
       }
+
+      // Tentar token do header
+      const authToken = req.headers["x-auth-token"];
+      if (authToken) {
+        try {
+          const decoded = JSON.parse(Buffer.from(authToken, "base64").toString());
+          if (decoded.userId && decoded.timestamp) {
+            if (Date.now() - decoded.timestamp < 24 * 60 * 60 * 1000) {
+              const user = await storage.getUser(decoded.userId);
+              if (user) {
+                console.log("🔑 Auth via token:", { userId: decoded.userId });
+                req.userId = decoded.userId;
+                if (req.session) {
+                  req.session.userId = decoded.userId;
+                }
+                return next();
+              }
+
+              console.warn("⚠️ Token user not found in database", { userId: decoded.userId });
+            }
+          }
+        } catch (error) {
+          console.log("❌ Invalid token:", error);
+        }
+      }
+
+      console.log("❌ No valid session or token");
+      return res.status(401).json({ error: "Authentication required" });
+    } catch (error) {
+      console.error("❌ Authentication middleware error:", error);
+      return res.status(500).json({ error: "Failed to authenticate" });
     }
-    
-    console.log("❌ No valid session or token");
-    return res.status(401).json({ error: "Authentication required" });
   };
 
   // Rota de teste para FormData

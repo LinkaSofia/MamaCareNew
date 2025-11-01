@@ -156,6 +156,19 @@ export default function ShoppingList() {
     }
   }, [budget, pregnancy?.id]);
 
+  // Carregar orçamento salvo quando a gravidez estiver disponível
+  useEffect(() => {
+    if (!pregnancy?.id) return;
+
+    const savedBudget = localStorage.getItem(`mamacare_budget_${pregnancy.id}`);
+    if (savedBudget !== null) {
+      const parsed = parseFloat(savedBudget);
+      if (!Number.isNaN(parsed)) {
+        setBudget(parsed);
+      }
+    }
+  }, [pregnancy?.id]);
+
   const { data: shoppingData, isLoading, error: queryError, refetch } = useQuery<ShoppingData>({
     queryKey: ["/api/shopping-items", pregnancy?.id],
     enabled: !!pregnancy,

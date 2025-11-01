@@ -1,3 +1,33 @@
+# 📍 **Mapa de Páginas e Funcionalidades (Analytics)**
+
+Quando o `user_analytics` registra um acesso, ele salva o caminho (`page`). Para gerar relatórios, convertemos esses caminhos nas funcionalidades reais. Use esta tabela como referência e, sempre que adicionar uma página nova, atualize-a aqui e no CASE das queries.
+
+| Caminho (`page`)                     | Funcionalidade / Descrição                                                                                            |
+|--------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `/`                                  | Dashboard inicial (rota raiz mostra a visão geral).                                                                    |
+| `/dashboard`, `/#/`, `/#/dashboard`  | Variações da rota do Dashboard (hash ou histórico).                                                                    |
+| `/consultations`                     | Consultas médicas (listagem, cadastro, notificações).                                                                  |
+| `/kick-counter`                      | Contador de chutes.                                                                                                    |
+| `/diary`                             | Diário da gestação (humor, notas, fotos).                                                                              |
+| `/shopping-list`                     | Lista de compras/enxoval e orçamento.                                                                                  |
+| `/birth-plan`                        | Plano de parto (wizard + exportação).                                                                                 |
+| `/weight-tracking`                   | Controle de peso (registros, gráficos).                                                                                |
+| `/photo-album`                       | Álbum de fotos da barriga.                                                                                             |
+| `/progress`                          | Evolução/estatísticas da gestação.                                                                                    |
+| `/baby-development`                  | Evolução do bebê para a gestante.                                                                                      |
+| `/medical-articles`                  | Biblioteca de artigos médicos.                                                                                        |
+| `/profile`                           | Perfil da usuária (dados pessoais).                                                                                    |
+| `/setup`, `/pregnancy-setup`         | Wizard de configuração inicial da gestação.                                                                            |
+| `/login`, `/reset-password`          | Telas de autenticação (login, recuperação).                                                                            |
+| `/guide`, `/pdfs/guia-gestante.pdf`  | Materiais de apoio / guia em PDF.                                                                                      |
+| `/analytics`                         | Painel interno de analytics (uso administrativo).                                                                      |
+| `/system`                            | Painel administrativo do sistema (uso interno).                                                                        |
+| `/baby-development-admin`            | Ferramenta admin para conteúdo de desenvolvimento do bebê.                                                             |
+| `/photo-album`                       | Álbum de fotos da barriga (timelapse, evolução).                                                                       |
+| `/medical-articles`                  | Biblioteca de artigos médicos.                                                                                        |
+
+> **Obs.:** Qualquer rota não mapeada cai na categoria `outros`. Basta adicionar novas linhas e atualizar o CASE das queries para classificá-las corretamente.
+
 # 🤰 **JORNADA DO USUÁRIO - MAMACARE**
 
 ## 📱 **Sistema de Acompanhamento Completo da Gestação**
