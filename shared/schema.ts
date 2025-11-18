@@ -276,6 +276,7 @@ export const feedbacks = pgTable("feedbacks", {
   page: text("page").notNull(), // página onde o feedback foi dado
   rating: integer("rating").notNull(), // 1 a 5 estrelas
   message: text("message").notNull(),
+  imageUrl: text("image_url"), // URL da imagem anexada (opcional)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -329,7 +330,7 @@ export const updateWeightEntrySchema = z.object({
   }),
   notes: z.string().optional().nullable().transform((val) => val || null),
 }).partial();
-export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, updatedAt: true });
+export const insertBirthPlanSchema = createInsertSchema(birthPlans).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true }).extend({
   date: z.string(), // Mantém como string ISO, sem transformação
 });

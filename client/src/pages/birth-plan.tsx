@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -61,6 +61,51 @@ export default function BirthPlan() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 7;
   
+  // REF para rastrear se está na etapa 7 e bloquear mudanças de viewMode
+  const isStep7Ref = useRef(false);
+  // REF para permitir fechar quando usar o botão "Concluir"
+  const allowCloseRef = useRef(false);
+  
+  // Atualizar ref quando currentStep mudar
+  useEffect(() => {
+    const isStep7 = currentStep === 7;
+    isStep7Ref.current = isStep7;
+    console.log("📋 currentStep mudou para:", currentStep, "isStep7Ref:", isStep7Ref.current);
+    
+    // PROTEÇÃO: Quando chegar na etapa 7, garantir que allowCloseRef está false
+    if (isStep7) {
+      console.log("📋 Chegou na etapa 7 - resetando allowCloseRef para false");
+      allowCloseRef.current = false;
+    }
+  }, [currentStep]);
+  
+  // Função protegida para setViewMode - não permite mudar se estiver na etapa 7 (exceto se allowCloseRef for true)
+  const protectedSetViewMode = (newMode: 'list' | 'create' | 'edit' | 'view', reason?: string) => {
+    console.log("📋 protectedSetViewMode chamado:", {
+      newMode,
+      reason,
+      currentViewMode: viewMode,
+      isStep7: isStep7Ref.current,
+      allowClose: allowCloseRef.current
+    });
+    
+    if (isStep7Ref.current && (viewMode === 'create' || viewMode === 'edit') && !allowCloseRef.current) {
+      console.error("🚫 BLOQUEADO: Tentativa de mudar viewMode na etapa 7!");
+      console.error("🚫 Tentativa de mudar de", viewMode, "para", newMode);
+      console.error("🚫 Razão:", reason || "não especificada");
+      console.trace("🚫 Stack trace:");
+      return; // Bloquear completamente
+    }
+    console.log("✅ Mudando viewMode de", viewMode, "para", newMode, "Razão:", reason || "não especificada");
+    setViewMode(newMode);
+    // Resetar allowCloseRef após mudar o viewMode (mas só se realmente mudou)
+    if (newMode === 'list') {
+      allowCloseRef.current = false;
+      console.log("📋 allowCloseRef resetado após mudar para 'list'");
+    }
+  };
+  
+  
   const [formData, setFormData] = useState<BirthPlanFormData>({
     // Etapa 1
     location: '',
@@ -107,9 +152,63 @@ export default function BirthPlan() {
       return response.json();
     },
     enabled: !!pregnancy?.id,
+    refetchOnWindowFocus: false, // Não refetch quando a janela ganha foco (evita re-render durante edição)
+    staleTime: 5 * 60 * 1000, // Considerar dados válidos por 5 minutos
   });
 
   const birthPlan = birthPlanData?.birthPlan;
+
+  // REF para controlar se já carregou os dados uma vez
+  const hasLoadedDataRef = useRef(false);
+  
+  // Carregar dados automaticamente quando birthPlan mudar e estiver em modo de edição
+  // IMPORTANTE: Só carregar quando entrar em modo de edição, não durante a edição
+  useEffect(() => {
+    // PROTEÇÃO CRÍTICA: Não fazer nada se estiver na etapa 7
+    if (currentStep === 7) {
+      console.log("📋 useEffect - BLOQUEADO na etapa 7 - não fazer nada");
+      return;
+    }
+    
+    // Só carregar se:
+    // 1. Estiver em modo de edição
+    // 2. Estiver na primeira etapa (não durante edição)
+    // 3. Ainda não carregou os dados (evitar re-carregar)
+    // 4. birthPlan existe
+    if (birthPlan && viewMode === 'edit' && currentStep === 1 && !hasLoadedDataRef.current) {
+      console.log("📋 useEffect - Carregando dados do plano:", birthPlan);
+      setFormData({
+        location: birthPlan.location || '',
+        companions: birthPlan.companions || '',
+        doctorPreference: birthPlan.doctorPreference || '',
+        lighting: birthPlan.lighting || 'dimmed',
+        music: birthPlan.music ?? false,
+        movement: birthPlan.movement ?? true,
+        painReliefNatural: birthPlan.painReliefNatural ?? false,
+        painReliefEpidural: birthPlan.painReliefEpidural ?? false,
+        painReliefOther: birthPlan.painReliefOther || '',
+        laborPosition: birthPlan.laborPosition || 'free',
+        monitoring: birthPlan.monitoring || 'intermittent',
+        hydrationFood: birthPlan.hydrationFood ?? true,
+        deliveryType: birthPlan.deliveryType || 'natural',
+        episiotomy: birthPlan.episiotomy || 'if-necessary',
+        umbilicalCord: birthPlan.umbilicalCord || 'delayed',
+        skinToSkin: birthPlan.skinToSkin ?? true,
+        breastfeeding: birthPlan.breastfeeding || 'immediate',
+        babyBath: birthPlan.babyBath || 'delayed',
+        companionPresence: birthPlan.companionPresence ?? true,
+        photos: birthPlan.photos ?? true,
+        religiousCultural: birthPlan.religiousCultural || '',
+        specialRequests: birthPlan.specialRequests || ''
+      });
+      hasLoadedDataRef.current = true; // Marcar como carregado
+    }
+    
+    // Resetar o flag quando sair do modo de edição (mas não se estiver na etapa 7)
+    if (viewMode !== 'edit' && currentStep !== 7) {
+      hasLoadedDataRef.current = false;
+    }
+  }, [birthPlan?.id, viewMode, currentStep]); // Incluir currentStep nas dependências
 
   // Função para limpar formulário ao criar novo plano
   const resetForm = () => {
@@ -147,8 +246,15 @@ export default function BirthPlan() {
     },
     onSuccess: (data) => {
       console.log("📋 Birth plan created successfully, updating UI...");
+      console.log("📋 Dados retornados:", JSON.stringify(data, null, 2));
       
-      // Atualizar o cache IMEDIATAMENTE
+      // Mostrar toast primeiro
+      toast({
+        title: "✅ Plano de Parto Salvo!",
+        description: "Seu plano de parto foi criado com sucesso.",
+      });
+      
+      // Atualizar o cache primeiro
       try {
         queryClient.setQueryData(['/api/birth-plans', pregnancy?.id], () => ({
           birthPlan: data.birthPlan
@@ -158,18 +264,30 @@ export default function BirthPlan() {
         console.error("📋 Error updating cache:", error);
       }
       
-      // Invalidar queries em background
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/birth-plans'],
-        exact: false 
-      });
-      
-      setViewMode('list');
-      setCurrentStep(1);
-      toast({
-        title: "✅ Plano de Parto Salvo!",
-        description: "Seu plano de parto foi criado com sucesso.",
-      });
+      // Aguardar um pouco antes de fechar para garantir que o toast seja visto
+      setTimeout(() => {
+        console.log("📋 Verificando se deve fechar - isStep7:", isStep7Ref.current, "allowClose:", allowCloseRef.current);
+        
+        // PROTEÇÃO CRÍTICA: Não fechar se estiver na etapa 7 (a menos que allowCloseRef esteja ativo)
+        if (isStep7Ref.current && !allowCloseRef.current) {
+          console.warn("⚠️⚠️⚠️ TENTATIVA DE FECHAR BLOQUEADA - está na etapa 7!");
+          console.warn("⚠️ allowCloseRef.current:", allowCloseRef.current);
+          return;
+        }
+        
+        console.log("✅ Fechando tela após salvar");
+        
+        // Resetar formulário e voltar para lista
+        resetForm();
+        protectedSetViewMode('list', 'createPlanMutation onSuccess');
+        setCurrentStep(1);
+        
+        // Invalidar queries DEPOIS de fechar a tela para evitar re-render durante edição
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/birth-plans'],
+          exact: false 
+        });
+      }, 500);
     },
     onError: (error: any) => {
       console.error("❌ Error creating birth plan:", error);
@@ -188,19 +306,41 @@ export default function BirthPlan() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Atualizar cache
+      console.log("📋 Birth plan updated successfully, updating UI...");
+      console.log("📋 Dados retornados:", JSON.stringify(data, null, 2));
+      
+      // Atualizar cache primeiro
       queryClient.setQueryData(['/api/birth-plans', pregnancy?.id], () => ({
         birthPlan: data.birthPlan
       }));
       
-      queryClient.invalidateQueries({ queryKey: ['/api/birth-plans'] });
-      
-      setViewMode('list');
-      setCurrentStep(1);
+      // Mostrar toast primeiro
       toast({
         title: "✅ Plano Atualizado!",
         description: "Seu plano de parto foi atualizado com sucesso.",
       });
+      
+      // Aguardar um pouco antes de fechar para garantir que o toast seja visto
+      setTimeout(() => {
+        console.log("📋 Verificando se deve fechar - isStep7:", isStep7Ref.current, "allowClose:", allowCloseRef.current);
+        
+        // PROTEÇÃO CRÍTICA: Não fechar se estiver na etapa 7 (a menos que allowCloseRef esteja ativo)
+        if (isStep7Ref.current && !allowCloseRef.current) {
+          console.warn("⚠️⚠️⚠️ TENTATIVA DE FECHAR BLOQUEADA - está na etapa 7!");
+          console.warn("⚠️ allowCloseRef.current:", allowCloseRef.current);
+          return;
+        }
+        
+        console.log("✅ Fechando tela após atualizar");
+        
+        // Resetar formulário e voltar para lista
+        resetForm();
+        protectedSetViewMode('list', 'updatePlanMutation onSuccess');
+        setCurrentStep(1);
+        
+        // Invalidar queries DEPOIS de fechar a tela para evitar re-render durante edição
+        queryClient.invalidateQueries({ queryKey: ['/api/birth-plans'] });
+      }, 500);
     },
   });
 
@@ -225,32 +365,38 @@ export default function BirthPlan() {
 
   const handleEdit = () => {
     if (birthPlan) {
-      // Preencher formulário com dados existentes
+      console.log("📋 Carregando dados do plano para edição:", birthPlan);
+      // Resetar o flag para permitir carregamento
+      hasLoadedDataRef.current = false;
+      
+      // Preencher formulário com dados existentes - Drizzle retorna em camelCase
       setFormData({
         location: birthPlan.location || '',
         companions: birthPlan.companions || '',
-        doctorPreference: birthPlan.doctor_preference || '',
+        doctorPreference: birthPlan.doctorPreference || '', // ✅ camelCase
         lighting: birthPlan.lighting || 'dimmed',
-        music: birthPlan.music || false,
-        movement: birthPlan.movement || true,
-        painReliefNatural: birthPlan.pain_relief_natural || false,
-        painReliefEpidural: birthPlan.pain_relief_epidural || false,
-        painReliefOther: birthPlan.pain_relief_other || '',
-        laborPosition: birthPlan.labor_position || 'free',
+        music: birthPlan.music ?? false, // ✅ usar ?? para tratar null
+        movement: birthPlan.movement ?? true,
+        painReliefNatural: birthPlan.painReliefNatural ?? false, // ✅ camelCase
+        painReliefEpidural: birthPlan.painReliefEpidural ?? false, // ✅ camelCase
+        painReliefOther: birthPlan.painReliefOther || '', // ✅ camelCase
+        laborPosition: birthPlan.laborPosition || 'free', // ✅ camelCase
         monitoring: birthPlan.monitoring || 'intermittent',
-        hydrationFood: birthPlan.hydration_food || true,
-        deliveryType: birthPlan.delivery_type || 'natural',
+        hydrationFood: birthPlan.hydrationFood ?? true, // ✅ camelCase
+        deliveryType: birthPlan.deliveryType || 'natural', // ✅ camelCase
         episiotomy: birthPlan.episiotomy || 'if-necessary',
-        umbilicalCord: birthPlan.umbilical_cord || 'delayed',
-        skinToSkin: birthPlan.skin_to_skin || true,
+        umbilicalCord: birthPlan.umbilicalCord || 'delayed', // ✅ camelCase
+        skinToSkin: birthPlan.skinToSkin ?? true, // ✅ camelCase
         breastfeeding: birthPlan.breastfeeding || 'immediate',
-        babyBath: birthPlan.baby_bath || 'delayed',
-        companionPresence: birthPlan.companion_presence || true,
-        photos: birthPlan.photos || true,
-        religiousCultural: birthPlan.religious_cultural || '',
-        specialRequests: birthPlan.special_requests || ''
+        babyBath: birthPlan.babyBath || 'delayed', // ✅ camelCase
+        companionPresence: birthPlan.companionPresence ?? true, // ✅ camelCase
+        photos: birthPlan.photos ?? true,
+        religiousCultural: birthPlan.religiousCultural || '', // ✅ camelCase
+        specialRequests: birthPlan.specialRequests || '' // ✅ camelCase
       });
-      setViewMode('edit');
+      console.log("📋 FormData preenchido:", formData);
+      protectedSetViewMode('edit', 'handleEdit');
+      setCurrentStep(1); // Voltar para a primeira etapa ao editar
     }
   };
 
@@ -267,7 +413,15 @@ export default function BirthPlan() {
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
-      setCurrentStep(prev => prev + 1);
+      const nextStep = currentStep + 1;
+      console.log("📋 handleNext - mudando de etapa", currentStep, "para", nextStep);
+      setCurrentStep(nextStep);
+      
+      // PROTEÇÃO: Se estiver indo para a etapa 7, garantir que não salve automaticamente
+      if (nextStep === 7) {
+        console.log("📋 Chegando na etapa 7 - garantindo que allowCloseRef está false");
+        allowCloseRef.current = false;
+      }
     }
   };
 
@@ -277,9 +431,8 @@ export default function BirthPlan() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  // Função para salvar o plano (usada tanto pelo handleSubmit quanto pelo handleConclude)
+  const savePlan = (allowStep7Close: boolean = false) => {
     if (!pregnancy?.id) {
       toast({
         title: "Erro",
@@ -289,38 +442,98 @@ export default function BirthPlan() {
       return;
     }
 
-    // CORRIGIDO: enviar em camelCase, como o backend espera
+    // CORRIGIDO: enviar em camelCase, como o backend espera - garantir que valores vazios virem null
     const planData = {
       pregnancyId: pregnancy.id,
-      location: formData.location,
-      companions: formData.companions,
-      doctorPreference: formData.doctorPreference,
-      lighting: formData.lighting,
-      music: formData.music,
-      movement: formData.movement,
-      painReliefNatural: formData.painReliefNatural,
-      painReliefEpidural: formData.painReliefEpidural,
-      painReliefOther: formData.painReliefOther,
-      laborPosition: formData.laborPosition,
-      monitoring: formData.monitoring,
-      hydrationFood: formData.hydrationFood,
-      deliveryType: formData.deliveryType,
-      episiotomy: formData.episiotomy,
-      umbilicalCord: formData.umbilicalCord,
-      skinToSkin: formData.skinToSkin,
-      breastfeeding: formData.breastfeeding,
-      babyBath: formData.babyBath,
-      companionPresence: formData.companionPresence,
-      photos: formData.photos,
-      religiousCultural: formData.religiousCultural,
-      specialRequests: formData.specialRequests
+      location: formData.location || null,
+      companions: formData.companions || null,
+      doctorPreference: formData.doctorPreference || null,
+      lighting: formData.lighting || null,
+      music: formData.music ?? null,
+      movement: formData.movement ?? null,
+      painReliefNatural: formData.painReliefNatural ?? null,
+      painReliefEpidural: formData.painReliefEpidural ?? null,
+      painReliefOther: formData.painReliefOther || null,
+      laborPosition: formData.laborPosition || null,
+      monitoring: formData.monitoring || null,
+      hydrationFood: formData.hydrationFood ?? null,
+      deliveryType: formData.deliveryType || null,
+      episiotomy: formData.episiotomy || null,
+      umbilicalCord: formData.umbilicalCord || null,
+      skinToSkin: formData.skinToSkin ?? null,
+      breastfeeding: formData.breastfeeding || null,
+      babyBath: formData.babyBath || null,
+      companionPresence: formData.companionPresence ?? null,
+      photos: formData.photos ?? null,
+      religiousCultural: formData.religiousCultural?.trim() || null,
+      specialRequests: formData.specialRequests?.trim() || null
     };
 
+    console.log("📋 Dados que serão enviados:", JSON.stringify(planData, null, 2));
+    console.log("📋 religiousCultural:", formData.religiousCultural, "->", planData.religiousCultural);
+    console.log("📋 specialRequests:", formData.specialRequests, "->", planData.specialRequests);
+    console.log("📋 allowStep7Close:", allowStep7Close);
+
+    // Se permitir fechar na etapa 7, ativar a flag
+    if (allowStep7Close) {
+      allowCloseRef.current = true;
+      console.log("📋 allowCloseRef ativado - permitindo fechar na etapa 7");
+    }
+    
     if (viewMode === 'edit' && birthPlan) {
+      console.log("📋 Atualizando plano existente:", birthPlan.id);
       updatePlanMutation.mutate(planData);
     } else {
+      console.log("📋 Criando novo plano");
       createPlanMutation.mutate(planData);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log("📋 handleSubmit chamado - viewMode:", viewMode, "currentStep:", currentStep);
+    console.log("📋 formData completo:", JSON.stringify(formData, null, 2));
+    console.trace("📋 Stack trace do handleSubmit:");
+    
+    // PROTEÇÃO CRÍTICA: Na etapa 7, só permitir submit se foi clicado explicitamente no botão
+    if (currentStep === 7) {
+      const submitter = (e.nativeEvent as SubmitEvent).submitter;
+      console.log("📋 Etapa 7 - Verificando submitter:", submitter);
+      
+      // Verificar se foi clicado no botão de submit
+      if (!submitter || submitter.getAttribute('data-explicit-submit') !== 'true') {
+        console.warn("⚠️⚠️⚠️ SUBMIT BLOQUEADO na etapa 7 - não foi clicado no botão!");
+        console.warn("⚠️ submitter:", submitter);
+        console.warn("⚠️ submitter?.getAttribute('data-explicit-submit'):", submitter?.getAttribute('data-explicit-submit'));
+        e.preventDefault();
+        e.stopPropagation();
+        toast({
+          title: "⚠️ Atenção",
+          description: "Clique no botão 'Salvar Plano' para salvar.",
+          variant: "default",
+        });
+        return;
+      }
+      console.log("✅ Submit permitido na etapa 7 - botão clicado corretamente");
+      // Na etapa 7, quando clicar em "Salvar Plano", permitir fechar após salvar
+      allowCloseRef.current = true;
+      console.log("📋 allowCloseRef ativado na etapa 7 para permitir fechar após salvar");
+    }
+    
+    // Se estiver na etapa 7 e foi clicado no botão, permitir fechar. Caso contrário, não permitir.
+    savePlan(currentStep === 7 && allowCloseRef.current);
+  };
+
+  // Função para concluir e salvar em qualquer etapa
+  const handleConclude = () => {
+    console.log("📋 handleConclude chamado - salvando plano na etapa:", currentStep);
+    console.log("📋 Ativando allowCloseRef antes de salvar");
+    // Ativar allowCloseRef ANTES de chamar savePlan para garantir que persista até o onSuccess
+    allowCloseRef.current = true;
+    // Salvar permitindo fechar mesmo na etapa 7
+    savePlan(true);
   };
 
   // Função específica para mobile/PWA
@@ -329,6 +542,7 @@ export default function BirthPlan() {
 
     try {
       console.log('📱 Gerando PDF para mobile...');
+      console.log('📋 Dados do birthPlan para PDF:', JSON.stringify(birthPlan, null, 2));
       
       const htmlContent = `
         <!DOCTYPE html>
@@ -420,51 +634,54 @@ export default function BirthPlan() {
           <div class="section">
             <h3>📍 Informações Básicas</h3>
             <p><strong>Local:</strong> ${birthPlan.location || 'Não informado'}</p>
-            <p><strong>Tipo de parto:</strong> ${birthPlan.birth_type || 'Não informado'}</p>
-            <p><strong>Hospital:</strong> ${birthPlan.hospital || 'Não informado'}</p>
-            <p><strong>Médico:</strong> ${birthPlan.doctor || 'Não informado'}</p>
-            <p><strong>Doula:</strong> ${birthPlan.doula || 'Não informado'}</p>
-          </div>
-          
-          <div class="section">
-            <h3>💊 Alívio da Dor</h3>
-            ${birthPlan.pain_relief ? `<p>${typeof birthPlan.pain_relief === 'object' ? JSON.stringify(birthPlan.pain_relief, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.pain_relief}</p>` : '<p>Não informado</p>'}
+            <p><strong>Acompanhantes:</strong> ${birthPlan.companions || 'Não informado'}</p>
+            <p><strong>Médico de Preferência:</strong> ${birthPlan.doctorPreference || 'Não informado'}</p>
           </div>
           
           <div class="section">
             <h3>🏠 Ambiente Desejado</h3>
-            ${birthPlan.environment ? `<p>${typeof birthPlan.environment === 'object' ? JSON.stringify(birthPlan.environment, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.environment}</p>` : '<p>Não informado</p>'}
+            <p><strong>Iluminação:</strong> ${birthPlan.lighting ? (birthPlan.lighting === 'dimmed' ? 'Ambiente com luz baixa' : birthPlan.lighting === 'natural' ? 'Luz natural' : birthPlan.lighting === 'normal' ? 'Luz normal' : birthPlan.lighting) : 'Não informado'}</p>
+            <p><strong>Música:</strong> ${birthPlan.music ? 'Sim' : birthPlan.music === false ? 'Não' : 'Não informado'}</p>
+            <p><strong>Movimento livre:</strong> ${birthPlan.movement ? 'Sim' : birthPlan.movement === false ? 'Não' : 'Não informado'}</p>
           </div>
           
           <div class="section">
-            <h3>👥 Acompanhantes</h3>
-            <p>${birthPlan.companions || 'Não informado'}</p>
-            ${birthPlan.support_team ? `<p>${typeof birthPlan.support_team === 'object' ? JSON.stringify(birthPlan.support_team, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.support_team}</p>` : ''}
+            <h3>💊 Alívio da Dor</h3>
+            ${birthPlan.painReliefNatural ? '<p>✓ Métodos naturais</p>' : ''}
+            ${birthPlan.painReliefEpidural ? '<p>✓ Anestesia epidural</p>' : ''}
+            ${birthPlan.painReliefOther ? `<p>✓ ${birthPlan.painReliefOther}</p>` : ''}
+            ${!birthPlan.painReliefNatural && !birthPlan.painReliefEpidural && !birthPlan.painReliefOther ? '<p>Não informado</p>' : ''}
           </div>
           
           <div class="section">
-            <h3>👶 Preferências de Nascimento</h3>
-            ${birthPlan.birth_preferences ? `<p>${typeof birthPlan.birth_preferences === 'object' ? JSON.stringify(birthPlan.birth_preferences, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.birth_preferences}</p>` : '<p>Não informado</p>'}
+            <h3>🤰 Durante o Trabalho de Parto</h3>
+            <p><strong>Posição:</strong> ${birthPlan.laborPosition ? (birthPlan.laborPosition === 'free' ? 'Livre' : birthPlan.laborPosition === 'squatting' ? 'Agachada' : birthPlan.laborPosition === 'side' ? 'De lado' : birthPlan.laborPosition) : 'Não informado'}</p>
+            <p><strong>Monitoramento:</strong> ${birthPlan.monitoring ? (birthPlan.monitoring === 'intermittent' ? 'Intermitente' : birthPlan.monitoring === 'continuous' ? 'Contínuo' : birthPlan.monitoring) : 'Não informado'}</p>
+            <p><strong>Hidratação/Alimentação:</strong> ${birthPlan.hydrationFood ? 'Sim' : birthPlan.hydrationFood === false ? 'Não' : 'Não informado'}</p>
+          </div>
+          
+          <div class="section">
+            <h3>👶 Durante o Parto</h3>
+            <p><strong>Tipo de parto:</strong> ${birthPlan.deliveryType ? (birthPlan.deliveryType === 'natural' ? 'Parto natural' : birthPlan.deliveryType === 'cesarean' ? 'Cesárea' : birthPlan.deliveryType) : 'Não informado'}</p>
+            <p><strong>Episiotomia:</strong> ${birthPlan.episiotomy ? (birthPlan.episiotomy === 'if-necessary' ? 'Se necessário' : birthPlan.episiotomy === 'avoid' ? 'Evitar' : birthPlan.episiotomy) : 'Não informado'}</p>
+            <p><strong>Cordão umbilical:</strong> ${birthPlan.umbilicalCord ? (birthPlan.umbilicalCord === 'delayed' ? 'Clampeamento tardio' : birthPlan.umbilicalCord === 'immediate' ? 'Imediato' : birthPlan.umbilicalCord) : 'Não informado'}</p>
+            <p><strong>Contato pele a pele:</strong> ${birthPlan.skinToSkin ? 'Sim' : birthPlan.skinToSkin === false ? 'Não' : 'Não informado'}</p>
           </div>
           
           <div class="section">
             <h3>🍼 Pós-Parto</h3>
-            ${birthPlan.post_birth ? `<p>${typeof birthPlan.post_birth === 'object' ? JSON.stringify(birthPlan.post_birth, null, 2).replace(/[{}",]/g, ' ').trim() : birthPlan.post_birth}</p>` : '<p>Não informado</p>'}
+            <p><strong>Amamentação:</strong> ${birthPlan.breastfeeding ? (birthPlan.breastfeeding === 'immediate' ? 'Imediatamente após o parto' : birthPlan.breastfeeding === 'when-ready' ? 'Quando estiver pronta' : birthPlan.breastfeeding === 'guidance' ? 'Conforme orientação' : birthPlan.breastfeeding) : 'Não informado'}</p>
+            <p><strong>Banho do bebê:</strong> ${birthPlan.babyBath ? (birthPlan.babyBath === 'delayed' ? 'Adiar por algumas horas' : birthPlan.babyBath === 'immediate' ? 'Imediatamente' : birthPlan.babyBath === 'routine' ? 'Conforme rotina do hospital' : birthPlan.babyBath) : 'Não informado'}</p>
+            <p><strong>Presença de acompanhante:</strong> ${birthPlan.companionPresence ? 'Sim' : birthPlan.companionPresence === false ? 'Não' : 'Não informado'}</p>
           </div>
           
-          ${birthPlan.special_requests ? `
           <div class="section">
-            <h3>✨ Pedidos Especiais</h3>
-            <p>${birthPlan.special_requests}</p>
+            <h3>✨ Solicitações Especiais</h3>
+            <p><strong>Fotografias/Vídeos:</strong> ${birthPlan.photos ? 'Permitidos' : birthPlan.photos === false ? 'Não permitidos' : 'Não informado'}</p>
+            ${birthPlan.religiousCultural ? `<p><strong>Crenças Religiosas/Culturais:</strong> ${birthPlan.religiousCultural}</p>` : ''}
+            ${birthPlan.specialRequests ? `<p><strong>Outras Solicitações:</strong> ${birthPlan.specialRequests}</p>` : ''}
+            ${!birthPlan.photos && !birthPlan.religiousCultural && !birthPlan.specialRequests ? '<p>Não informado</p>' : ''}
           </div>
-          ` : ''}
-          
-          ${birthPlan.emergency_preferences ? `
-          <div class="section">
-            <h3>🚨 Preferências em Caso de Emergência</h3>
-            <p>${birthPlan.emergency_preferences}</p>
-          </div>
-          ` : ''}
           
           <div class="footer">
             <p>Este plano de parto foi criado com o MamaCare</p>
@@ -1373,10 +1590,31 @@ export default function BirthPlan() {
               <Textarea
                 id="religiousCultural"
                 value={formData.religiousCultural}
-                onChange={(e) => handleInputChange('religiousCultural', e.target.value)}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  handleInputChange('religiousCultural', e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  // Prevenir submit acidental ao pressionar Enter
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+                onFocus={(e) => {
+                  e.stopPropagation();
+                  console.log("📝 Textarea religiousCultural focado");
+                }}
+                onBlur={(e) => {
+                  e.stopPropagation();
+                  console.log("📝 Textarea religiousCultural perdeu foco");
+                  // IMPORTANTE: Não fazer nada no onBlur que possa disparar submit
+                }}
                 placeholder="Descreva práticas religiosas ou culturais que deseja incluir..."
                 className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                 rows={3}
+                autoFocus={false}
               />
             </div>
 
@@ -1385,10 +1623,31 @@ export default function BirthPlan() {
               <Textarea
                 id="specialRequests"
                 value={formData.specialRequests}
-                onChange={(e) => handleInputChange('specialRequests', e.target.value)}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  handleInputChange('specialRequests', e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  // Prevenir submit acidental ao pressionar Enter
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+                onFocus={(e) => {
+                  e.stopPropagation();
+                  console.log("📝 Textarea specialRequests focado");
+                }}
+                onBlur={(e) => {
+                  e.stopPropagation();
+                  console.log("📝 Textarea specialRequests perdeu foco");
+                  // IMPORTANTE: Não fazer nada no onBlur que possa disparar submit
+                }}
                 placeholder="Qualquer outra informação importante para sua equipe médica..."
                 className="border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                 rows={4}
+                autoFocus={false}
               />
             </div>
           </div>
@@ -1414,7 +1673,7 @@ export default function BirthPlan() {
                 if (viewMode === 'list') {
                   window.history.back();
                 } else {
-                  setViewMode('list');
+                  protectedSetViewMode('list', 'botão voltar');
                   setCurrentStep(1);
                 }
               }}
@@ -1438,7 +1697,7 @@ export default function BirthPlan() {
               <Button
                 onClick={() => {
                   resetForm();
-                  setViewMode('create');
+                  protectedSetViewMode('create', 'botão criar plano');
                 }}
                 className="absolute right-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
                 data-testid="button-create-plan"
@@ -1508,27 +1767,33 @@ export default function BirthPlan() {
                         Alívio da Dor
                       </h3>
                       <div className="pl-6 space-y-1">
-                        {birthPlan.pain_relief_natural && (
+                        {birthPlan.painReliefNatural && (
                           <p className="text-gray-600">✓ Métodos naturais</p>
                         )}
-                        {birthPlan.pain_relief_epidural && (
+                        {birthPlan.painReliefEpidural && (
                           <p className="text-gray-600">✓ Anestesia epidural</p>
                         )}
-                        {birthPlan.pain_relief_other && (
-                          <p className="text-gray-600">✓ {birthPlan.pain_relief_other}</p>
+                        {birthPlan.painReliefOther && (
+                          <p className="text-gray-600">✓ {birthPlan.painReliefOther}</p>
                         )}
                       </div>
                     </div>
 
-                    {birthPlan.special_requests && (
+                    {birthPlan.specialRequests && (
                       <div className="space-y-2">
                         <h3 className="font-semibold text-gray-700">Solicitações Especiais</h3>
-                        <p className="text-gray-600 pl-6">{birthPlan.special_requests}</p>
+                        <p className="text-gray-600 pl-6">{birthPlan.specialRequests}</p>
                       </div>
                     )}
 
                     <div className="text-sm text-gray-500 pt-4 border-t">
-                      Criado em: {new Date(birthPlan.created_at).toLocaleDateString('pt-BR')}
+                      Criado em: {birthPlan.createdAt 
+                        ? new Date(birthPlan.createdAt).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })
+                        : 'Data não disponível'}
                     </div>
                   </CardContent>
                 </Card>
@@ -1556,7 +1821,21 @@ export default function BirthPlan() {
           )}
 
           {(viewMode === 'create' || viewMode === 'edit') && (
-            <div className="space-y-6">
+            <div 
+              className="space-y-6"
+              onClick={(e) => {
+                // Prevenir qualquer clique que possa fechar o formulário
+                e.stopPropagation();
+              }}
+              onKeyDown={(e) => {
+                // Prevenir ESC na etapa 7 para evitar fechamento acidental
+                if (e.key === 'Escape' && currentStep === 7) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("⚠️ ESC bloqueado na etapa 7 para evitar fechamento acidental");
+                }
+              }}
+            >
               <Card className="bg-white/90 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
@@ -1581,7 +1860,69 @@ export default function BirthPlan() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form 
+                    onSubmit={(e) => {
+                      console.log("📋 Form onSubmit disparado - currentStep:", currentStep, "isStep7Ref:", isStep7Ref.current);
+                      console.trace("📋 Stack trace do onSubmit:");
+                      
+                      // PROTEÇÃO CRÍTICA: Bloquear qualquer submit que não seja explícito
+                      const submitter = (e.nativeEvent as SubmitEvent).submitter;
+                      console.log("📋 Form onSubmit - currentStep:", currentStep);
+                      console.log("📋 Submitter:", submitter);
+                      console.log("📋 Submitter type:", submitter?.getAttribute('type'));
+                      console.log("📋 Submitter data-explicit-submit:", submitter?.getAttribute('data-explicit-submit'));
+                      console.log("📋 Submitter tagName:", submitter?.tagName);
+                      console.log("📋 Submitter textContent:", submitter?.textContent);
+                      
+                      // BLOQUEAR TODOS os submits que não sejam da etapa 7 com botão "Salvar Plano"
+                      // O botão "Concluir" não deve submeter o form, ele chama handleConclude diretamente
+                      if (currentStep !== 7) {
+                        console.error("🚫🚫🚫 SUBMIT BLOQUEADO - não está na etapa 7!");
+                        console.error("🚫 currentStep:", currentStep);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                      }
+                      
+                      // PROTEÇÃO CRÍTICA: Na etapa 7, só permitir submit se foi clicado explicitamente no botão "Salvar Plano"
+                      // Verificar se o submitter é o botão correto com data-explicit-submit="true"
+                      const isExplicitSubmit = submitter && submitter.getAttribute('data-explicit-submit') === 'true';
+                      
+                      if (!isExplicitSubmit) {
+                        console.error("🚫🚫🚫 SUBMIT DO FORM BLOQUEADO na etapa 7 - não foi clicado no botão 'Salvar Plano'!");
+                        console.error("🚫 submitter:", submitter);
+                        console.error("🚫 isExplicitSubmit:", isExplicitSubmit);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toast({
+                          title: "⚠️ Atenção",
+                          description: "Clique no botão 'Salvar Plano' para salvar.",
+                          variant: "default",
+                        });
+                        return;
+                      }
+                      
+                      console.log("✅ Submit do form permitido na etapa 7 - botão 'Salvar Plano' clicado corretamente");
+                      handleSubmit(e);
+                    }}
+                    onKeyDown={(e) => {
+                      // Prevenir submit acidental ao pressionar Enter em qualquer lugar do form
+                      if (e.key === 'Enter' && e.target instanceof HTMLTextAreaElement) {
+                        // Permitir Enter em textareas (Shift+Enter para nova linha)
+                        return;
+                      }
+                      if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("⚠️ Enter bloqueado - não é botão");
+                      }
+                    }}
+                    onClick={(e) => {
+                      // Prevenir qualquer ação que possa fechar o formulário
+                      e.stopPropagation();
+                    }}
+                    className="space-y-6"
+                  >
                     {renderStep()}
 
                     <div className="flex gap-3 pt-6 border-t">
@@ -1606,10 +1947,38 @@ export default function BirthPlan() {
                           Próximo
                           <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>
-                      ) : (
+                      ) : null}
+
+                      {/* Botão Concluir - aparece apenas nas etapas 1-6 */}
+                      {currentStep < totalSteps && (
+                        <Button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log("✅ Botão Concluir clicado explicitamente");
+                            handleConclude();
+                          }}
+                          disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+                          className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                        >
+                          {(createPlanMutation.isPending || updatePlanMutation.isPending) 
+                            ? 'Salvando...' 
+                            : 'Concluir'}
+                        </Button>
+                      )}
+
+                      {currentStep === totalSteps && (
                         <Button
                           type="submit"
                           disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+                          data-explicit-submit="true"
+                          onClick={(e) => { 
+                            console.log("✅ Botão Salvar clicado na etapa 7");
+                            // Ativar allowCloseRef para permitir fechar após salvar
+                            allowCloseRef.current = true;
+                            e.stopPropagation(); 
+                          }}
                           className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 shadow-lg"
                         >
                           {(createPlanMutation.isPending || updatePlanMutation.isPending) 

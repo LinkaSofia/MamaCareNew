@@ -609,7 +609,13 @@ export default function Dashboard() {
           {/* Articles */}
           {articlesData && articlesData.articles && articlesData.articles.length > 0 && (
             <div className="grid grid-cols-1 gap-4">
-              {articlesData.articles.map((article, index) => (
+              {articlesData.articles
+                .filter((article) => {
+                  // Filtrar o card "Jornada da Gestação" de todas as semanas
+                  const title = article.title?.toLowerCase() || '';
+                  return !title.includes('jornada da gestação') && !title.includes('jornada da');
+                })
+                .map((article, index) => (
               <div 
                 key={article.id}
                   className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50"

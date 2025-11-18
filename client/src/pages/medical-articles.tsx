@@ -426,22 +426,6 @@ export default function MedicalArticles() {
               {expandedCategories.has(category.name) && (
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    {/* Subcategorias */}
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-pink-500" />
-                        Subcategorias
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {Object.entries(category.subcategories).map(([key, name]) => (
-                          <div key={key} className="flex items-center gap-2 text-sm text-gray-700 bg-gradient-to-r from-pink-50 to-purple-50 p-3 rounded-lg">
-                            <div className="w-2 h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
-                            {name}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
                     {/* Artigos */}
                     <div>
                       <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">

@@ -605,45 +605,100 @@ export class DatabaseStorage implements IStorage {
   async createOrUpdateBirthPlan(birthPlan: InsertBirthPlan): Promise<BirthPlan> {
     const existing = await this.getBirthPlan(birthPlan.pregnancyId);
     
+    console.log("💾 createOrUpdateBirthPlan - Dados recebidos:", JSON.stringify(birthPlan, null, 2));
+    
+    // Preparar todos os campos do schema - garantir que undefined vire null
+    const updateData: any = {
+      pregnancyId: birthPlan.pregnancyId,
+      location: birthPlan.location ?? null,
+      companions: birthPlan.companions ?? null,
+      doctorPreference: birthPlan.doctorPreference ?? null,
+      lighting: birthPlan.lighting ?? null,
+      music: birthPlan.music ?? null,
+      movement: birthPlan.movement ?? null,
+      painReliefNatural: birthPlan.painReliefNatural ?? null,
+      painReliefEpidural: birthPlan.painReliefEpidural ?? null,
+      painReliefOther: birthPlan.painReliefOther ?? null,
+      laborPosition: birthPlan.laborPosition ?? null,
+      monitoring: birthPlan.monitoring ?? null,
+      hydrationFood: birthPlan.hydrationFood ?? null,
+      deliveryType: birthPlan.deliveryType ?? null,
+      episiotomy: birthPlan.episiotomy ?? null,
+      umbilicalCord: birthPlan.umbilicalCord ?? null,
+      skinToSkin: birthPlan.skinToSkin ?? null,
+      breastfeeding: birthPlan.breastfeeding ?? null,
+      babyBath: birthPlan.babyBath ?? null,
+      companionPresence: birthPlan.companionPresence ?? null,
+      photos: birthPlan.photos ?? null,
+      religiousCultural: birthPlan.religiousCultural ?? null,
+      specialRequests: birthPlan.specialRequests ?? null,
+      updatedAt: new Date(),
+    };
+    
+    console.log("💾 Dados preparados para inserção/atualização:", JSON.stringify(updateData, null, 2));
+    
     if (existing) {
       const [updated] = await db.update(birthPlans)
-        .set({ 
-          pregnancyId: birthPlan.pregnancyId,
-          location: birthPlan.location,
-          painRelief: birthPlan.painRelief as any,
-          companions: birthPlan.companions,
-          specialRequests: birthPlan.specialRequests,
-          preferences: birthPlan.preferences,
-        })
+        .set(updateData)
         .where(eq(birthPlans.id, existing.id))
         .returning();
+      console.log("✅ Birth plan atualizado:", updated.id);
       return updated;
     } else {
       const [created] = await db.insert(birthPlans).values({
-        pregnancyId: birthPlan.pregnancyId,
-        location: birthPlan.location,
-        painRelief: birthPlan.painRelief as any,
-        companions: birthPlan.companions,
-        specialRequests: birthPlan.specialRequests,
-        preferences: birthPlan.preferences,
+        ...updateData,
         id: randomUUID(),
+        createdAt: new Date(),
       }).returning();
+      console.log("✅ Birth plan criado:", created.id);
       return created;
     }
   }
 
   async updateBirthPlan(id: string, birthPlan: InsertBirthPlan): Promise<BirthPlan> {
+    console.log("💾 updateBirthPlan - Dados recebidos:", JSON.stringify(birthPlan, null, 2));
+    
+    // Preparar todos os campos - garantir que undefined vire null
+    const updateData: any = {
+      pregnancyId: birthPlan.pregnancyId,
+      location: birthPlan.location ?? null,
+      companions: birthPlan.companions ?? null,
+      doctorPreference: birthPlan.doctorPreference ?? null,
+      lighting: birthPlan.lighting ?? null,
+      music: birthPlan.music ?? null,
+      movement: birthPlan.movement ?? null,
+      painReliefNatural: birthPlan.painReliefNatural ?? null,
+      painReliefEpidural: birthPlan.painReliefEpidural ?? null,
+      painReliefOther: birthPlan.painReliefOther ?? null,
+      laborPosition: birthPlan.laborPosition ?? null,
+      monitoring: birthPlan.monitoring ?? null,
+      hydrationFood: birthPlan.hydrationFood ?? null,
+      deliveryType: birthPlan.deliveryType ?? null,
+      episiotomy: birthPlan.episiotomy ?? null,
+      umbilicalCord: birthPlan.umbilicalCord ?? null,
+      skinToSkin: birthPlan.skinToSkin ?? null,
+      breastfeeding: birthPlan.breastfeeding ?? null,
+      babyBath: birthPlan.babyBath ?? null,
+      companionPresence: birthPlan.companionPresence ?? null,
+      photos: birthPlan.photos ?? null,
+      religiousCultural: birthPlan.religiousCultural ?? null,
+      specialRequests: birthPlan.specialRequests ?? null,
+      updatedAt: new Date(),
+    };
+    
+    console.log("💾 Dados preparados para atualização:", JSON.stringify(updateData, null, 2));
+    
     const [updated] = await db.update(birthPlans)
-      .set({
-        pregnancyId: birthPlan.pregnancyId,
-        location: birthPlan.location,
-        painRelief: birthPlan.painRelief as any,
-        companions: birthPlan.companions,
-        specialRequests: birthPlan.specialRequests,
-        preferences: birthPlan.preferences,
-      })
+      .set(updateData)
       .where(eq(birthPlans.id, id))
       .returning();
+    console.log("✅ Birth plan atualizado (por ID):", updated.id);
+    console.log("✅ Dados após atualização:", {
+      doctorPreference: updated.doctorPreference,
+      lighting: updated.lighting,
+      music: updated.music,
+      location: updated.location,
+    });
     return updated;
   }
 

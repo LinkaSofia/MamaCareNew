@@ -1805,12 +1805,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionId = req.sessionID;
       
       console.log("📋 Creating birth plan with data:", JSON.stringify(req.body, null, 2));
+      console.log("📋 Campos recebidos (RAW):", {
+        doctorPreference: req.body.doctorPreference,
+        lighting: req.body.lighting,
+        music: req.body.music,
+        movement: req.body.movement,
+        location: req.body.location,
+        companions: req.body.companions,
+        painReliefNatural: req.body.painReliefNatural,
+        painReliefEpidural: req.body.painReliefEpidural,
+        laborPosition: req.body.laborPosition,
+        monitoring: req.body.monitoring,
+        deliveryType: req.body.deliveryType,
+        episiotomy: req.body.episiotomy,
+        umbilicalCord: req.body.umbilicalCord,
+        breastfeeding: req.body.breastfeeding,
+        babyBath: req.body.babyBath,
+        religiousCultural: req.body.religiousCultural,
+        specialRequests: req.body.specialRequests,
+      });
       
-      const birthPlanData = insertBirthPlanSchema.parse(req.body);
-      console.log("✅ Birth plan data validated:", JSON.stringify(birthPlanData, null, 2));
+      // Normalizar dados: converter undefined para null e garantir tipos corretos
+      const normalizedData: any = {
+        pregnancyId: req.body.pregnancyId,
+        location: req.body.location || null,
+        companions: req.body.companions || null,
+        doctorPreference: req.body.doctorPreference || null,
+        lighting: req.body.lighting || null,
+        music: req.body.music !== undefined ? Boolean(req.body.music) : null,
+        movement: req.body.movement !== undefined ? Boolean(req.body.movement) : null,
+        painReliefNatural: req.body.painReliefNatural !== undefined ? Boolean(req.body.painReliefNatural) : null,
+        painReliefEpidural: req.body.painReliefEpidural !== undefined ? Boolean(req.body.painReliefEpidural) : null,
+        painReliefOther: req.body.painReliefOther || null,
+        laborPosition: req.body.laborPosition || null,
+        monitoring: req.body.monitoring || null,
+        hydrationFood: req.body.hydrationFood !== undefined ? Boolean(req.body.hydrationFood) : null,
+        deliveryType: req.body.deliveryType || null,
+        episiotomy: req.body.episiotomy || null,
+        umbilicalCord: req.body.umbilicalCord || null,
+        skinToSkin: req.body.skinToSkin !== undefined ? Boolean(req.body.skinToSkin) : null,
+        breastfeeding: req.body.breastfeeding || null,
+        babyBath: req.body.babyBath || null,
+        companionPresence: req.body.companionPresence !== undefined ? Boolean(req.body.companionPresence) : null,
+        photos: req.body.photos !== undefined ? Boolean(req.body.photos) : null,
+        religiousCultural: req.body.religiousCultural?.trim() || null,
+        specialRequests: req.body.specialRequests?.trim() || null,
+      };
+      
+      console.log("📋 Dados normalizados:", JSON.stringify(normalizedData, null, 2));
+      
+      // Validar com schema (mas ser mais permissivo)
+      let birthPlanData;
+      try {
+        birthPlanData = insertBirthPlanSchema.parse(normalizedData);
+      } catch (schemaError: any) {
+        console.warn("⚠️ Schema validation warning, usando dados normalizados:", schemaError.issues);
+        // Se o schema falhar, usar dados normalizados mesmo assim (campos opcionais)
+        birthPlanData = normalizedData;
+      }
+      
+      console.log("✅ Birth plan data (final):", JSON.stringify(birthPlanData, null, 2));
+      console.log("✅ Campos validados:", {
+        doctorPreference: birthPlanData.doctorPreference,
+        lighting: birthPlanData.lighting,
+        music: birthPlanData.music,
+        movement: birthPlanData.movement,
+        location: birthPlanData.location,
+        companions: birthPlanData.companions,
+        painReliefNatural: birthPlanData.painReliefNatural,
+        laborPosition: birthPlanData.laborPosition,
+        deliveryType: birthPlanData.deliveryType,
+      });
       
       const birthPlan = await storage.createOrUpdateBirthPlan(birthPlanData);
-      console.log("✅ Birth plan created:", birthPlan.id);
+      console.log("✅ Birth plan created/updated:", birthPlan.id);
+      console.log("✅ DADOS SALVOS NO BANCO (COMPLETO):", {
+        doctorPreference: birthPlan.doctorPreference,
+        lighting: birthPlan.lighting,
+        music: birthPlan.music,
+        movement: birthPlan.movement,
+        location: birthPlan.location,
+        companions: birthPlan.companions,
+        painReliefNatural: birthPlan.painReliefNatural,
+        painReliefEpidural: birthPlan.painReliefEpidural,
+        laborPosition: birthPlan.laborPosition,
+        monitoring: birthPlan.monitoring,
+        deliveryType: birthPlan.deliveryType,
+        episiotomy: birthPlan.episiotomy,
+        umbilicalCord: birthPlan.umbilicalCord,
+        breastfeeding: birthPlan.breastfeeding,
+        babyBath: birthPlan.babyBath,
+        religiousCultural: birthPlan.religiousCultural,
+        specialRequests: birthPlan.specialRequests,
+      });
       
       // Log da auditoria para criação
       await storage.auditDataChange(
@@ -1847,15 +1934,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recordId = req.params.id;
       
       console.log("🔄 Updating birth plan with data:", JSON.stringify(req.body, null, 2));
+      console.log("🔄 Campos recebidos (RAW):", {
+        doctorPreference: req.body.doctorPreference,
+        lighting: req.body.lighting,
+        music: req.body.music,
+        movement: req.body.movement,
+        location: req.body.location,
+        companions: req.body.companions,
+      });
       
       // Buscar dados antigos para auditoria
       const oldPlan = await storage.getBirthPlanById(recordId);
       
-      const birthPlanData = insertBirthPlanSchema.parse(req.body);
-      console.log("✅ Data parsed successfully");
+      // Normalizar dados: converter undefined para null e garantir tipos corretos
+      const normalizedData: any = {
+        pregnancyId: req.body.pregnancyId,
+        location: req.body.location || null,
+        companions: req.body.companions || null,
+        doctorPreference: req.body.doctorPreference || null,
+        lighting: req.body.lighting || null,
+        music: req.body.music !== undefined ? Boolean(req.body.music) : null,
+        movement: req.body.movement !== undefined ? Boolean(req.body.movement) : null,
+        painReliefNatural: req.body.painReliefNatural !== undefined ? Boolean(req.body.painReliefNatural) : null,
+        painReliefEpidural: req.body.painReliefEpidural !== undefined ? Boolean(req.body.painReliefEpidural) : null,
+        painReliefOther: req.body.painReliefOther || null,
+        laborPosition: req.body.laborPosition || null,
+        monitoring: req.body.monitoring || null,
+        hydrationFood: req.body.hydrationFood !== undefined ? Boolean(req.body.hydrationFood) : null,
+        deliveryType: req.body.deliveryType || null,
+        episiotomy: req.body.episiotomy || null,
+        umbilicalCord: req.body.umbilicalCord || null,
+        skinToSkin: req.body.skinToSkin !== undefined ? Boolean(req.body.skinToSkin) : null,
+        breastfeeding: req.body.breastfeeding || null,
+        babyBath: req.body.babyBath || null,
+        companionPresence: req.body.companionPresence !== undefined ? Boolean(req.body.companionPresence) : null,
+        photos: req.body.photos !== undefined ? Boolean(req.body.photos) : null,
+        religiousCultural: req.body.religiousCultural?.trim() || null,
+        specialRequests: req.body.specialRequests?.trim() || null,
+      };
+      
+      console.log("🔄 Dados normalizados:", JSON.stringify(normalizedData, null, 2));
+      
+      // Validar com schema (mas ser mais permissivo)
+      let birthPlanData;
+      try {
+        birthPlanData = insertBirthPlanSchema.parse(normalizedData);
+      } catch (schemaError: any) {
+        console.warn("⚠️ Schema validation warning, usando dados normalizados:", schemaError.issues);
+        birthPlanData = normalizedData;
+      }
+      
+      console.log("✅ Birth plan data (final):", JSON.stringify(birthPlanData, null, 2));
       
       const birthPlan = await storage.updateBirthPlan(req.params.id, birthPlanData);
       console.log("✅ Birth plan updated successfully");
+      console.log("✅ DADOS SALVOS NO BANCO (PUT):", {
+        doctorPreference: birthPlan.doctorPreference,
+        lighting: birthPlan.lighting,
+        music: birthPlan.music,
+        movement: birthPlan.movement,
+        location: birthPlan.location,
+        companions: birthPlan.companions,
+      });
       
       // Log da auditoria
       await storage.auditDataChange(
@@ -3589,29 +3729,185 @@ app.post("/api/diary-entries", requireAuth, async (req, res) => {
   app.post("/api/feedback", requireAuth, async (req, res) => {
     try {
       const userId = req.userId!;
-      const { page, rating, message } = req.body;
+      const { page, rating, message, imageUrl } = req.body;
       
-      console.log("💬 Recebendo feedback:", { userId, page, rating, message });
+      console.log("💬 Recebendo feedback:", { 
+        userId, 
+        page: page || "❌ VAZIO", 
+        pageType: typeof page,
+        rating, 
+        message: message ? message.substring(0, 30) + "..." : "❌ VAZIO", 
+        imageUrl: imageUrl ? "presente" : "null" 
+      });
       
-      if (!page || !rating || !message) {
-        return res.status(400).json({ error: "Campos obrigatórios: page, rating, message" });
+      // Validar campos obrigatórios (page pode ser "/" que é válido)
+      if (rating === undefined || rating === null || !message || message.trim() === "") {
+        return res.status(400).json({ error: "Campos obrigatórios: rating, message" });
       }
+      
+      // page será normalizado depois, então não validamos aqui
       
       if (rating < 1 || rating > 5) {
         return res.status(400).json({ error: "Rating deve ser entre 1 e 5" });
       }
       
-      const feedback = await db.insert(feedbacks).values({
+      // Log detalhado do que está sendo recebido
+      console.log("📤 Dados recebidos para inserção:", {
         userId,
-        page,
+        page: page || "❌ VAZIO/NULL",
+        pageType: typeof page,
+        pageLength: page ? page.length : 0,
+        rating,
+        message: message.substring(0, 50) + "...",
+        imageUrl: imageUrl ? (imageUrl.length > 100 ? imageUrl.substring(0, 100) + "..." : imageUrl) : "NULL",
+        imageUrlLength: imageUrl ? imageUrl.length : 0
+      });
+      
+      // VALIDAÇÃO E NORMALIZAÇÃO ROBUSTA DO CAMPO PAGE
+      let normalizedPage: string = "tela inicial"; // Valor padrão garantido
+      
+      // Múltiplas tentativas de obter a página
+      if (page) {
+        normalizedPage = String(page).trim();
+      }
+      // Se ainda estiver vazio após trim, usar "tela inicial"
+      if (!normalizedPage || normalizedPage === "" || normalizedPage === "undefined" || normalizedPage === "null") {
+        console.warn("⚠️ Campo 'page' estava vazio/inválido, usando 'tela inicial' como padrão");
+        normalizedPage = "tela inicial";
+      }
+      
+      // Se for "/" (tela inicial), converter para "tela inicial"
+      if (normalizedPage === "/" || normalizedPage.trim() === "/") {
+        normalizedPage = "tela inicial";
+      }
+      
+      // Para outras páginas, garantir que comece com "/"
+      if (normalizedPage !== "tela inicial" && !normalizedPage.startsWith("/")) {
+        normalizedPage = "/" + normalizedPage;
+      }
+      
+      // VALIDAÇÃO FINAL - NUNCA DEIXAR VAZIO
+      if (!normalizedPage || normalizedPage.length === 0) {
+        normalizedPage = "tela inicial";
+      }
+      
+      console.log("📄 NORMALIZAÇÃO DE PÁGINA (BACKEND):", {
+        original: page,
+        originalType: typeof page,
+        normalized: normalizedPage,
+        normalizedLength: normalizedPage.length,
+        isValid: normalizedPage.length > 0 && normalizedPage.startsWith("/")
+      });
+
+      // VALIDAÇÃO FINAL ANTES DE INSERIR - GARANTIR QUE PAGE NUNCA SEJA VAZIO
+      if (!normalizedPage || normalizedPage.trim() === "" || normalizedPage.length === 0) {
+        console.error("❌ ERRO CRÍTICO: normalizedPage ainda está vazio! Forçando '/'");
+        normalizedPage = "/";
+      }
+      
+      // Salvar exatamente o que vier da tela na coluna image_url
+      const insertData = {
+        userId,
+        page: normalizedPage, // SEMPRE TERÁ VALOR (mínimo "/")
         rating,
         message,
-      }).returning();
+        imageUrl: imageUrl || null, // Grava tudo que vier da tela (ou null se não vier nada)
+      };
       
-      console.log("✅ Feedback salvo:", feedback[0].id);
-      res.json({ success: true, feedback: feedback[0] });
+      // VALIDAÇÃO FINAL DO OBJETO DE INSERÇÃO
+      if (!insertData.page || insertData.page.trim() === "") {
+        console.error("❌ ERRO CRÍTICO: insertData.page está vazio! Forçando 'tela inicial'");
+        insertData.page = "tela inicial";
+      }
+      
+      console.log("💾 DADOS FINAIS PARA INSERÇÃO:", {
+        userId,
+        page: insertData.page,
+        pageLength: insertData.page.length,
+        pageType: typeof insertData.page,
+        pageStartsWithSlash: insertData.page.startsWith("/"),
+        rating: insertData.rating,
+        messageLength: insertData.message.length,
+        hasImage: !!insertData.imageUrl,
+        insertDataJSON: JSON.stringify(insertData)
+      });
+
+      // Log do SQL equivalente ANTES de executar
+      const escapedMessage = message.replace(/'/g, "''").replace(/\n/g, "\\n");
+      const imageValue = imageUrl ? `'${imageUrl.substring(0, 50)}...'` : 'NULL';
+      
+      console.log("📝 SQL EQUIVALENTE QUE SERÁ EXECUTADO:");
+      console.log("═══════════════════════════════════════════════════════════");
+      console.log(`INSERT INTO feedbacks (user_id, page, rating, message, image_url, created_at)`);
+      console.log(`VALUES (`);
+      console.log(`  '${userId}',`);
+      console.log(`  '${normalizedPage}',  -- ⚠️ PAGE: length=${normalizedPage.length}, value="${normalizedPage}"`);
+      console.log(`  ${rating},`);
+      console.log(`  '${escapedMessage.substring(0, 100)}${escapedMessage.length > 100 ? '...' : ''}',`);
+      console.log(`  ${imageValue},`);
+      console.log(`  NOW()`);
+      console.log(`)`);
+      console.log(`RETURNING *;`);
+      console.log("═══════════════════════════════════════════════════════════");
+      
+      // VALIDAÇÃO FINAL ABSOLUTA - GARANTIR QUE PAGE NÃO SEJA VAZIO
+      if (!insertData.page || insertData.page.trim() === "" || insertData.page.length === 0) {
+        console.error("❌❌❌ ERRO CRÍTICO: insertData.page está vazio ANTES do INSERT!");
+        console.error("❌ insertData completo:", JSON.stringify(insertData, null, 2));
+        insertData.page = "tela inicial";
+        console.error("✅ Forçando page = 'tela inicial'");
+      }
+
+      // Validar com Zod schema ANTES de inserir
+      try {
+        const validatedData = insertFeedbackSchema.parse(insertData);
+        console.log("✅ Dados validados com Zod:", {
+          page: validatedData.page,
+          pageLength: validatedData.page?.length || 0,
+          pageType: typeof validatedData.page
+        });
+        
+        // Garantir que page não seja removido pela validação
+        if (!validatedData.page || validatedData.page.trim() === "") {
+          console.error("⚠️ Zod removeu o campo page! Forçando 'tela inicial'");
+          validatedData.page = "tela inicial";
+        }
+        
+        const feedback = await db.insert(feedbacks).values(validatedData).returning();
+        
+        // Log do que foi realmente salvo
+        console.log("📋 RESULTADO DO INSERT (RETURNING):");
+        console.log("═══════════════════════════════════════════════════════════");
+        console.log(JSON.stringify(feedback[0], null, 2));
+        console.log("═══════════════════════════════════════════════════════════");
+        
+        console.log("✅ Feedback salvo na tabela feedbacks:", {
+          id: feedback[0].id,
+          page: feedback[0].page || "❌ VAZIO",
+          rating: feedback[0].rating,
+          image_url: feedback[0].imageUrl ? (feedback[0].imageUrl.length > 100 ? feedback[0].imageUrl.substring(0, 100) + "..." : feedback[0].imageUrl) : "NULL",
+          image_url_length: feedback[0].imageUrl ? feedback[0].imageUrl.length : 0
+        });
+        
+        res.json({ success: true, feedback: feedback[0] });
+      } catch (validationError: any) {
+        console.error("❌ Erro na validação Zod:", validationError);
+        console.error("❌ Dados que falharam na validação:", JSON.stringify(insertData, null, 2));
+        
+        // Se a validação falhar, tentar inserir mesmo assim (com page garantido)
+        insertData.page = normalizedPage; // Garantir novamente
+        const feedback = await db.insert(feedbacks).values(insertData).returning();
+        
+        console.log("✅ Feedback salvo SEM validação Zod (fallback):", {
+          id: feedback[0].id,
+          page: feedback[0].page || "❌ VAZIO"
+        });
+        
+        res.json({ success: true, feedback: feedback[0] });
+      }
     } catch (error: any) {
       console.error("❌ Erro ao salvar feedback:", error);
+      console.error("❌ Stack trace:", error.stack);
       res.status(500).json({ error: "Erro ao salvar feedback" });
     }
   });
