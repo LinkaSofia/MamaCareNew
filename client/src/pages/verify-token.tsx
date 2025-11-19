@@ -239,12 +239,13 @@ export default function VerifyTokenPage() {
           </Form>
 
           <div className="text-center">
-            <Link href="/reset-password">
-              <button className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600 transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-                Voltar para solicitar código
-              </button>
-            </Link>
+            <button 
+              onClick={() => setLocation('/login')}
+              className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar para o login
+            </button>
           </div>
         </CardContent>
       </Card>

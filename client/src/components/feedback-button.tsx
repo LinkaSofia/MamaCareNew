@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,32 @@ export function FeedbackButton() {
   const [location] = useLocation();
   const { toast } = useToast();
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [hasModalOpen, setHasModalOpen] = useState(false);
+
+  // Verificar se há modais abertos
+  useEffect(() => {
+    const checkModals = () => {
+      const modals = document.querySelectorAll(
+        '[class*="z-50"], [style*="z-index: 50"], [style*="z-index:50"], [class*="fixed"][class*="inset-0"]'
+      );
+      setHasModalOpen(modals.length > 0 && !isOpen); // Não ocultar se for o próprio modal de feedback
+    };
+
+    // Verificar inicialmente
+    checkModals();
+
+    // Verificar periodicamente
+    const interval = setInterval(checkModals, 100);
+
+    // Observar mudanças no DOM
+    const observer = new MutationObserver(checkModals);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+
+    return () => {
+      clearInterval(interval);
+      observer.disconnect();
+    };
+  }, [isOpen]);
 
   // Capturar página atual quando abrir o modal
   const handleOpen = () => {
@@ -239,18 +265,23 @@ export function FeedbackButton() {
     }
   };
 
+  // Não mostrar o botão de feedback na tela de login
+  if (location === '/login' || location === '/reset-password' || location === '/forgot-password' || location?.includes('/verify')) {
+    return null;
+  }
+
   return (
     <>
-      {/* Botão flutuante fixo no canto inferior direito - z-index baixo para ficar atrás dos modais */}
+      {/* Botão flutuante fixo no canto inferior direito - z-index alto quando não há modais, oculto quando há modais */}
       <button
         onClick={handleOpen}
-        className="fixed bottom-24 right-6 z-30 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group"
+        className={`fixed bottom-24 right-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group ${
+          hasModalOpen ? 'hidden' : ''
+        }`}
         aria-label="Enviar feedback"
+        style={{ zIndex: hasModalOpen ? 1 : 40 }}
       >
         <MessageSquare className="h-6 w-6 group-hover:rotate-12 transition-transform" />
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-          !
-        </span>
       </button>
 
       {/* Modal de feedback - seguindo padrão dos outros modais */}

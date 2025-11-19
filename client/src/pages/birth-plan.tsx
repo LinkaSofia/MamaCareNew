@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Plus, FileText, Calendar, Edit, Trash2, Download, Eye, Heart, MapPin, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, Calendar, Edit, Trash2, Download, Eye, Heart, MapPin, Users, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
 import BottomNavigation from '@/components/layout/bottom-navigation';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -655,7 +655,7 @@ export default function BirthPlan() {
           
           <div class="section">
             <h3>🤰 Durante o Trabalho de Parto</h3>
-            <p><strong>Posição:</strong> ${birthPlan.laborPosition ? (birthPlan.laborPosition === 'free' ? 'Livre' : birthPlan.laborPosition === 'squatting' ? 'Agachada' : birthPlan.laborPosition === 'side' ? 'De lado' : birthPlan.laborPosition) : 'Não informado'}</p>
+            <p><strong>Posição:</strong> ${birthPlan.laborPosition ? (birthPlan.laborPosition === 'free' ? 'Liberdade para escolher' : birthPlan.laborPosition === 'standing' ? 'De pé/caminhando' : birthPlan.laborPosition === 'lying' ? 'Deitada' : birthPlan.laborPosition === 'squatting' ? 'Agachada' : birthPlan.laborPosition === 'side' ? 'De lado' : birthPlan.laborPosition) : 'Não informado'}</p>
             <p><strong>Monitoramento:</strong> ${birthPlan.monitoring ? (birthPlan.monitoring === 'intermittent' ? 'Intermitente' : birthPlan.monitoring === 'continuous' ? 'Contínuo' : birthPlan.monitoring) : 'Não informado'}</p>
             <p><strong>Hidratação/Alimentação:</strong> ${birthPlan.hydrationFood ? 'Sim' : birthPlan.hydrationFood === false ? 'Não' : 'Não informado'}</p>
           </div>
@@ -703,11 +703,6 @@ export default function BirthPlan() {
         link.target = '_blank';
         link.click();
         URL.revokeObjectURL(url);
-        
-        toast({
-          title: "📄 Plano de Parto Aberto",
-          description: "Use o botão de compartilhar do navegador para imprimir ou salvar.",
-        });
         
         return;
       }
@@ -1692,19 +1687,6 @@ export default function BirthPlan() {
               </p>
             </div>
             
-            {/* Botão adicionar - posição absoluta à direita */}
-            {viewMode === 'list' && !birthPlan && (
-              <Button
-                onClick={() => {
-                  resetForm();
-                  protectedSetViewMode('create', 'botão criar plano');
-                }}
-                className="absolute right-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:from-purple-600 hover:to-pink-600"
-                data-testid="button-create-plan"
-              >
-                <Plus className="w-5 h-5 text-white" />
-              </Button>
-            )}
           </div>
 
           {/* Conditional rendering based on viewMode */}
@@ -1837,10 +1819,31 @@ export default function BirthPlan() {
               }}
             >
               <Card className="bg-white/90 backdrop-blur-sm border border-white/20 rounded-3xl shadow-xl">
-                <CardHeader>
+                <CardHeader className="relative">
                   <CardTitle className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
                     {viewMode === 'create' ? 'Criar Plano de Parto' : 'Editar Plano de Parto'}
                   </CardTitle>
+                  {/* Botão Concluir como ícone no canto superior direito */}
+                  {currentStep < totalSteps && (
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("✅ Botão Concluir clicado explicitamente");
+                        handleConclude();
+                      }}
+                      disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+                      className="absolute top-4 right-4 h-10 w-10 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 shadow-lg flex items-center justify-center p-0"
+                      title="Concluir"
+                    >
+                      {(createPlanMutation.isPending || updatePlanMutation.isPending) ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <Check className="w-5 h-5 text-white" />
+                      )}
+                    </Button>
+                  )}
                   <div className="flex items-center justify-between pt-4">
                     <p className="text-sm text-gray-600">
                       Etapa {currentStep} de {totalSteps}
@@ -1948,25 +1951,6 @@ export default function BirthPlan() {
                           <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>
                       ) : null}
-
-                      {/* Botão Concluir - aparece apenas nas etapas 1-6 */}
-                      {currentStep < totalSteps && (
-                        <Button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log("✅ Botão Concluir clicado explicitamente");
-                            handleConclude();
-                          }}
-                          disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
-                          className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-                        >
-                          {(createPlanMutation.isPending || updatePlanMutation.isPending) 
-                            ? 'Salvando...' 
-                            : 'Concluir'}
-                        </Button>
-                      )}
 
                       {currentStep === totalSteps && (
                         <Button

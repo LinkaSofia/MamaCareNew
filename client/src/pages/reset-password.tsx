@@ -354,9 +354,7 @@ export default function ResetPassword() {
       <TokenReset 
         email={sentEmail}
         onBack={() => {
-          setShowTokenReset(false);
-          setSentEmail("");
-          setEmailMessage("");
+          setLocation('/login');
         }}
       />
     );

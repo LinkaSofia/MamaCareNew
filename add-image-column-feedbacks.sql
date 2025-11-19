@@ -12,3 +12,4 @@ WHERE table_name = 'feedbacks'
 ORDER BY ordinal_position;
 
 
+
