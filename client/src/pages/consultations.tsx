@@ -551,18 +551,20 @@ export default function Consultations() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="w-full">
+                  <div className="w-full min-w-0">
                     <Label htmlFor="date" className="text-charcoal font-medium">
                       Data *
                     </Label>
-                    <DatePicker
-                      key={editingId || 'new'} // Força recriação quando muda entre novo/edição
-                      value={formData.date}
-                      onChange={(value) => setFormData({ ...formData, date: value })}
-                      placeholder="Selecione a data"
-                    />
+                    <div className="mt-1">
+                      <DatePicker
+                        key={editingId || 'new'} // Força recriação quando muda entre novo/edição
+                        value={formData.date}
+                        onChange={(value) => setFormData({ ...formData, date: value })}
+                        placeholder="Selecione a data"
+                      />
+                    </div>
                   </div>
-                  <div className="w-full">
+                  <div className="w-full min-w-0">
                     <Label htmlFor="time" className="text-charcoal font-medium">
                       Horário *
                     </Label>
