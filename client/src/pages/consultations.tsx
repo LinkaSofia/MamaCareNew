@@ -551,7 +551,7 @@ export default function Consultations() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div className="w-full">
                     <Label htmlFor="date" className="text-charcoal font-medium">
                       Data *
                     </Label>
@@ -562,7 +562,7 @@ export default function Consultations() {
                       placeholder="Selecione a data"
                     />
                   </div>
-                  <div>
+                  <div className="w-full">
                     <Label htmlFor="time" className="text-charcoal font-medium">
                       Horário *
                     </Label>
@@ -571,7 +571,7 @@ export default function Consultations() {
                       id="time"
                       value={formData.time}
                       onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                      className="mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                      className="w-full mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
                       required
                     />
                   </div>

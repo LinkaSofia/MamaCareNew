@@ -78,7 +78,7 @@ export function DatePicker({
           <CalendarIcon className="mr-2 h-4 w-4 text-pink-500 flex-shrink-0" />
           <span className="truncate">
             {date ? (
-              format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+              format(date, "dd/MM/yyyy", { locale: ptBR })
             ) : (
               placeholder
             )}
