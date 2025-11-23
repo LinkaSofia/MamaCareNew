@@ -551,11 +551,11 @@ export default function Consultations() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="w-full min-w-0">
+                  <div className="w-full min-w-0 overflow-hidden">
                     <Label htmlFor="date" className="text-charcoal font-medium">
                       Data *
                     </Label>
-                    <div className="mt-1">
+                    <div className="mt-1 w-full">
                       <DatePicker
                         key={editingId || 'new'} // Força recriação quando muda entre novo/edição
                         value={formData.date}
@@ -564,7 +564,7 @@ export default function Consultations() {
                       />
                     </div>
                   </div>
-                  <div className="w-full min-w-0">
+                  <div className="w-full min-w-0 overflow-hidden">
                     <Label htmlFor="time" className="text-charcoal font-medium">
                       Horário *
                     </Label>

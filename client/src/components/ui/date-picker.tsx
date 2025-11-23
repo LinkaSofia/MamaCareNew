@@ -67,7 +67,7 @@ export function DatePicker({
         <Button
           variant={"outline"}
           className={cn(
-            "w-full justify-start text-left font-normal h-10",
+            "w-full max-w-full justify-start text-left font-normal h-10",
             "border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark",
             "hover:bg-pink-50 hover:border-pink-300",
             !date && "text-muted-foreground",
@@ -76,7 +76,7 @@ export function DatePicker({
           disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-pink-500 flex-shrink-0" />
-          <span className="truncate">
+          <span className="truncate flex-1 min-w-0">
             {date ? (
               format(date, "dd/MM/yyyy", { locale: ptBR })
             ) : (
