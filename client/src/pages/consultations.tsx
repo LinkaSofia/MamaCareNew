@@ -550,33 +550,32 @@ export default function Consultations() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="w-full min-w-0 overflow-hidden">
-                    <Label htmlFor="date" className="text-charcoal font-medium">
-                      Data *
-                    </Label>
-                    <div className="mt-1 w-full">
-                      <DatePicker
-                        key={editingId || 'new'} // Força recriação quando muda entre novo/edição
-                        value={formData.date}
-                        onChange={(value) => setFormData({ ...formData, date: value })}
-                        placeholder="Selecione a data"
-                      />
-                    </div>
-                  </div>
-                  <div className="w-full min-w-0 overflow-hidden">
-                    <Label htmlFor="time" className="text-charcoal font-medium">
-                      Horário *
-                    </Label>
-                    <Input
-                      type="time"
-                      id="time"
-                      value={formData.time}
-                      onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                      className="w-full mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
-                      required
+                <div>
+                  <Label htmlFor="date" className="text-charcoal font-medium">
+                    Data *
+                  </Label>
+                  <div className="mt-1">
+                    <DatePicker
+                      key={editingId || 'new'} // Força recriação quando muda entre novo/edição
+                      value={formData.date}
+                      onChange={(value) => setFormData({ ...formData, date: value })}
+                      placeholder="Selecione a data"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="time" className="text-charcoal font-medium">
+                    Horário *
+                  </Label>
+                  <Input
+                    type="time"
+                    id="time"
+                    value={formData.time}
+                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    className="mt-1 border-pink-200 focus:ring-2 focus:ring-baby-pink focus:border-baby-pink-dark"
+                    required
+                  />
                 </div>
 
                 <div>
